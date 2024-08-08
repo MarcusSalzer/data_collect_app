@@ -1,10 +1,17 @@
+import 'package:data_collector_app/dataset_index_provider.dart';
 import 'package:data_collector_app/screens/input_screen_single.dart';
 import 'package:data_collector_app/screens/datasets_screen.dart';
 import 'package:data_collector_app/screens/settings_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (BuildContext context) => DatasetIndexProvider()..loadDatasetIndex(),
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -39,7 +46,21 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int selectedPage = 0;
+  static final List<Widget> _pages = [
+    const InputScreen(),
+    const DatasetsScreen(),
+    const SettingsScreen(),
+  ];
+
+  static final List<PreferredSizeWidget> _appBars = [
+    const InputAppBar(),
+    const DatasetsAppBar(),
+    const SettingsAppBar(),
+  ];
+
+  int selectedPage = 1;
+
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey();
 
   @override
   Widget build(BuildContext context) {
@@ -67,32 +88,18 @@ class _MyHomePageState extends State<MyHomePage> {
       ],
     );
 
-    Widget page; // choose based on selection
-    switch (selectedPage) {
-      case 0:
-        page = const InputScreen();
-        break;
-      case 1:
-        page = const DatasetsScreen();
-        break;
-      case 2:
-        page = const SettingsScreen();
-        break;
-      default:
-        throw UnimplementedError("no page for: $selectedPage");
-    }
+    assert(_appBars.length == _pages.length, "Need appBars for all pages");
+    assert(selectedPage < _pages.length);
 
     return Scaffold(
-      // appBar: AppBar(
-      //   backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-      //   title: Text(widget.title),
-      // ),
+      key: _scaffoldKey,
+      appBar: _appBars[selectedPage],
       body: SafeArea(
         child: Row(
           children: [
             navRail,
             Expanded(
-              child: page,
+              child: _pages[selectedPage],
             ),
           ],
         ),

@@ -190,3 +190,15 @@ class SamplesList extends StatelessWidget {
     throw UnimplementedError();
   }
 }
+
+class InputAppBar extends StatelessWidget implements PreferredSizeWidget {
+  const InputAppBar({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return AppBar(title: const Text("Data Input"));
+  }
+  
+  @override
+  Size get preferredSize => const Size.fromHeight(56);
+}

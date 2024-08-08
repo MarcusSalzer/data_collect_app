@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 import 'package:path/path.dart' as p;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -66,25 +65,4 @@ Future<List<(DateTime, num)>> loadDataCsv() async {
     data = [];
   }
   return data;
-}
-
-Future<void> saveDataIndex(List datasets) async {
-  throw UnimplementedError();
-  // var dir = await FolderHelper.getDataDir();
-  // var file = File(p.join(dir.path, "dataset_index.json"));
-
-  // if (!await file.exists()) {
-  //   await file.create(recursive: true);
-  // }
-}
-
-Future<List> loadDataIndex() async {
-  var dir = await FolderHelper.getDataDir();
-  var file = File(p.join(dir.path, "dataset_index.json"));
-  if (!await file.exists()) {
-    await file.create(recursive: true);
-  }
-  List index = jsonDecode(await file.readAsString());
-
-  return index;
 }
