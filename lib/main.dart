@@ -25,6 +25,21 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
+        inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: Colors.grey[200],
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8.0),
+        ),
+        enabledBorder: const OutlineInputBorder(
+          borderSide: BorderSide(color: Colors.grey),
+        ),
+        focusedBorder: const OutlineInputBorder(
+          borderSide: BorderSide(color: Colors.black),
+        ),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+        labelStyle: const TextStyle(color: Colors.black),
+      )
       ),
       home: const MyHomePage(title: "Data collector"),
     );
@@ -91,19 +106,20 @@ class _MyHomePageState extends State<MyHomePage> {
     assert(_appBars.length == _pages.length, "Need appBars for all pages");
     assert(selectedPage < _pages.length);
 
-    return Scaffold(
-      key: _scaffoldKey,
-      appBar: _appBars[selectedPage],
-      body: SafeArea(
-        child: Row(
-          children: [
-            navRail,
-            Expanded(
-              child: _pages[selectedPage],
-            ),
-          ],
-        ),
-      ),
-    );
+    // return Scaffold(
+    //   key: _scaffoldKey,
+    //   appBar: _appBars[selectedPage],
+    //   body: SafeArea(
+    //     child: Row(
+    //       children: [
+    //         navRail,
+    //         Expanded(
+    //           child: _pages[selectedPage],
+    //         ),
+    //       ],
+    //     ),
+    //   ),
+    // );
+    return const DatasetsScreen();
   }
 }

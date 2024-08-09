@@ -27,8 +27,17 @@ class DatasetIndexProvider extends ChangeNotifier {
     var file = File(p.join(dir.path, "dataset_index.json"));
     if (!await file.exists()) {
       await file.create(recursive: true);
+      await file.writeAsString(jsonEncode([]));
     }
     _datasets = jsonDecode(await file.readAsString());
+    notifyListeners();
+  }
+
+  void addDataset(Map<String, dynamic> dataset) {
+    //TODO: Avoid duplicates
+
+    _datasets.add(dataset);
+    //TODO: always save?
     notifyListeners();
   }
 }

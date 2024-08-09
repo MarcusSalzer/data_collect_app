@@ -28,42 +28,47 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text("<SETTINGS>"),
-        FutureBuilder(
-          future: _dataDir,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.done) {
-              if (snapshot.hasError) {
-                return const Text("error getting folder.");
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("Settings"),
+      ),
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text("<SETTINGS>"),
+          FutureBuilder(
+            future: _dataDir,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.done) {
+                if (snapshot.hasError) {
+                  return const Text("error getting folder.");
+                }
+                return Text("current folder: ${snapshot.data}");
+              } else {
+                return const Text("...");
               }
-              return Text("current folder: ${snapshot.data}");
-            } else {
-              return const Text("...");
-            }
-          },
-        ),
-        ElevatedButton.icon(
-          icon: const Icon(Icons.folder_open),
-          label: const Text("choose folder"),
-          onPressed: _chooseFolder,
-        ),
-        const Divider(),
-        ElevatedButton.icon(
-          onPressed: () async { 
-            if (await FolderHelper.clearPrefs()) {
-              setState(() {
-                _dataDir = FolderHelper.getDataDir();
-              });
-              print("cleared prefs.");
-            }
-          },
-          icon: const Icon(Icons.delete_forever),
-          label: const Text("clear preferences"),
-        ),
-      ],
+            },
+          ),
+          ElevatedButton.icon(
+            icon: const Icon(Icons.folder_open),
+            label: const Text("choose folder"),
+            onPressed: _chooseFolder,
+          ),
+          const Divider(),
+          ElevatedButton.icon(
+            onPressed: () async {
+              if (await FolderHelper.clearPrefs()) {
+                setState(() {
+                  _dataDir = FolderHelper.getDataDir();
+                });
+                print("cleared prefs.");
+              }
+            },
+            icon: const Icon(Icons.delete_forever),
+            label: const Text("clear preferences"),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -75,7 +80,7 @@ class SettingsAppBar extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     return AppBar(title: const Text("Settings"));
   }
-  
+
   @override
   Size get preferredSize => const Size.fromHeight(56);
 }
