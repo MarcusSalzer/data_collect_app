@@ -75,33 +75,33 @@ class _MyHomePageState extends State<MyHomePage> {
 
   int selectedPage = 1;
 
-  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey();
+  // final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey();
 
   @override
   Widget build(BuildContext context) {
-    NavigationRail navRail = NavigationRail(
-      selectedIndex: selectedPage,
-      extended: true,
-      onDestinationSelected: (value) {
-        setState(() {
-          selectedPage = value;
-        });
-      },
-      destinations: const [
-        NavigationRailDestination(
-          icon: Icon(Icons.add),
-          label: Text("record data"),
-        ),
-        NavigationRailDestination(
-          icon: Icon(Icons.list_alt),
-          label: Text("Datasets"),
-        ),
-        NavigationRailDestination(
-          icon: Icon(Icons.settings),
-          label: Text("settings"),
-        ),
-      ],
-    );
+    // NavigationRail navRail = NavigationRail(
+    //   selectedIndex: selectedPage,
+    //   extended: true,
+    //   onDestinationSelected: (value) {
+    //     setState(() {
+    //       selectedPage = value;
+    //     });
+    //   },
+    //   destinations: const [
+    //     NavigationRailDestination(
+    //       icon: Icon(Icons.add),
+    //       label: Text("record data"),
+    //     ),
+    //     NavigationRailDestination(
+    //       icon: Icon(Icons.list_alt),
+    //       label: Text("Datasets"),
+    //     ),
+    //     NavigationRailDestination(
+    //       icon: Icon(Icons.settings),
+    //       label: Text("settings"),
+    //     ),
+    //   ],
+    // );
 
     assert(_appBars.length == _pages.length, "Need appBars for all pages");
     assert(selectedPage < _pages.length);

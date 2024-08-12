@@ -78,7 +78,18 @@ class DatasetTile extends StatelessWidget {
     required this.dataset,
   });
 
-  final Map dataset;
+  final Map<String, dynamic> dataset;
+
+  _deleteDataset(Map<String, dynamic> dataset, BuildContext context) async {
+    Provider.of<DatasetIndexProvider>(context, listen: false)
+        .deleteDataset(dataset)
+        .then((value) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("deleted ${dataset['name']}")),
+      );
+      print("done");
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -89,8 +100,10 @@ class DatasetTile extends StatelessWidget {
     try {
       for (var dtype in dataset["schema"].values) {
         schemaIcons.add(switch (dtype) {
-          "num" => const Icon(Icons.numbers),
-          "cat" => const Icon(Icons.abc),
+          "numeric" => const Icon(Icons.numbers),
+          "categoric" => const Icon(Icons.category),
+          "text" => const Icon(Icons.abc),
+          "datetime" => const Icon(Icons.timer),
           _ => const Icon(Icons.question_mark),
         });
       }
@@ -98,16 +111,7 @@ class DatasetTile extends StatelessWidget {
       schemaIcons.add(const Text("Missing schema"));
     }
 
-    return ListTile(
-      leading: const Icon(Icons.list),
-      title: Text(dataset["name"]),
-      trailing: SizedBox(
-        width: 100,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: schemaIcons,
-        ),
-      ),
+    return InkWell(
       onTap: () {
         Navigator.push(
           context,
@@ -116,6 +120,46 @@ class DatasetTile extends StatelessWidget {
           ),
         );
       },
+      child: Container(
+        padding: const EdgeInsets.all(8.0),
+        child: Row(
+          // mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            Expanded(
+              flex: 2,
+              child: Text(dataset["name"]),
+            ),
+            Expanded(
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: schemaIcons,
+              ),
+            ),
+            MenuAnchor(
+              builder: (context, controller, child) {
+                return IconButton(
+                  onPressed: () {
+                    if (controller.isOpen) {
+                      controller.close();
+                    } else {
+                      controller.open();
+                    }
+                  },
+                  icon: const Icon(Icons.more_horiz),
+                );
+              },
+              menuChildren: [
+                MenuItemButton(
+                  onPressed: () {
+                    _deleteDataset(dataset, context);
+                  },
+                  child: const Text("delete"),
+                ),
+              ],
+            )
+          ],
+        ),
+      ),
     );
   }
 }

@@ -53,6 +53,14 @@ class _DatasetEditorState extends State<DatasetEditor> {
   /// Validate input and save dataset to [DatasetIndexProvider].
   /// todo: error handling could be improved
   void _saveDataset() {
+    // Validate form
+    if (!_formKey.currentState!.validate()) {
+      print("bad form");
+      return;
+    } else {
+      print("OK form");
+    }
+
     // Validate field names
     if (_fields.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -64,24 +72,22 @@ class _DatasetEditorState extends State<DatasetEditor> {
         .map((field) => field["fieldNameController"].text.trim())
         .toList();
 
-    // Validate form input
-    if (_formKey.currentState!.validate()) {
-      final datasetName = _nameController.text;
-      var schema = {
-        for (var f in _fields) f["fieldNameController"].text.trim(): f["type"]
-      };
+    // Save dataset
+    final datasetName = _nameController.text;
+    var schema = {
+      for (var f in _fields) f["fieldNameController"].text.trim(): f["type"]
+    };
 
-      final newDataset = {
-        "name": datasetName,
-        "schema": schema,
-      };
-      // Access the DatasetProvider and add the dataset
-      Provider.of<DatasetIndexProvider>(context, listen: false)
-          .addDataset(newDataset);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Created new dataset: ${newDataset['name']}")),
-      );
-    }
+    final newDataset = {
+      "name": datasetName,
+      "schema": schema,
+    };
+    // Access the DatasetProvider and add the dataset
+    Provider.of<DatasetIndexProvider>(context, listen: false)
+        .addDataset(newDataset);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("Created new dataset: ${newDataset['name']}")),
+    );
 
     Navigator.pop(context);
   }
@@ -128,12 +134,7 @@ class _DatasetEditorState extends State<DatasetEditor> {
                       const SizedBox(width: 10),
                       DropdownButton<String>(
                         value: _fields[index]['type'],
-                        items: [
-                          "numeric",
-                          "categorical",
-                          "text",
-                          "datetime",
-                        ]
+                        items: allowedDatatypes
                             .map((type) => DropdownMenuItem(
                                   value: type,
                                   child: Text(type),
