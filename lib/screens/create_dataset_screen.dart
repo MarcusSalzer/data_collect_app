@@ -34,6 +34,13 @@ class _DatasetEditorState extends State<DatasetEditor> {
   final _nameController = TextEditingController();
   final List<Map<String, dynamic>> _fields = [];
 
+  // late FocusNode _focus;
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
   void _removeField(int index) {
     setState(() {
       _fields[index]["fieldNameController"].dispose();
@@ -51,7 +58,6 @@ class _DatasetEditorState extends State<DatasetEditor> {
   }
 
   /// Validate input and save dataset to [DatasetIndexProvider].
-  /// todo: error handling could be improved
   void _saveDataset() {
     // Validate form
     if (!_formKey.currentState!.validate()) {
@@ -64,13 +70,19 @@ class _DatasetEditorState extends State<DatasetEditor> {
     // Validate field names
     if (_fields.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please add at least one field.')),
+        const SnackBar(content: Text("Please add at least one field.")),
       );
       return;
     }
     final List fieldNames = _fields
         .map((field) => field["fieldNameController"].text.trim())
         .toList();
+    if (Set.from(fieldNames).length < fieldNames.length) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please use unique field names.")),
+      );
+      return;
+    }
 
     // Save dataset
     final datasetName = _nameController.text;
@@ -102,11 +114,17 @@ class _DatasetEditorState extends State<DatasetEditor> {
           TextFormField(
             controller: _nameController,
             decoration: const InputDecoration(labelText: 'Dataset Name'),
+            autofocus: true,
             validator: (value) {
               if (value == null || value.trim().isEmpty) {
                 return 'Please enter a dataset name';
               }
               return null;
+            },
+            onFieldSubmitted: (text) {
+              if (_fields.isEmpty) {
+                _addField();
+              }
             },
           ),
           Expanded(

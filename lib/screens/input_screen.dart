@@ -157,7 +157,7 @@ class _InputScreenState extends State<InputScreen> {
                   _data.removeAt(index);
                 });
                 saveDataCsv(_data);
-                print("deleted sample $index"); // TODO: implement trash
+                print("deleted sample $index"); 
               },
               icon: const Icon(Icons.delete_forever),
             ),

@@ -37,8 +37,9 @@ class DatasetIndexProvider extends ChangeNotifier {
     //TODO: Avoid duplicates
 
     _datasets.add(dataset);
-    //TODO: always save?
+
     notifyListeners();
+    saveDatasetIndex();
   }
 
   Future<void> deleteDataset(Map<String, dynamic> dataset) async {

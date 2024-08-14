@@ -1,3 +1,5 @@
+import 'package:data_collector_app/data_provider_row.dart';
+
 import 'package:data_collector_app/dataset_index_provider.dart';
 import 'package:data_collector_app/screens/create_dataset_screen.dart';
 import 'package:data_collector_app/screens/input_screen_form.dart';
@@ -53,8 +55,7 @@ class _DatasetsScreenState extends State<DatasetsScreen> {
                 builder: (context, datasetProvider, child) {
                   var datasets = datasetProvider.datasets;
                   if (datasets.isEmpty) {
-                    return const Center(child: CircularProgressIndicator());
-                    // TODO: handle loading and missing separately
+                    return const Center(child: Text("No datasets"));
                   }
                   return ListView.builder(
                     itemCount: datasets.length,
@@ -113,6 +114,8 @@ class DatasetTile extends StatelessWidget {
 
     return InkWell(
       onTap: () {
+        Provider.of<DataProviderRow>(context, listen: false)
+            .chooseDataset(dataset);
         Navigator.push(
           context,
           MaterialPageRoute(

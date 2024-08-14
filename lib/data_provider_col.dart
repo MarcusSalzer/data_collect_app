@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
 
 /// Provide data specific to one dataset.
-class DataProvider extends ChangeNotifier {
+class DataProviderCol extends ChangeNotifier {
   Map<String, dynamic>? _datasetInfo;
   Map<String, List<dynamic>>? _data;
 
@@ -18,6 +18,11 @@ class DataProvider extends ChangeNotifier {
   }
 
   Map<String, List<dynamic>> get data => _data ?? {};
+
+  Future<void> chooseDataset(Map<String,dynamic> dataset){
+    // TODO!
+    return Future.delayed(const Duration(milliseconds: 100),null);
+  }
 
   Future<void> loadDataCsv() async {
     if (_datasetInfo == null) {
@@ -38,6 +43,8 @@ class DataProvider extends ChangeNotifier {
     }
   }
 }
+
+
 
 // exceptions
 class NoDatasetException implements Exception {
