@@ -1,6 +1,4 @@
-import 'dart:async';
-
-import 'package:data_collector_app/data_provider_row.dart';
+import 'package:data_collector_app/data_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -13,52 +11,55 @@ class InputScreenForm extends StatefulWidget {
 }
 
 class _InputScreenFormState extends State<InputScreenForm> {
+  late final DataProvider _dataProvider;
+
   @override
   void initState() {
     super.initState();
+    _dataProvider = Provider.of<DataProvider>(context, listen: false);
   }
 
-  Future<void> _addSample(String sample, DateTime timestamp) async {
-    final number = num.tryParse(sample);
-    if (number != null) {
-      setState(() {});
-      print("TODO save sample at $timestamp");
+  void _save() async {
+    await _dataProvider.saveDataCsv();
+    print("SAVED");
+  }
+
+  Future<void> _onExit() async {
+    if (_dataProvider.unsavedChanges) {
+      _save();
     }
-  }
-
-  void _saveAndReturn(BuildContext context) async {
-    print("TODO: save here!");
-    Navigator.pop(context);
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-        appBar: AppBar(
-          title: Text(widget.dataset["name"]),
-          actions: [
-            ElevatedButton.icon(
-                onPressed: () {
-                  _saveAndReturn(context);
-                },
-                icon: const Icon(Icons.save),
-                label: const Text("Save"))
-          ],
-        ),
-        body: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            children: [
-              Container(
-                color: const Color.fromARGB(255, 236, 222, 222),
-                child: InputForm(
+    return PopScope(
+      onPopInvoked: (didPop) {
+        _onExit();
+      },
+      child: Scaffold(
+          appBar: AppBar(
+            title: Text(widget.dataset["name"]),
+            // actions: [
+            //   ElevatedButton.icon(
+            //       onPressed: () {
+            //         Navigator.pop(context);
+            //       },
+            //       icon: const Icon(Icons.save),
+            //       label: const Text("Save")),
+            // ],
+          ),
+          body: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              children: [
+                InputForm(
                   dataset: widget.dataset,
                 ),
-              ),
-              const HistoryList(),
-            ],
-          ),
-        ));
+                const HistoryList(),
+              ],
+            ),
+          )),
+    );
   }
 }
 
@@ -72,13 +73,24 @@ class InputForm extends StatefulWidget {
 
 class _InputFormState extends State<InputForm> {
   final _formKey = GlobalKey<FormState>();
-  final bool _disableAdd = false;
-  // TODO MAKE sure to disable ad if data not loaded yet
+  // bool _disableAdd = true;
+  // bool _isDataLoaded = false;
+  
+  // TODO MAKE sure to disable add if data not loaded yet
+
+  // TODO FocusNodes 
+
+
+  // Handle input timestamps
+  DateTime? _addDate;
+  TimeOfDay? _addTime;
 
   late final List<String> _fieldNames;
   late final List<String> _dtypes;
   late final int _nFields;
   late final List<TextEditingController> _controllers;
+
+  late final DataProvider _dataProvider;
 
   @override
   void initState() {
@@ -88,6 +100,8 @@ class _InputFormState extends State<InputForm> {
     _dtypes = List<String>.from(widget.dataset["schema"].values);
     _nFields = _fieldNames.length;
     _controllers = List.generate(_nFields, (_) => TextEditingController());
+
+    _dataProvider = Provider.of<DataProvider>(context, listen: false);
   }
 
   @override
@@ -98,6 +112,16 @@ class _InputFormState extends State<InputForm> {
     super.dispose();
   }
 
+  // void _onDataLoaded() {
+  //   if (!mounted) {
+  //     return;
+  //   }
+  //   setState(() {
+  //     // _isDataLoaded = true;
+  //     _disableAdd = false;
+  //   });
+  // }
+
   /// Validate an input field based on its [dtype].
   String? _validateField(String text, String dtype, {bool allowEmpty = true}) {
     text = text.trim();
@@ -107,6 +131,8 @@ class _InputFormState extends State<InputForm> {
       } else {
         return "Please enter a value";
       }
+    } else if (text.contains(",")) {
+      return "Value cannot contain ',' (CSV separator)";
     }
 
     switch (dtype) {
@@ -134,16 +160,97 @@ class _InputFormState extends State<InputForm> {
 
     final texts = _controllers.map((e) => e.text).toList();
     print(texts);
-    Provider.of<DataProviderRow>(context, listen: false).addSample(texts);
+
+    var timestamp = (_addDate ?? DateTime.now())
+        .copyWith(hour: _addTime?.hour, minute: _addTime?.minute);
+
+    _dataProvider.addSample(timestamp, texts);
 
     // clear form
     for (var c in _controllers) {
       c.clear();
     }
+    // clear add-timestamps
+    setState(() {
+      _addDate = null;
+      _addTime = null;
+    });
+  }
+
+  void _pickDate() async {
+    showDialog(
+        context: context,
+        builder: (context) {
+          return Dialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Container(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text("Select a date"),
+                  SizedBox.square(
+                    dimension: 400,
+                    child: CalendarDatePicker(
+                      initialDate: DateTime.now(),
+                      firstDate: DateTime(1970),
+                      lastDate: DateTime(2200),
+                      onDateChanged: (date) {
+                        setState(() {
+                          _addDate = date;
+                        });
+                        Navigator.pop(context);
+                      },
+                    ),
+                  )
+                ],
+              ),
+            ),
+          );
+        });
+  }
+
+  // void _pickDateOld() async {
+  //   var date = await showDatePicker(
+  //     context: context,
+  //     firstDate: DateTime(0),
+  //     lastDate: DateTime(3000),
+  //   );
+  //   setState(() {
+  //     _addDate = date;
+  //   });
+  // }
+
+  String _dateString() {
+    if (_addDate == null) {
+      return "Today";
+    }
+    var d = _addDate!;
+    return "${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}";
+  }
+
+  void _pickTime() async {
+    var time =
+        await showTimePicker(context: context, initialTime: TimeOfDay.now());
+    setState(() {
+      _addTime = time;
+    });
+  }
+
+  String _timeString() {
+    if (_addTime == null) {
+      return "Now";
+    }
+    var t = _addTime!;
+    return "${t.hour}:${t.minute}";
   }
 
   @override
   Widget build(BuildContext context) {
+    // _disableAdd = _dataProvider.data != null;
+
     List<Widget> formFields = [
       for (var i = 0; i < _nFields; i++)
         Expanded(
@@ -167,15 +274,27 @@ class _InputFormState extends State<InputForm> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            TextButton.icon(
-              onPressed: () {},
-              label: const Text("Today"),
-              icon: const Icon(Icons.calendar_month),
-            ),
-            TextButton.icon(
-              onPressed: () {},
-              label: const Text("Now"),
-              icon: const Icon(Icons.timelapse),
+            SizedBox(
+              width: 200,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  TextButton.icon(
+                    onPressed: () {
+                      _pickDate();
+                    },
+                    label: Text(_dateString()),
+                    icon: const Icon(Icons.calendar_month),
+                  ),
+                  TextButton.icon(
+                    onPressed: () {
+                      _pickTime();
+                    },
+                    label: Text(_timeString()),
+                    icon: const Icon(Icons.timelapse),
+                  ),
+                ],
+              ),
             ),
             ...formFields,
             const VerticalDivider(
@@ -188,11 +307,9 @@ class _InputFormState extends State<InputForm> {
             SizedBox(
               width: 120,
               child: ElevatedButton.icon(
-                onPressed: _disableAdd
-                    ? null
-                    : () {
-                        _addSample();
-                      },
+                onPressed: () {
+                  _addSample();
+                },
                 label: const Text("Add"),
                 icon: const Icon(Icons.add),
               ),
@@ -210,7 +327,7 @@ class HistoryList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Expanded(
-      child: Consumer<DataProviderRow>(
+      child: Consumer<DataProvider>(
         builder: (context, dataProvider, child) {
           if (dataProvider.data == null) {
             return const Center(
@@ -224,7 +341,7 @@ class HistoryList extends StatelessWidget {
           return ListView.builder(
             itemCount: dataProvider.data!.length,
             itemBuilder: (context, index) {
-              return HistoryListTile(data: dataProvider.data![index]);
+              return HistoryListTile(dataSamp: dataProvider.data![index]);
             },
           );
         },
@@ -234,34 +351,47 @@ class HistoryList extends StatelessWidget {
 }
 
 class HistoryListTile extends StatelessWidget {
-  final List<dynamic> data;
+  final DataSample dataSamp;
 
-  const HistoryListTile({super.key, required this.data});
+  const HistoryListTile({super.key, required this.dataSamp});
+
+  final VerticalDivider divider = const VerticalDivider(
+    width: 3,
+    thickness: 1,
+    indent: 1,
+    endIndent: 1,
+    color: Colors.grey,
+  );
 
   @override
   Widget build(BuildContext context) {
-    final dataFields = data.map((e) {
+    final dataFields = dataSamp.data.map((e) {
       return Expanded(
-        child: Text(e.toString()),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 5),
+          child: SelectionArea(child: Text(e.toString())),
+        ),
       );
     }).toList();
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 2),
-      color: const Color.fromRGBO(217, 250, 237, 1),
       child: IntrinsicHeight(
         child: Row(children: [
-          ...dataFields,
-          const VerticalDivider(
-            width: 3,
-            thickness: 1,
-            indent: 1,
-            endIndent: 1,
-            color: Colors.grey,
+          SizedBox(
+            width: 200,
+            child: SelectionArea(
+                child: Text(dataSamp.timestamp.toString().split(".")[0])),
           ),
+          divider,
+          ...dataFields,
+          divider,
           SizedBox(
             width: 120,
             child: IconButton(
-              onPressed: () {},
+              onPressed: () {
+                Provider.of<DataProvider>(context, listen: false)
+                    .removeSample(dataSamp);
+              },
               icon: const Icon(Icons.delete_forever),
             ),
           )

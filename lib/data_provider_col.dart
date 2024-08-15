@@ -20,7 +20,6 @@ class DataProviderCol extends ChangeNotifier {
   Map<String, List<dynamic>> get data => _data ?? {};
 
   Future<void> chooseDataset(Map<String,dynamic> dataset){
-    // TODO!
     return Future.delayed(const Duration(milliseconds: 100),null);
   }
 
@@ -36,8 +35,7 @@ class DataProviderCol extends ChangeNotifier {
 
     if (await file.exists()) {
       for(var line in await file.readAsLines()){
-        var values = line.split(",");
-        // TODO: check and PARSE VALUES
+        line.split(",");
       }
 
     }

@@ -87,6 +87,7 @@ class _DatasetEditorState extends State<DatasetEditor> {
     // Save dataset
     final datasetName = _nameController.text;
     var schema = {
+      // "timestamp": "datetime",
       for (var f in _fields) f["fieldNameController"].text.trim(): f["type"]
     };
 
@@ -95,8 +96,10 @@ class _DatasetEditorState extends State<DatasetEditor> {
       "schema": schema,
     };
     // Access the DatasetProvider and add the dataset
+
     Provider.of<DatasetIndexProvider>(context, listen: false)
         .addDataset(newDataset);
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text("Created new dataset: ${newDataset['name']}")),
     );
@@ -118,6 +121,13 @@ class _DatasetEditorState extends State<DatasetEditor> {
             validator: (value) {
               if (value == null || value.trim().isEmpty) {
                 return 'Please enter a dataset name';
+              } else {
+                var currentNames =
+                    Provider.of<DatasetIndexProvider>(context, listen: false)
+                        .datasetNames;
+                if (currentNames.contains(value.trim())) {
+                  return "Already exists";
+                }
               }
               return null;
             },

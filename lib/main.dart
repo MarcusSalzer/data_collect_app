@@ -1,8 +1,6 @@
-import 'package:data_collector_app/data_provider_row.dart';
+import 'package:data_collector_app/data_provider.dart';
 import 'package:data_collector_app/dataset_index_provider.dart';
-import 'package:data_collector_app/screens/input_screen_single.dart';
 import 'package:data_collector_app/screens/datasets_screen.dart';
-import 'package:data_collector_app/screens/settings_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -12,10 +10,9 @@ void main() {
       providers: [
         ChangeNotifierProvider(
             create: (_) => DatasetIndexProvider()..loadDatasetIndex()),
-        ChangeNotifierProvider(
-            create: (_) => DataProviderRow())
+        ChangeNotifierProvider(create: (_) => DataProvider())
       ],
-    child: const MyApp(),
+      child: const MyApp(),
     ),
   );
 }
@@ -62,22 +59,6 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  static final List<Widget> _pages = [
-    const InputScreen(),
-    const DatasetsScreen(),
-    const SettingsScreen(),
-  ];
-
-  static final List<PreferredSizeWidget> _appBars = [
-    const InputAppBar(),
-    const DatasetsAppBar(),
-    const SettingsAppBar(),
-  ];
-
-  int selectedPage = 1;
-
-  // final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey();
-
   @override
   Widget build(BuildContext context) {
     // NavigationRail navRail = NavigationRail(
@@ -104,9 +85,6 @@ class _MyHomePageState extends State<MyHomePage> {
     //   ],
     // );
 
-    assert(_appBars.length == _pages.length, "Need appBars for all pages");
-    assert(selectedPage < _pages.length);
-
     // return Scaffold(
     //   key: _scaffoldKey,
     //   appBar: _appBars[selectedPage],
@@ -121,6 +99,8 @@ class _MyHomePageState extends State<MyHomePage> {
     //     ),
     //   ),
     // );
+
+    // Start at the datasets list
     return const DatasetsScreen();
   }
 }

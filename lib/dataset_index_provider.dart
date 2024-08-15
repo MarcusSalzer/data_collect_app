@@ -7,9 +7,11 @@ import 'package:path/path.dart' as p;
 
 /// Provide index of all datasets
 class DatasetIndexProvider extends ChangeNotifier {
-  List<dynamic> _datasets = [];
+  List<Map<String, dynamic>> _datasets = [];
 
-  List<dynamic> get datasets => _datasets;
+  List<Map<String, dynamic>> get datasets => _datasets;
+  List<String> get datasetNames =>
+      List<String>.of(_datasets.map((e) => e["name"]));
 
   Future<void> saveDatasetIndex() async {
     var dir = await FolderHelper.getDataDir();
@@ -29,22 +31,67 @@ class DatasetIndexProvider extends ChangeNotifier {
       await file.create(recursive: true);
       await file.writeAsString(jsonEncode([]));
     }
-    _datasets = jsonDecode(await file.readAsString());
+    var jsonData = jsonDecode(await file.readAsString());
+
+    _datasets = (jsonData as List<dynamic>)
+        .map((item) => item as Map<String, dynamic>)
+        .toList();
+
     notifyListeners();
   }
 
+  /// add a new dataset to index, and save.
   void addDataset(Map<String, dynamic> dataset) {
-    //TODO: Avoid duplicates
-
     _datasets.add(dataset);
 
     notifyListeners();
     saveDatasetIndex();
   }
 
+
+  /// remove a dataset from index, and save.
+
   Future<void> deleteDataset(Map<String, dynamic> dataset) async {
     _datasets.remove(dataset);
+    // TODO: move file to trash folder
+    notifyListeners();
+    await saveDatasetIndex();
+  }
+
+  Future<void> copyDataset(Map<String, dynamic> dataset) async {
+    var i = 1;
+    String name0 = dataset["name"];
+
+    String end = name0.split("_").last;
+
+    // if already ends with 2 digit
+    if (end.length == 2 && int.tryParse(end) != null) {
+      name0 = name0.substring(0, name0.length - 3);
+    }
+
+    // make new unique name
+    var name = name0;
+    while (datasetNames.contains(name)) {
+      name = "${name0}_${i.toString().padLeft(2, "0")}";
+      i++;
+    }
+
+    // add new dataset to index
+    var newDataset = Map<String, dynamic>.from(dataset);
+    newDataset["name"] = name;
+    addDataset(newDataset);
+
+    // copy data too
+    copyDataFile(dataset["name"], newDataset["name"]);
+
     notifyListeners();
     await saveDatasetIndex();
   }
 }
+
+// class DuplicateDatasetException implements Exception {
+//   final String name;
+//   DuplicateDatasetException([this.name = ""]);
+
+//   String get message => "Duplicate dataset. $name";
+// }

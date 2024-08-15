@@ -5,9 +5,11 @@ import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
 
 /// Provide data specific to one dataset.
-class DataProviderRow extends ChangeNotifier {
+class DataProvider extends ChangeNotifier {
   Map<String, dynamic>? _datasetInfo;
-  List<List<dynamic>>? data;
+  List<DataSample>? data;
+
+  bool unsavedChanges = false;
 
   Map get schema {
     return _datasetInfo?["schema"] ?? (throw NoSchemaException());
@@ -22,7 +24,7 @@ class DataProviderRow extends ChangeNotifier {
   List<dynamic> _parseValues(List<String> values) {
     var result = [];
     for (var i = 0; i < values.length; i++) {
-      if (values[i].isEmpty) {
+      if (values[i].isEmpty || values[i] == "null") {
         result.add(null);
       } else {
         switch (dtypes[i]) {
@@ -40,52 +42,103 @@ class DataProviderRow extends ChangeNotifier {
     return result;
   }
 
-  void chooseDataset(Map<String, dynamic> dataset) {
+  void chooseDataset(Map<String, dynamic> dataset) async {
     // unload previous data
     data = null;
     _datasetInfo = dataset;
     print("chose dataset ${dataset['name']}");
-    loadDataCsv();
+    await loadDataCsv();
+    notifyListeners();
+    // TODO: error handling where?
   }
 
   Future<void> loadDataCsv() async {
     // Artificial delay
-    print("ARTIFICIAL DELAY!");
-    await Future.delayed(const Duration(seconds: 1), null);
+    // print("ARTIFICIAL DELAY!");
+    // await Future.delayed(const Duration(seconds: 2), null);
     var dir = await FolderHelper.getDataDir();
     var file = File(p.join(dir.path, "$name.csv"));
 
     var fieldNames = List<String>.from(schema.keys);
-    var dtypes = List<String>.from(schema.values);
 
     if (await file.exists()) {
-      List<List<dynamic>> rows = [];
+      List<DataSample> samples = [];
       for (var line in await file.readAsLines()) {
         var values = line.split(",");
-        if (values.length != fieldNames.length) {
+
+        // should have 1 value for timestamp and rest for data.
+        if (values.length != fieldNames.length + 1) {
           throw InvalidDataException(
               "incorrect number of columns (${values.length})");
         }
-        rows.add(_parseValues(values));
+        samples.add(DataSample(
+          DateTime.parse(values.first),
+          _parseValues(values.sublist(1)),
+        ));
       }
 
-      data = rows;
+      data = samples;
     } else {
       data = [];
     }
+    unsavedChanges = false;
     notifyListeners();
   }
 
-  /// parse values and add to dataset
-  void addSample(List<String> sampleTexts) {
-    data ??= [];
-    data?.add(_parseValues(sampleTexts));
+  Future<void> saveDataCsv() async {
+    // Artificial delay
+    // print("ARTIFICIAL DELAY!");
+    // await Future.delayed(const Duration(seconds: 2), null);
+    var dir = await FolderHelper.getDataDir();
+    var file = File(p.join(dir.path, "$name.csv"));
 
+    var contents =
+        data?.map((DataSample sample) => sample.toString()).join("\n");
+
+    // create file if missing
+    if (!await file.exists()) {
+      await file.create(recursive: true);
+    }
+    if (contents != null) {
+      await file.writeAsString(contents);
+    }
+
+    unsavedChanges = false;
+    notifyListeners();
+  }
+
+  /// parse values into [DataSample] and add to [data]
+  void addSample(DateTime timestamp, List<String> sampleTexts) {
+    data ??= [];
+    data?.add(DataSample(timestamp, _parseValues(sampleTexts)));
+
+    unsavedChanges = true;
+    notifyListeners();
+  }
+
+  void removeSample(DataSample sample) {
+    data?.remove(sample);
+
+    unsavedChanges = true;
     notifyListeners();
   }
 }
 
+class DataSample {
+  DateTime timestamp;
+  List<dynamic> data;
+
+  DataSample(this.timestamp, this.data);
+
+  /// format a CSV row with timestamp followed by data
+  @override
+  String toString() {
+    return [timestamp.toString(), ...data.map((e) => e.toString())].join(",");
+  }
+}
+
 // exceptions
+
 class NoDatasetException implements Exception {
   String get message => "No dataset info provided. Cannot load data.";
 }

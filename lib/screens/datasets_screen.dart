@@ -1,4 +1,4 @@
-import 'package:data_collector_app/data_provider_row.dart';
+import 'package:data_collector_app/data_provider.dart';
 
 import 'package:data_collector_app/dataset_index_provider.dart';
 import 'package:data_collector_app/screens/create_dataset_screen.dart';
@@ -88,7 +88,16 @@ class DatasetTile extends StatelessWidget {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("deleted ${dataset['name']}")),
       );
-      print("done");
+    });
+  }
+
+  _copyDataset(Map<String, dynamic> dataset, BuildContext context) async {
+    Provider.of<DatasetIndexProvider>(context, listen: false)
+        .copyDataset(dataset)
+        .then((value) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Copied ${dataset['name']}")),
+      );
     });
   }
 
@@ -99,7 +108,7 @@ class DatasetTile extends StatelessWidget {
 
     var schemaIcons = <Widget>[];
     try {
-      for (var dtype in dataset["schema"].values) {
+      for (var dtype in dataset["schema"].values.toList()) {
         schemaIcons.add(switch (dtype) {
           "numeric" => const Icon(Icons.numbers),
           "categoric" => const Icon(Icons.category),
@@ -114,7 +123,7 @@ class DatasetTile extends StatelessWidget {
 
     return InkWell(
       onTap: () {
-        Provider.of<DataProviderRow>(context, listen: false)
+        Provider.of<DataProvider>(context, listen: false)
             .chooseDataset(dataset);
         Navigator.push(
           context,
@@ -157,6 +166,12 @@ class DatasetTile extends StatelessWidget {
                     _deleteDataset(dataset, context);
                   },
                   child: const Text("delete"),
+                ),
+                MenuItemButton(
+                  onPressed: () {
+                    _copyDataset(dataset, context);
+                  },
+                  child: const Text("copy"),
                 ),
               ],
             )
