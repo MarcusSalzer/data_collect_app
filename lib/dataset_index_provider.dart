@@ -48,14 +48,13 @@ class DatasetIndexProvider extends ChangeNotifier {
     saveDatasetIndex();
   }
 
-
   /// remove a dataset from index, and save.
 
   Future<void> deleteDataset(Map<String, dynamic> dataset) async {
     _datasets.remove(dataset);
-    // TODO: move file to trash folder
     notifyListeners();
-    await saveDatasetIndex();
+    saveDatasetIndex();
+    moveDataToTrash(dataset["name"]);
   }
 
   Future<void> copyDataset(Map<String, dynamic> dataset) async {

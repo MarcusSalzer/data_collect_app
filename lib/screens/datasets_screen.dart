@@ -81,26 +81,6 @@ class DatasetTile extends StatelessWidget {
 
   final Map<String, dynamic> dataset;
 
-  _deleteDataset(Map<String, dynamic> dataset, BuildContext context) async {
-    Provider.of<DatasetIndexProvider>(context, listen: false)
-        .deleteDataset(dataset)
-        .then((value) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("deleted ${dataset['name']}")),
-      );
-    });
-  }
-
-  _copyDataset(Map<String, dynamic> dataset, BuildContext context) async {
-    Provider.of<DatasetIndexProvider>(context, listen: false)
-        .copyDataset(dataset)
-        .then((value) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Copied ${dataset['name']}")),
-      );
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     assert(Set.of(dataset.keys).containsAll(["name", "schema"]),
@@ -121,63 +101,82 @@ class DatasetTile extends StatelessWidget {
       schemaIcons.add(const Text("Missing schema"));
     }
 
-    return InkWell(
-      onTap: () {
-        Provider.of<DataProvider>(context, listen: false)
-            .chooseDataset(dataset);
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => InputScreenForm(dataset: dataset),
-          ),
-        );
-      },
-      child: Container(
-        padding: const EdgeInsets.all(8.0),
-        child: Row(
-          // mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            Expanded(
-              flex: 2,
-              child: Text(dataset["name"]),
-            ),
-            Expanded(
+    return Row(
+      children: [
+        Expanded(
+          child: InkWell(
+            onTap: () {
+              Provider.of<DataProvider>(context, listen: false)
+                  .chooseDataset(dataset);
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => InputScreenForm(dataset: dataset),
+                ),
+              );
+            },
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
               child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: schemaIcons,
+                children: [
+                  Expanded(
+                    flex: 2,
+                    child: Text(dataset["name"]),
+                  ),
+                  Expanded(
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: schemaIcons,
+                    ),
+                  ),
+                ],
               ),
             ),
-            MenuAnchor(
-              builder: (context, controller, child) {
-                return IconButton(
-                  onPressed: () {
-                    if (controller.isOpen) {
-                      controller.close();
-                    } else {
-                      controller.open();
-                    }
-                  },
-                  icon: const Icon(Icons.more_horiz),
-                );
-              },
-              menuChildren: [
-                MenuItemButton(
-                  onPressed: () {
-                    _deleteDataset(dataset, context);
-                  },
-                  child: const Text("delete"),
-                ),
-                MenuItemButton(
-                  onPressed: () {
-                    _copyDataset(dataset, context);
-                  },
-                  child: const Text("copy"),
-                ),
-              ],
-            )
-          ],
+          ),
         ),
-      ),
+        MenuAnchor(
+          builder: (context, controller, child) {
+            return IconButton(
+              onPressed: () {
+                if (controller.isOpen) {
+                  controller.close();
+                } else {
+                  controller.open();
+                }
+              },
+              icon: const Icon(Icons.more_horiz),
+            );
+          },
+          menuChildren: [
+            MenuItemButton(
+              onPressed: () async {
+                // var contextCopy = context;
+                await Provider.of<DatasetIndexProvider>(context, listen: false)
+                    .deleteDataset(dataset);
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text("Deleted ${dataset['name']}")),
+                  );
+                }
+              },
+              child: const Text("delete"),
+            ),
+            MenuItemButton(
+              onPressed: () async {
+                await Provider.of<DatasetIndexProvider>(context, listen: false)
+                    .copyDataset(dataset);
+
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text("Copied ${dataset['name']}")),
+                  );
+                }
+              },
+              child: const Text("copy"),
+            ),
+          ],
+        )
+      ],
     );
   }
 }

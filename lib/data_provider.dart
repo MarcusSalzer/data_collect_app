@@ -19,8 +19,9 @@ class DataProvider extends ChangeNotifier {
     return _datasetInfo?["name"] ?? (throw NoDatasetException());
   }
 
-  List get dtypes => List<String>.from(schema.values);
+  List<String> get dtypes => List<String>.from(schema.values);
 
+  /// Parse a list of strings according to current [dtypes].
   List<dynamic> _parseValues(List<String> values) {
     var result = [];
     for (var i = 0; i < values.length; i++) {
@@ -29,10 +30,10 @@ class DataProvider extends ChangeNotifier {
       } else {
         switch (dtypes[i]) {
           case "numeric":
-            result.add(num.parse(values[i]));
+            result.add(num.tryParse(values[i]));
             break;
           case "datetime":
-            result.add(DateTime.parse(values[i]));
+            result.add(DateTime.tryParse(values[i]));
             break;
           default:
             result.add(values[i]);
@@ -47,12 +48,12 @@ class DataProvider extends ChangeNotifier {
     data = null;
     _datasetInfo = dataset;
     print("chose dataset ${dataset['name']}");
-    await loadDataCsv();
+    await _loadDataCsv();
     notifyListeners();
     // TODO: error handling where?
   }
 
-  Future<void> loadDataCsv() async {
+  Future<void> _loadDataCsv() async {
     // Artificial delay
     // print("ARTIFICIAL DELAY!");
     // await Future.delayed(const Duration(seconds: 2), null);

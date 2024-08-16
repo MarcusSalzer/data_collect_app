@@ -21,7 +21,6 @@ class _InputScreenFormState extends State<InputScreenForm> {
 
   void _save() async {
     await _dataProvider.saveDataCsv();
-    print("SAVED");
   }
 
   Future<void> _onExit() async {
@@ -33,7 +32,7 @@ class _InputScreenFormState extends State<InputScreenForm> {
   @override
   Widget build(BuildContext context) {
     return PopScope(
-      onPopInvoked: (didPop) {
+      onPopInvokedWithResult: (didPop, result) {
         _onExit();
       },
       child: Scaffold(
@@ -75,11 +74,8 @@ class _InputFormState extends State<InputForm> {
   final _formKey = GlobalKey<FormState>();
   // bool _disableAdd = true;
   // bool _isDataLoaded = false;
-  
+
   // TODO MAKE sure to disable add if data not loaded yet
-
-  // TODO FocusNodes 
-
 
   // Handle input timestamps
   DateTime? _addDate;
@@ -91,6 +87,8 @@ class _InputFormState extends State<InputForm> {
   late final List<TextEditingController> _controllers;
 
   late final DataProvider _dataProvider;
+
+  final FocusNode _firstFieldFocus = FocusNode();
 
   @override
   void initState() {
@@ -109,6 +107,7 @@ class _InputFormState extends State<InputForm> {
     for (var c in _controllers) {
       c.dispose();
     }
+    _firstFieldFocus.dispose();
     super.dispose();
   }
 
@@ -161,6 +160,7 @@ class _InputFormState extends State<InputForm> {
     final texts = _controllers.map((e) => e.text).toList();
     print(texts);
 
+    // TODO: bug: 00:00
     var timestamp = (_addDate ?? DateTime.now())
         .copyWith(hour: _addTime?.hour, minute: _addTime?.minute);
 
@@ -170,6 +170,10 @@ class _InputFormState extends State<InputForm> {
     for (var c in _controllers) {
       c.clear();
     }
+
+    // focus first field
+    _firstFieldFocus.requestFocus();
+
     // clear add-timestamps
     setState(() {
       _addDate = null;
@@ -263,6 +267,11 @@ class _InputFormState extends State<InputForm> {
               ),
               controller: _controllers[i],
               validator: (value) => _validateField(value ?? "", _dtypes[i]),
+              onFieldSubmitted: (value) {
+                print("enter");
+                _addSample();
+              },
+              focusNode: i == 0 ? _firstFieldFocus : null, // only for first
             ),
           ),
         )

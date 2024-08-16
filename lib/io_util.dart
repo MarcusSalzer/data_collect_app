@@ -20,7 +20,8 @@ class FolderHelper {
     if (filePath != null) {
       return Directory(filePath);
     } else {
-      throw const FileSystemException("no directory for data"); //TODO catch this somewhere
+      throw const FileSystemException(
+          "no directory for data");
     }
   }
 
@@ -38,4 +39,18 @@ Future<void> copyDataFile(String nameOld, String nameNew) async {
   File fileNew = File(p.join(dir.path, "$nameNew.csv"));
 
   await fileOld.copy(fileNew.path);
+}
+
+/// moves a CSV file to the trash directory
+Future<void> moveDataToTrash(String name) async {
+  var dir = await FolderHelper.getDataDir();
+  var file = File(p.join(dir.path, "$name.csv"));
+
+
+  // move file if exists
+  if (await file.exists()) {
+    var dirTrash = Directory(p.join(dir.path, "trash"));
+    await dirTrash.create();
+    await file.rename(p.join(dir.path, "trash", "$name.csv"));
+  }
 }
