@@ -47,7 +47,6 @@ class DataProvider extends ChangeNotifier {
     // unload previous data
     data = null;
     _datasetInfo = dataset;
-    print("chose dataset ${dataset['name']}");
     await _loadDataCsv();
     notifyListeners();
     // TODO: error handling where?

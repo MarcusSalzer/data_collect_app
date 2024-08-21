@@ -31,7 +31,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
       setState(() {
         _dataDir = FolderHelper.getDataDir();
       });
-      print("cleared prefs.");
     }
   }
 

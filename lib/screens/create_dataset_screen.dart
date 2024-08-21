@@ -57,15 +57,12 @@ class _DatasetEditorState extends State<DatasetEditor> {
     });
   }
 
-  /// Validate input and save dataset to [DatasetIndexProvider].
+  /// Validate input and save dataset to [DatasetIndexProvider] if valid.
   void _saveDataset() {
     // Validate form
     if (!_formKey.currentState!.validate()) {
-      print("bad form");
       return;
-    } else {
-      print("OK form");
-    }
+    } 
 
     // Validate field names
     if (_fields.isEmpty) {

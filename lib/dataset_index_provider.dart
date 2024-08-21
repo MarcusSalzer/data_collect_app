@@ -87,10 +87,3 @@ class DatasetIndexProvider extends ChangeNotifier {
     await saveDatasetIndex();
   }
 }
-
-// class DuplicateDatasetException implements Exception {
-//   final String name;
-//   DuplicateDatasetException([this.name = ""]);
-
-//   String get message => "Duplicate dataset. $name";
-// }

@@ -1,6 +1,9 @@
 import 'package:data_collector_app/data_provider.dart';
+import 'package:data_collector_app/dataset_index_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
+import '../widgets/history_list.dart';
 
 class InputScreenForm extends StatefulWidget {
   final Map<String, dynamic> dataset;
@@ -38,14 +41,6 @@ class _InputScreenFormState extends State<InputScreenForm> {
       child: Scaffold(
           appBar: AppBar(
             title: Text(widget.dataset["name"]),
-            // actions: [
-            //   ElevatedButton.icon(
-            //       onPressed: () {
-            //         Navigator.pop(context);
-            //       },
-            //       icon: const Icon(Icons.save),
-            //       label: const Text("Save")),
-            // ],
           ),
           body: Padding(
             padding: const EdgeInsets.all(20),
@@ -149,22 +144,21 @@ class _InputFormState extends State<InputForm> {
     return null;
   }
 
+  /// validate form and save to [DataProvider] if valid.
   void _addSample() {
     if (!_formKey.currentState!.validate()) {
-      print("bad form");
       return;
-    } else {
-      print("OK form");
     }
 
+    // get text inputs
     final texts = _controllers.map((e) => e.text).toList();
-    print(texts);
 
     // TODO: bug: 00:00
     var timestamp = (_addDate ?? DateTime.now())
         .copyWith(hour: _addTime?.hour, minute: _addTime?.minute);
 
     _dataProvider.addSample(timestamp, texts);
+    widget.dataset["length"] = _dataProvider.data?.length; //TODO on delete too!
 
     // clear form
     for (var c in _controllers) {
@@ -268,7 +262,6 @@ class _InputFormState extends State<InputForm> {
               controller: _controllers[i],
               validator: (value) => _validateField(value ?? "", _dtypes[i]),
               onFieldSubmitted: (value) {
-                print("enter");
                 _addSample();
               },
               focusNode: i == 0 ? _firstFieldFocus : null, // only for first
@@ -325,86 +318,6 @@ class _InputFormState extends State<InputForm> {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class HistoryList extends StatelessWidget {
-  const HistoryList({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      child: Consumer<DataProvider>(
-        builder: (context, dataProvider, child) {
-          if (dataProvider.data == null) {
-            return const Center(
-              child: Text("Loading data..."),
-            );
-          } else if (dataProvider.data!.isEmpty) {
-            return const Center(
-              child: Text("Dataset is empty."),
-            );
-          }
-          return ListView.builder(
-            itemCount: dataProvider.data!.length,
-            itemBuilder: (context, index) {
-              return HistoryListTile(dataSamp: dataProvider.data![index]);
-            },
-          );
-        },
-      ),
-    );
-  }
-}
-
-class HistoryListTile extends StatelessWidget {
-  final DataSample dataSamp;
-
-  const HistoryListTile({super.key, required this.dataSamp});
-
-  final VerticalDivider divider = const VerticalDivider(
-    width: 3,
-    thickness: 1,
-    indent: 1,
-    endIndent: 1,
-    color: Colors.grey,
-  );
-
-  @override
-  Widget build(BuildContext context) {
-    final dataFields = dataSamp.data.map((e) {
-      return Expanded(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 5),
-          child: SelectionArea(child: Text(e.toString())),
-        ),
-      );
-    }).toList();
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 2),
-      child: IntrinsicHeight(
-        child: Row(children: [
-          SizedBox(
-            width: 200,
-            child: SelectionArea(
-                child: Text(dataSamp.timestamp.toString().split(".")[0])),
-          ),
-          divider,
-          ...dataFields,
-          divider,
-          SizedBox(
-            width: 120,
-            child: IconButton(
-              onPressed: () {
-                Provider.of<DataProvider>(context, listen: false)
-                    .removeSample(dataSamp);
-              },
-              icon: const Icon(Icons.delete_forever),
-            ),
-          )
-        ]),
       ),
     );
   }
