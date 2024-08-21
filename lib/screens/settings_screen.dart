@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:data_collector_app/main.dart';
 import 'package:flutter/material.dart';
 import 'package:data_collector_app/io_util.dart' show FolderHelper;
 
@@ -51,10 +52,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 if (snapshot.connectionState == ConnectionState.done) {
                   if (snapshot.hasError) {
                     return TextButton.icon(
-                    onPressed: _chooseFolder,
-                    label: const Text("Choose data folder"),
-                    icon: const Icon(Icons.folder),
-                  );
+                      onPressed: _chooseFolder,
+                      label: const Text("Choose data folder"),
+                      icon: const Icon(Icons.folder),
+                    );
                   }
                   return TextButton.icon(
                     onPressed: _chooseFolder,
@@ -67,6 +68,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
               },
             ),
             const Divider(),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text("Dark mode:"),
+                Switch(
+                    value: MyApp.of(context).isDarkmode,
+                    onChanged: (value) {
+                      if (value) {
+                        MyApp.of(context).changeTheme(ThemeMode.dark);
+                      } else {
+                        MyApp.of(context).changeTheme(ThemeMode.light);
+                      }
+                    }),
+              ],
+            ),
+            const Divider(),
             TextButton.icon(
               onPressed: _clearPrefs,
               icon: const Icon(Icons.delete_forever),
@@ -77,16 +94,4 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ),
     );
   }
-}
-
-class SettingsAppBar extends StatelessWidget implements PreferredSizeWidget {
-  const SettingsAppBar({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return AppBar(title: const Text("Settings"));
-  }
-
-  @override
-  Size get preferredSize => const Size.fromHeight(56);
 }

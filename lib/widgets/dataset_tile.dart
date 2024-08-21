@@ -54,7 +54,7 @@ class DatasetTile extends StatelessWidget {
                     flex: 2,
                     child: Text(dataset["name"]),
                   ),
-                  Text("length: ${dataset["length"]}"),
+                  Text("(${dataset["length"]})"),
                   const VerticalDivider(),
                   Expanded(
                     child: Row(

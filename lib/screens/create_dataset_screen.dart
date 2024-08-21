@@ -91,6 +91,7 @@ class _DatasetEditorState extends State<DatasetEditor> {
     final newDataset = {
       "name": datasetName,
       "schema": schema,
+      "length": 0,
     };
     // Access the DatasetProvider and add the dataset
 

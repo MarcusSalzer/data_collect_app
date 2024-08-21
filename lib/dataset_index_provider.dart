@@ -22,6 +22,7 @@ class DatasetIndexProvider extends ChangeNotifier {
     }
     var contents = jsonEncode(_datasets);
     await file.writeAsString(contents);
+    notifyListeners();
   }
 
   Future<void> loadDatasetIndex() async {
