@@ -1,17 +1,12 @@
-import 'package:data_collector_app/data_provider.dart';
-import 'package:data_collector_app/dataset_index_provider.dart';
+import 'package:data_collector_app/data_util.dart';
 import 'package:data_collector_app/screens/datasets_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 void main() {
   runApp(
-    MultiProvider(
-      providers: [
-        ChangeNotifierProvider(
-            create: (_) => DatasetIndexProvider()..loadDatasetIndex()),
-        ChangeNotifierProvider(create: (_) => DataProvider())
-      ],
+    ChangeNotifierProvider(
+      create: (_) => DataModel(),
       child: const MyApp(),
     ),
   );
@@ -64,45 +59,6 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
-    // NavigationRail navRail = NavigationRail(
-    //   selectedIndex: selectedPage,
-    //   extended: true,
-    //   onDestinationSelected: (value) {
-    //     setState(() {
-    //       selectedPage = value;
-    //     });
-    //   },
-    //   destinations: const [
-    //     NavigationRailDestination(
-    //       icon: Icon(Icons.add),
-    //       label: Text("record data"),
-    //     ),
-    //     NavigationRailDestination(
-    //       icon: Icon(Icons.list_alt),
-    //       label: Text("Datasets"),
-    //     ),
-    //     NavigationRailDestination(
-    //       icon: Icon(Icons.settings),
-    //       label: Text("settings"),
-    //     ),
-    //   ],
-    // );
-
-    // return Scaffold(
-    //   key: _scaffoldKey,
-    //   appBar: _appBars[selectedPage],
-    //   body: SafeArea(
-    //     child: Row(
-    //       children: [
-    //         navRail,
-    //         Expanded(
-    //           child: _pages[selectedPage],
-    //         ),
-    //       ],
-    //     ),
-    //   ),
-    // );
-
     // Start at the datasets list
     return const DatasetsScreen();
   }

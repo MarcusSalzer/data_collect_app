@@ -25,21 +25,6 @@ class DatasetIndexProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> loadDatasetIndex() async {
-    var dir = await FolderHelper.getDataDir();
-    var file = File(p.join(dir.path, "dataset_index.json"));
-    if (!await file.exists()) {
-      await file.create(recursive: true);
-      await file.writeAsString(jsonEncode([]));
-    }
-    var jsonData = jsonDecode(await file.readAsString());
-
-    _datasets = (jsonData as List<dynamic>)
-        .map((item) => item as Map<String, dynamic>)
-        .toList();
-
-    notifyListeners();
-  }
 
   /// add a new dataset to index, and save.
   void addDataset(Map<String, dynamic> dataset) {

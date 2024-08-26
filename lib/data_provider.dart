@@ -21,38 +21,7 @@ class DataProvider extends ChangeNotifier {
 
   List<String> get dtypes => List<String>.from(schema.values);
 
-  /// Parse a list of strings according to current [dtypes].
-  List<dynamic> _parseValues(List<String> values) {
-    var result = [];
-    for (var i = 0; i < values.length; i++) {
-      if (values[i].isEmpty || values[i] == "null") {
-        result.add(null);
-      } else {
-        switch (dtypes[i]) {
-          case "numeric":
-            result.add(num.tryParse(values[i]));
-            break;
-          case "datetime":
-            result.add(DateTime.tryParse(values[i]));
-            break;
-          default:
-            result.add(values[i]);
-        }
-      }
-    }
-    return result;
-  }
-
-  void chooseDataset(Map<String, dynamic> dataset) async {
-    // unload previous data
-    data = null;
-    _datasetInfo = dataset;
-    await _loadDataCsv();
-    notifyListeners();
-    // TODO: error handling where?
-  }
-
-  Future<void> _loadDataCsv() async {
+    Future<void> _loadDataCsv() async {
     // Artificial delay
     // print("ARTIFICIAL DELAY!");
     // await Future.delayed(const Duration(seconds: 2), null);
@@ -107,34 +76,6 @@ class DataProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// parse values into [DataSample] and add to [data]
-  void addSample(DateTime timestamp, List<String> sampleTexts) {
-    data ??= [];
-    data?.add(DataSample(timestamp, _parseValues(sampleTexts)));
-
-    unsavedChanges = true;
-    notifyListeners();
-  }
-
-  void removeSample(DataSample sample) {
-    data?.remove(sample);
-
-    unsavedChanges = true;
-    notifyListeners();
-  }
-}
-
-class DataSample {
-  DateTime timestamp;
-  List<dynamic> data;
-
-  DataSample(this.timestamp, this.data);
-
-  /// format a CSV row with timestamp followed by data
-  @override
-  String toString() {
-    return [timestamp.toString(), ...data.map((e) => e.toString())].join(",");
-  }
 }
 
 // exceptions
