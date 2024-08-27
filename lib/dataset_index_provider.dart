@@ -7,7 +7,7 @@ import 'package:path/path.dart' as p;
 
 /// Provide index of all datasets
 class DatasetIndexProvider extends ChangeNotifier {
-  List<Map<String, dynamic>> _datasets = [];
+  final List<Map<String, dynamic>> _datasets = [];
 
   List<Map<String, dynamic>> get datasets => _datasets;
   List<String> get datasetNames =>

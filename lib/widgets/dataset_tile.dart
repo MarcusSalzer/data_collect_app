@@ -1,5 +1,4 @@
-import 'package:data_collector_app/data_provider.dart';
-import 'package:data_collector_app/dataset_index_provider.dart';
+import 'package:data_collector_app/data_util.dart';
 import 'package:data_collector_app/screens/input_screen_form.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -37,8 +36,8 @@ class DatasetTile extends StatelessWidget {
         Expanded(
           child: InkWell(
             onTap: () {
-              Provider.of<DataProvider>(context, listen: false)
-                  .chooseDataset(dataset);
+              Provider.of<DataModel>(context, listen: false)
+                  .selectDatasetAt(0); //TODO get index
               Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -83,27 +82,31 @@ class DatasetTile extends StatelessWidget {
           menuChildren: [
             MenuItemButton(
               onPressed: () async {
+                print("TODO");
+                throw UnimplementedError("TODO");
                 // var contextCopy = context;
-                await Provider.of<DatasetIndexProvider>(context, listen: false)
-                    .deleteDataset(dataset);
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text("Deleted ${dataset['name']}")),
-                  );
-                }
+                // await Provider.of<DataModel>(context, listen: false)
+                //     .deleteDataset(dataset);
+                // if (context.mounted) {
+                //   ScaffoldMessenger.of(context).showSnackBar(
+                //     SnackBar(content: Text("Deleted ${dataset['name']}")),
+                //   );
+                // }
               },
               child: const Text("delete"),
             ),
             MenuItemButton(
               onPressed: () async {
-                await Provider.of<DatasetIndexProvider>(context, listen: false)
-                    .copyDataset(dataset);
+                print("TODO");
+                throw UnimplementedError("TODO");
+                // await Provider.of<DataModel>(context, listen: false)
+                //     .copyDataset(dataset);
 
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text("Copied ${dataset['name']}")),
-                  );
-                }
+                // if (context.mounted) {
+                //   ScaffoldMessenger.of(context).showSnackBar(
+                //     SnackBar(content: Text("Copied ${dataset['name']}")),
+                //   );
+                // }
               },
               child: const Text("copy"),
             ),

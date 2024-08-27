@@ -1,4 +1,4 @@
-import 'package:data_collector_app/data_provider.dart';
+import 'package:data_collector_app/data_util.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -10,28 +10,24 @@ class HistoryList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Expanded(
-      child: Consumer<DataProvider>(
+      child: Consumer<DataModel>(
         builder: (context, dataProvider, child) {
-          if (dataProvider.data == null) {
-            return const Center(
-              child: Text("Loading data..."),
-            );
-          } else if (dataProvider.data!.isEmpty) {
-            return const Center(
-              child: Text("Dataset is empty."),
-            );
-          }
+          if (dataProvider.currentData.isEmpty) {
+          return const Center(
+            child: Text("Dataset is empty."),
+          );
+        }
           return Column(
             children: [
               Expanded(
                 child: ListView.builder(
-                  itemCount: dataProvider.data!.length,
+                  itemCount: dataProvider.currentData.length,
                   itemBuilder: (context, index) {
-                    return HistoryListTile(dataSamp: dataProvider.data![index]);
+                    return HistoryListTile(dataSamp: dataProvider.currentData[index]);
                   },
                 ),
               ),
-              Text("Total samples: ${dataProvider.data?.length}")
+              Text("Total samples: ${dataProvider.currentData.length}")
             ],
           );
         },

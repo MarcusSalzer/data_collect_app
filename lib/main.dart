@@ -12,22 +12,8 @@ void main() {
   );
 }
 
-class MyApp extends StatefulWidget {
+class MyApp extends StatelessWidget {
   const MyApp({super.key});
-
-  @override
-  State<MyApp> createState() => _MyAppState();
-
-  /// InheritedWidget style accessor to our State object.
-  static _MyAppState of(BuildContext context) =>
-      context.findAncestorStateOfType<_MyAppState>()!;
-}
-
-class _MyAppState extends State<MyApp> {
-  ThemeMode _themeMode = ThemeMode.system;
-  // TODO DARKMODE BUGGY
-
-  bool get isDarkmode => _themeMode == ThemeMode.dark;
 
   @override
   Widget build(BuildContext context) {
@@ -35,15 +21,9 @@ class _MyAppState extends State<MyApp> {
       title: 'Flutter Demo',
       theme: ThemeData(),
       darkTheme: ThemeData.dark(),
-      themeMode: _themeMode,
+      themeMode: ThemeMode.light,
       home: const MyHomePage(title: "Data collector"),
     );
-  }
-
-  void changeTheme(ThemeMode mode) {
-    setState(() {
-      _themeMode = mode;
-    });
   }
 }
 

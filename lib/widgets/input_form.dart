@@ -1,4 +1,4 @@
-import 'package:data_collector_app/data_provider.dart';
+import 'package:data_collector_app/data_util.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -26,8 +26,7 @@ class _InputFormState extends State<InputForm> {
   late final int _nFields;
   late final List<TextEditingController> _controllers;
 
-  late final DataProvider _dataProvider;
-  // late final DatasetIndexProvider _datasetIndexProvider;
+  late final DataModel _dataModel;
 
   final FocusNode _firstFieldFocus = FocusNode();
 
@@ -40,7 +39,7 @@ class _InputFormState extends State<InputForm> {
     _nFields = _fieldNames.length;
     _controllers = List.generate(_nFields, (_) => TextEditingController());
 
-    _dataProvider = Provider.of<DataProvider>(context, listen: false);
+    _dataModel = Provider.of<DataModel>(context, listen: false);
     // _datasetIndexProvider =
     //     Provider.of<DatasetIndexProvider>(context, listen: false);
   }
@@ -95,7 +94,7 @@ class _InputFormState extends State<InputForm> {
     var timestamp = (_addDate ?? DateTime.now())
         .copyWith(hour: _addTime?.hour, minute: _addTime?.minute);
 
-    _dataProvider.addSample(timestamp, texts);
+    _dataModel.addSample(timestamp, texts);
 
     // clear form
     for (var c in _controllers) {

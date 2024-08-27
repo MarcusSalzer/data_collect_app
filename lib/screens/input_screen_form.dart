@@ -1,5 +1,4 @@
-import 'package:data_collector_app/data_provider.dart';
-import 'package:data_collector_app/dataset_index_provider.dart';
+import 'package:data_collector_app/data_util.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -15,28 +14,26 @@ class InputScreenForm extends StatefulWidget {
 }
 
 class _InputScreenFormState extends State<InputScreenForm> {
-  late final DataProvider _dataProvider;
-  late final DatasetIndexProvider _datasetIndexProvider;
+  late final DataModel _dataModel;
 
   @override
   void initState() {
     super.initState();
-    _dataProvider = Provider.of<DataProvider>(context, listen: false);
-    _datasetIndexProvider =
-        Provider.of<DatasetIndexProvider>(context, listen: false);
+    _dataModel = Provider.of<DataModel>(context, listen: false);
   }
 
   void _save() async {
-    await _dataProvider.saveDataCsv();
-    final currentSet = _datasetIndexProvider.datasets.firstWhere(
-      (dataset) => dataset["name"] == _dataProvider.name,
-    );
-    currentSet["length"] = _dataProvider.data!.length;
-    await _datasetIndexProvider.saveDatasetIndex();
+    print("TODO");
+    throw UnimplementedError("TODO");
+    // final currentSet = _datasetIndexProvider.datasets.firstWhere(
+    //   (dataset) => dataset["name"] == _dataProvider.name,
+    // );
+    // currentSet["length"] = _dataProvider.data!.length;
+    // await _datasetIndexProvider.saveDatasetIndex();
   }
 
   Future<void> _onExit() async {
-    if (_dataProvider.unsavedChanges) {
+    if (_dataModel.unsavedChanges) {
       _save();
     }
   }

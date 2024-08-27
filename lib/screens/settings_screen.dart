@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:data_collector_app/main.dart';
 import 'package:flutter/material.dart';
 import 'package:data_collector_app/io_util.dart' show FolderHelper;
 
@@ -66,22 +65,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   return const Text("...");
                 }
               },
-            ),
-            const Divider(),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text("Dark mode:"),
-                Switch(
-                    value: MyApp.of(context).isDarkmode,
-                    onChanged: (value) {
-                      if (value) {
-                        MyApp.of(context).changeTheme(ThemeMode.dark);
-                      } else {
-                        MyApp.of(context).changeTheme(ThemeMode.light);
-                      }
-                    }),
-              ],
             ),
             const Divider(),
             TextButton.icon(

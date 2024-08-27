@@ -109,6 +109,21 @@ class DataModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> _loadData() async {
+    _currentData = _currentData;
+    await for (var values in streamCsv(name: _currentDataset?.name)) {
+      _currentData?.add(DataSample(
+        DateTime.parse(values.first),
+        _parseValues(values.sublist(1)),
+      ));
+    }
+  }
+
+  Future<void> _saveData() async {
+    final lines = _currentData!.map((DataSample sample) => sample.toString());
+    await writeCsv(lines, name: _currentDataset?.name);
+  }
+
   /// Parse a list of strings according to [currentDataset] schema.
   List<dynamic> _parseValues(List<String> values) {
     final dtypes = currentDataset.schema.values.toList();
