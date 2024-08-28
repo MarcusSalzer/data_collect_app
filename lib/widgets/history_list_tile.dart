@@ -41,7 +41,6 @@ class HistoryListTile extends StatelessWidget {
             child: IconButton(
               onPressed: () {
                 print("TODO");
-                throw UnimplementedError("TODO");
                 // Provider.of<DataModel>(context, listen: false)
                 //     .removeSample(dataSamp);
               },

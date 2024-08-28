@@ -1,5 +1,5 @@
 import 'package:data_collector_app/constants.dart';
-import 'package:data_collector_app/dataset_index_provider.dart';
+import 'package:data_collector_app/data_util.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -62,7 +62,7 @@ class _DatasetEditorState extends State<DatasetEditor> {
     // Validate form
     if (!_formKey.currentState!.validate()) {
       return;
-    } 
+    }
 
     // Validate field names
     if (_fields.isEmpty) {
@@ -83,23 +83,19 @@ class _DatasetEditorState extends State<DatasetEditor> {
 
     // Save dataset
     final datasetName = _nameController.text;
-    var schema = {
+    var schema = <String, String>{
       // "timestamp": "datetime",
       for (var f in _fields) f["fieldNameController"].text.trim(): f["type"]
     };
 
-    final newDataset = {
-      "name": datasetName,
-      "schema": schema,
-      "length": 0,
-    };
+    final newDataset = Dataset(datasetName, schema, 0);
+
     // Access the DatasetProvider and add the dataset
 
-    Provider.of<DatasetIndexProvider>(context, listen: false)
-        .addDataset(newDataset);
+    Provider.of<DataModel>(context, listen: false).addDataset(newDataset);
 
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("Created new dataset: ${newDataset['name']}")),
+      SnackBar(content: Text("Created new dataset: ${newDataset.name}")),
     );
 
     Navigator.pop(context);
@@ -121,8 +117,9 @@ class _DatasetEditorState extends State<DatasetEditor> {
                 return 'Please enter a dataset name';
               } else {
                 var currentNames =
-                    Provider.of<DatasetIndexProvider>(context, listen: false)
-                        .datasetNames;
+                    Provider.of<DataModel>(context, listen: false)
+                        .datasets
+                        .map((ds) => ds.name);
                 if (currentNames.contains(value.trim())) {
                   return "Already exists";
                 }

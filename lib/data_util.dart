@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:data_collector_app/io_util.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
 
 class DataModel extends ChangeNotifier {
@@ -12,11 +13,11 @@ class DataModel extends ChangeNotifier {
   Dataset? _currentDataset;
   List<DataSample>? _currentData;
   bool _unsavedChanges = false;
-  bool _isLoading = true;
+  // bool _isLoading = true;
 
   List<Dataset> get datasets => _datasets;
   bool get unsavedChanges => _unsavedChanges;
-  bool get isLoading => _isLoading;
+  // bool get isLoading => _isLoading;
 
   /// get or throw [StateError].
   List<dynamic> get currentData {
@@ -38,13 +39,22 @@ class DataModel extends ChangeNotifier {
     _dataDir = dir ?? await FolderHelper.getDataDir();
 
     await _loadDatasetIndex();
-    _isLoading = false;
+    // _isLoading = false;
   }
 
-  void selectDatasetAt(int index) async {
+  void selectDatasetAt(int index) {
     unloadData();
     _currentDataset = datasets[index];
-    _isLoading = true;
+    notifyListeners();
+  }
+
+  void addDataset(Dataset newDataset) async {
+    _datasets.add(newDataset);
+    _saveDatasetIndex();
+
+    final newFile = File(p.join(_dataDir.path, "${newDataset.name}.csv"));
+
+    await newFile.create();
     notifyListeners();
   }
 
@@ -82,8 +92,30 @@ class DataModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> loadData() async {
+    var data = <DataSample>[];
+    try {
+      await for (var values in streamCsv(_currentDataset!.name)) {
+        data.add(DataSample(
+          DateTime.parse(values.first),
+          _parseValues(values.sublist(1)),
+        ));
+      }
+    } on Exception {
+      rethrow;
+    }
+    _currentData = data;
+    // _isLoading = false;
+    notifyListeners();
+  }
+
+  Future<void> saveData() async {
+    final lines = _currentData!.map((DataSample sample) => sample.toString());
+    await writeCsv(lines, _currentDataset!.name);
+  }
+
   Future<void> _loadDatasetIndex() async {
-    _isLoading = true;
+    // _isLoading = true;
     var file = File(p.join(_dataDir.path, "dataset_index.json"));
     if (!await file.exists()) {
       await file.create(recursive: true);
@@ -93,7 +125,7 @@ class DataModel extends ChangeNotifier {
 
     _datasets = _parseDatasets(jsonData as List<dynamic>);
 
-    _isLoading = false;
+    // _isLoading = false;
     notifyListeners();
   }
 
@@ -115,24 +147,10 @@ class DataModel extends ChangeNotifier {
       await file.create(recursive: true);
     }
     var contents = jsonEncode(
-      _datasets.map((item) => item.toMap()),
+      _datasets.map((item) => item.toMap()).toList(),
     );
     await file.writeAsString(contents);
     notifyListeners();
-  }
-
-  Future<void> loadData() async {
-    await for (var values in streamCsv(_currentDataset!.name)) {
-      _currentData?.add(DataSample(
-        DateTime.parse(values.first),
-        _parseValues(values.sublist(1)),
-      ));
-    }
-  }
-
-  Future<void> _saveData() async {
-    final lines = _currentData!.map((DataSample sample) => sample.toString());
-    await writeCsv(lines, _currentDataset!.name);
   }
 
   /// Parse a list of strings according to [currentDataset] schema.

@@ -8,6 +8,5 @@ coming soon...
 
 ## Todo
 
-- dataset object
 - datamodel class
 - mobile friendly UI
