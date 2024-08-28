@@ -13,7 +13,8 @@ void main() {
       tempFile = File(path.join(tempDir.path, 'test.csv'));
 
       // Write sample CSV data to the file
-      await tempFile.writeAsString('name,age,city\nJohn,30,New York\nJane,25,London\n');
+      await tempFile
+          .writeAsString('name,age,city\nJohn,30,New York\nJane,25,London\n');
     });
 
     tearDown(() async {
@@ -32,7 +33,7 @@ void main() {
 
       final actualRows = <List<String>>[];
 
-      await for (var row in streamCsv(filePath:tempFile.path)) {
+      await for (var row in streamCsv("test", tempFile.parent)) {
         actualRows.add(row);
       }
 

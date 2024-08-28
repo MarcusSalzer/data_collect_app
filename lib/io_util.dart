@@ -31,22 +31,15 @@ class FolderHelper {
   }
 }
 
-/// stream splitted lines from '[name].csv' in data folder
-Stream<List<String>> streamCsv({String? name, String? filePath}) async* {
+/// stream splitted lines from '[name].csv'
+/// Loads file from from specified [dir], or
+/// from dir specified in [FolderHelper] if omitted.
+Stream<List<String>> streamCsv(String name, [Directory? dir]) async* {
+  dir ??= await FolderHelper.getDataDir();
   // get file to load
-  late final File file;
-  if (name != null) {
-    file = File(p.join(
-      (await FolderHelper.getDataDir()).path,
-      "$name.csv",
-    ));
-  } else if (filePath != null) {
-    file = File(filePath);
-  } else {
-    throw ArgumentError("provide name or path");
-  }
-  final stream = file.openRead();
+  final file = File(p.join(dir.path, "$name.csv"));
 
+  final stream = file.openRead();
   final lines = stream
       .transform(utf8.decoder) // Decode the bytes into a string
       .transform(const LineSplitter()); // Split the string into lines
@@ -57,23 +50,15 @@ Stream<List<String>> streamCsv({String? name, String? filePath}) async* {
   }
 }
 
-Future<void> writeCsv(
-  Iterable<String> lines, {
-  String? name,
-  String? filePath,
-}) async {
+Future<void> writeCsv(Iterable<String> lines, String name,
+    [Directory? dir]) async {
   // get file to load
   late final File file;
-  if (name != null) {
-    file = File(p.join(
-      (await FolderHelper.getDataDir()).path,
-      "$name.csv",
-    ));
-  } else if (filePath != null) {
-    file = File(filePath);
-  } else {
-    throw ArgumentError("provide name or path");
-  }
+  file = File(p.join(
+    (await FolderHelper.getDataDir()).path,
+    "$name.csv",
+  ));
+
   // Open the file for writing (overwriting if it already exists)
   final sink = file.openWrite();
 
@@ -87,9 +72,13 @@ Future<void> writeCsv(
   }
 }
 
-/// Copy a CSV file inside the data-directory.
-Future<void> copyDataFile(String nameOld, String nameNew) async {
-  final dir = await FolderHelper.getDataDir();
+/// Copy a CSV file inside the data-directory (or specified [dir]).
+Future<void> copyDataFile(
+  String nameOld,
+  String nameNew, [
+  Directory? dir,
+]) async {
+  dir ??= await FolderHelper.getDataDir();
 
   File fileOld = File(p.join(dir.path, "$nameOld.csv"));
   File fileNew = File(p.join(dir.path, "$nameNew.csv"));
@@ -98,7 +87,7 @@ Future<void> copyDataFile(String nameOld, String nameNew) async {
 }
 
 /// moves a CSV file to the trash directory
-Future<void> moveDataToTrash(String name) async {
+Future<void> moveDataToTrash(String name, [Directory? dir]) async {
   var dir = await FolderHelper.getDataDir();
   var file = File(p.join(dir.path, "$name.csv"));
 

@@ -48,14 +48,13 @@ class _InputScreenFormState extends State<InputScreenForm> {
           appBar: AppBar(
             title: Text(widget.dataset["name"]),
           ),
-          body: Padding(
-            padding: const EdgeInsets.all(20),
+          body: const Padding(
+            padding: EdgeInsets.all(20),
             child: Column(
               children: [
                 InputForm(
-                  dataset: widget.dataset,
                 ),
-                const HistoryList(),
+                HistoryList(),
               ],
             ),
           )),

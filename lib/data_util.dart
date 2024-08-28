@@ -6,16 +6,13 @@ import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as p;
 
 class DataModel extends ChangeNotifier {
+  late final Directory _dataDir;
   List<Dataset> _datasets = [];
 
   Dataset? _currentDataset;
   List<DataSample>? _currentData;
   bool _unsavedChanges = false;
   bool _isLoading = true;
-
-  DataModel() {
-    _loadDatasetIndex();
-  }
 
   List<Dataset> get datasets => _datasets;
   bool get unsavedChanges => _unsavedChanges;
@@ -37,9 +34,17 @@ class DataModel extends ChangeNotifier {
     return _currentDataset!;
   }
 
-  void selectDatasetAt(int index) {
+  Future<void> init([Directory? dir]) async {
+    _dataDir = dir ?? await FolderHelper.getDataDir();
+
+    await _loadDatasetIndex();
+    _isLoading = false;
+  }
+
+  void selectDatasetAt(int index) async {
+    unloadData();
     _currentDataset = datasets[index];
-    // TODO: load data
+    _isLoading = true;
     notifyListeners();
   }
 
@@ -65,7 +70,8 @@ class DataModel extends ChangeNotifier {
   }
 
   /// Remove a specific sample from [_currentData], at index [index].
-  /// Also updates the [currentDataset]'s length, [unsavedChanges] and notifies listeners.
+  /// Also updates the [currentDataset]'s length,
+  /// [unsavedChanges] and notifies listeners.
   ///
   /// - Note: can throw errors.
   void removeSampleAt(int index) {
@@ -78,26 +84,32 @@ class DataModel extends ChangeNotifier {
 
   Future<void> _loadDatasetIndex() async {
     _isLoading = true;
-    var dir = await FolderHelper.getDataDir();
-    var file = File(p.join(dir.path, "dataset_index.json"));
+    var file = File(p.join(_dataDir.path, "dataset_index.json"));
     if (!await file.exists()) {
       await file.create(recursive: true);
       await file.writeAsString(jsonEncode([]));
     }
     var jsonData = jsonDecode(await file.readAsString());
 
-    _datasets = (jsonData as List<dynamic>)
-        .map((item) => item as Map<String, dynamic>)
-        .map((item) => Dataset(item["name"], item["schema"], item["length"]))
-        .toList();
+    _datasets = _parseDatasets(jsonData as List<dynamic>);
 
     _isLoading = false;
     notifyListeners();
   }
 
+  List<Dataset> _parseDatasets(List data) {
+    return data
+        .map((item) => item as Map<String, dynamic>)
+        .map((item) => Dataset(
+              item["name"].toString(),
+              Map<String, String>.from(item["schema"]),
+              item["length"],
+            ))
+        .toList();
+  }
+
   Future<void> _saveDatasetIndex() async {
-    var dir = await FolderHelper.getDataDir();
-    var file = File(p.join(dir.path, "dataset_index.json"));
+    var file = File(p.join(_dataDir.path, "dataset_index.json"));
 
     if (!await file.exists()) {
       await file.create(recursive: true);
@@ -109,9 +121,8 @@ class DataModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> _loadData() async {
-    _currentData = _currentData;
-    await for (var values in streamCsv(name: _currentDataset?.name)) {
+  Future<void> loadData() async {
+    await for (var values in streamCsv(_currentDataset!.name)) {
       _currentData?.add(DataSample(
         DateTime.parse(values.first),
         _parseValues(values.sublist(1)),
@@ -121,7 +132,7 @@ class DataModel extends ChangeNotifier {
 
   Future<void> _saveData() async {
     final lines = _currentData!.map((DataSample sample) => sample.toString());
-    await writeCsv(lines, name: _currentDataset?.name);
+    await writeCsv(lines, _currentDataset!.name);
   }
 
   /// Parse a list of strings according to [currentDataset] schema.

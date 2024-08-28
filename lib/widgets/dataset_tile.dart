@@ -1,5 +1,5 @@
 import 'package:data_collector_app/data_util.dart';
-import 'package:data_collector_app/screens/input_screen_form.dart';
+import 'package:data_collector_app/screens/input_screen_form_new.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -7,18 +7,17 @@ class DatasetTile extends StatelessWidget {
   const DatasetTile({
     super.key,
     required this.dataset,
+    required this.index,
   });
 
-  final Map<String, dynamic> dataset;
+  final Dataset dataset;
+  final int index;
 
   @override
   Widget build(BuildContext context) {
-    assert(Set.of(dataset.keys).containsAll(["name", "schema"]),
-        "Missing dataset keys");
-
     var schemaIcons = <Widget>[];
     try {
-      for (var dtype in dataset["schema"].values.toList()) {
+      for (var dtype in dataset.schema.values.toList()) {
         schemaIcons.add(switch (dtype) {
           "numeric" => const Icon(Icons.numbers),
           "categoric" => const Icon(Icons.category),
@@ -37,11 +36,11 @@ class DatasetTile extends StatelessWidget {
           child: InkWell(
             onTap: () {
               Provider.of<DataModel>(context, listen: false)
-                  .selectDatasetAt(0); //TODO get index
+                  .selectDatasetAt(index);
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => InputScreenForm(dataset: dataset),
+                  builder: (context) => const InputScreenFormNew(),
                 ),
               );
             },
@@ -51,9 +50,9 @@ class DatasetTile extends StatelessWidget {
                 children: [
                   Expanded(
                     flex: 2,
-                    child: Text(dataset["name"]),
+                    child: Text(dataset.name),
                   ),
-                  Text("(${dataset["length"]})"),
+                  Text("(${dataset.length})"),
                   const VerticalDivider(),
                   Expanded(
                     child: Row(

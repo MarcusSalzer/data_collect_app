@@ -3,8 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class InputForm extends StatefulWidget {
-  final Map<String, dynamic> dataset;
-  const InputForm({super.key, required this.dataset});
+  const InputForm({super.key, });
 
   @override
   State<InputForm> createState() => _InputFormState();
@@ -33,15 +32,13 @@ class _InputFormState extends State<InputForm> {
   @override
   void initState() {
     super.initState();
+    _dataModel = Provider.of<DataModel>(context, listen: false);
 
-    _fieldNames = List<String>.from(widget.dataset["schema"].keys);
-    _dtypes = List<String>.from(widget.dataset["schema"].values);
+    _fieldNames = _dataModel.currentDataset.schema.keys.toList();
+    _dtypes = _dataModel.currentDataset.schema.values.toList();
     _nFields = _fieldNames.length;
     _controllers = List.generate(_nFields, (_) => TextEditingController());
 
-    _dataModel = Provider.of<DataModel>(context, listen: false);
-    // _datasetIndexProvider =
-    //     Provider.of<DatasetIndexProvider>(context, listen: false);
   }
 
   @override
