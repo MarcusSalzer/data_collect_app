@@ -1,23 +1,26 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:data_collector_app/io_util.dart';
+import 'package:data_collector_app/utility/io_util.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
 
 class DataModel extends ChangeNotifier {
   late final Directory _dataDir;
+
+  // TODO map for const time lookups?
+
   List<Dataset> _datasets = [];
 
   Dataset? _currentDataset;
   List<DataSample>? _currentData;
   bool _unsavedChanges = false;
-  // bool _isLoading = true;
+  bool _isLoading = true;
 
   List<Dataset> get datasets => _datasets;
   bool get unsavedChanges => _unsavedChanges;
-  // bool get isLoading => _isLoading;
+  bool get isLoading => _isLoading;
 
   /// get or throw [StateError].
   List<dynamic> get currentData {
@@ -39,7 +42,7 @@ class DataModel extends ChangeNotifier {
     _dataDir = dir ?? await FolderHelper.getDataDir();
 
     await _loadDatasetIndex();
-    // _isLoading = false;
+    _isLoading = false;
   }
 
   void selectDatasetAt(int index) {
@@ -55,6 +58,42 @@ class DataModel extends ChangeNotifier {
     final newFile = File(p.join(_dataDir.path, "${newDataset.name}.csv"));
 
     await newFile.create();
+    notifyListeners();
+  }
+
+  Future<void> deleteDataset(Dataset dataset) async {
+    _datasets.remove(dataset);
+    _saveDatasetIndex();
+    moveDataToTrash(dataset.name);
+    notifyListeners();
+  }
+
+  Future<void> copyDataset(Dataset oldSet) async {
+    var i = 1;
+    String name0 = oldSet.name;
+
+    String end = name0.split("_").last;
+
+    // if already ends with 2 digit
+    if (end.length == 2 && int.tryParse(end) != null) {
+      name0 = name0.substring(0, name0.length - 3);
+    }
+    // make new unique name
+    var name = name0;
+    final datasetNames = datasets.map((ds) => ds.name);
+
+    while (datasetNames.contains(name)) {
+      name = "${name0}_${i.toString().padLeft(2, "0")}";
+      i++;
+    }
+
+    // add new dataset to index
+    var newSet = Dataset(name, oldSet.schema, oldSet.length);
+    addDataset(newSet);
+
+    // copy data too
+    copyDataFile(oldSet.name, newSet.name);
+
     notifyListeners();
   }
 
@@ -92,6 +131,15 @@ class DataModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// NOTE: inefficient?
+  void removeSample(DataSample sample) {
+    currentData.remove(sample);
+    currentDataset.length = currentData.length;
+    _unsavedChanges = true;
+
+    notifyListeners();
+  }
+
   Future<void> loadData() async {
     var data = <DataSample>[];
     try {
@@ -105,13 +153,14 @@ class DataModel extends ChangeNotifier {
       rethrow;
     }
     _currentData = data;
-    // _isLoading = false;
+    _isLoading = false;
     notifyListeners();
   }
 
   Future<void> saveData() async {
     final lines = _currentData!.map((DataSample sample) => sample.toString());
     await writeCsv(lines, _currentDataset!.name);
+    _unsavedChanges = false;
   }
 
   Future<void> _loadDatasetIndex() async {
@@ -125,7 +174,7 @@ class DataModel extends ChangeNotifier {
 
     _datasets = _parseDatasets(jsonData as List<dynamic>);
 
-    // _isLoading = false;
+    _isLoading = false;
     notifyListeners();
   }
 

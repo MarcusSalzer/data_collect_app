@@ -1,15 +1,16 @@
-import 'package:data_collector_app/data_util.dart';
+import 'package:data_collector_app/utility/data_util.dart';
+import 'package:data_collector_app/utility/input_functions.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class InputForm extends StatefulWidget {
-  const InputForm({super.key, });
+class InputFormHorizontal extends StatefulWidget {
+  const InputFormHorizontal({super.key, });
 
   @override
-  State<InputForm> createState() => _InputFormState();
+  State<InputFormHorizontal> createState() => _InputFormHorizontalState();
 }
 
-class _InputFormState extends State<InputForm> {
+class _InputFormHorizontalState extends State<InputFormHorizontal> {
   final _formKey = GlobalKey<FormState>();
   // bool _disableAdd = true;
   // bool _isDataLoaded = false;
@@ -51,32 +52,7 @@ class _InputFormState extends State<InputForm> {
   }
 
   /// Validate an input field based on its [dtype].
-  String? _validateField(String text, String dtype, {bool allowEmpty = true}) {
-    text = text.trim();
-    if (text.isEmpty) {
-      if (allowEmpty) {
-        return null;
-      } else {
-        return "Please enter a value";
-      }
-    } else if (text.contains(",")) {
-      return "Value cannot contain ',' (CSV separator)";
-    }
 
-    switch (dtype) {
-      case "numeric":
-        if (num.tryParse(text) == null) {
-          return "Invalid number";
-        }
-        break;
-      case "datetime":
-        if (DateTime.tryParse(text) == null) {
-          return "Cannot parse DateTime";
-        }
-        break;
-    }
-    return null;
-  }
 
   /// validate form and save to [DataProvider] if valid.
   void _addSample() {
@@ -193,7 +169,7 @@ class _InputFormState extends State<InputForm> {
                 labelText: "${_fieldNames[i]} (${_dtypes[i]})",
               ),
               controller: _controllers[i],
-              validator: (value) => _validateField(value ?? "", _dtypes[i]),
+              validator: (value) => validateField(value ?? "", _dtypes[i]),
               onFieldSubmitted: (value) {
                 _addSample();
               },

@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:test/test.dart';
-import 'package:data_collector_app/data_util.dart';
+import 'package:data_collector_app/utility/data_util.dart';
 import 'package:path/path.dart' as p;
 
 void main() {

@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:test/test.dart';
 import 'package:path/path.dart' as path;
-import 'package:data_collector_app/io_util.dart';
+import 'package:data_collector_app/utility/io_util.dart';
 
 void main() {
   group('io_util', () {

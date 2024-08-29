@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:data_collector_app/io_util.dart' show FolderHelper;
+import 'package:data_collector_app/utility/io_util.dart' show FolderHelper;
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});

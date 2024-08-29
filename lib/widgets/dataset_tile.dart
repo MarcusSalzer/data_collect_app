@@ -1,4 +1,4 @@
-import 'package:data_collector_app/data_util.dart';
+import 'package:data_collector_app/utility/data_util.dart';
 import 'package:data_collector_app/screens/input_screen_form_new.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -81,23 +81,19 @@ class DatasetTile extends StatelessWidget {
           menuChildren: [
             MenuItemButton(
               onPressed: () async {
-                print("TODO");
-                throw UnimplementedError("TODO");
-                // var contextCopy = context;
-                // await Provider.of<DataModel>(context, listen: false)
-                //     .deleteDataset(dataset);
-                // if (context.mounted) {
-                //   ScaffoldMessenger.of(context).showSnackBar(
-                //     SnackBar(content: Text("Deleted ${dataset['name']}")),
-                //   );
-                // }
+                await Provider.of<DataModel>(context, listen: false)
+                    .deleteDataset(dataset);
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text("Deleted ${dataset.name}")),
+                  );
+                }
               },
               child: const Text("delete"),
             ),
             MenuItemButton(
               onPressed: () async {
                 print("TODO");
-                throw UnimplementedError("TODO");
                 // await Provider.of<DataModel>(context, listen: false)
                 //     .copyDataset(dataset);
 

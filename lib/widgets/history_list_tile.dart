@@ -1,5 +1,6 @@
-import 'package:data_collector_app/data_util.dart';
+import 'package:data_collector_app/utility/data_util.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class HistoryListTile extends StatelessWidget {
   final DataSample dataSamp;
@@ -40,9 +41,8 @@ class HistoryListTile extends StatelessWidget {
             width: 120,
             child: IconButton(
               onPressed: () {
-                print("TODO");
-                // Provider.of<DataModel>(context, listen: false)
-                //     .removeSample(dataSamp);
+                Provider.of<DataModel>(context, listen: false)
+                    .removeSample(dataSamp);
               },
               icon: const Icon(Icons.delete_forever),
             ),
