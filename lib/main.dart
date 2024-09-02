@@ -1,5 +1,5 @@
 import 'package:data_collector_app/utility/data_util.dart';
-import 'package:data_collector_app/screens/datasets_screen_new.dart';
+import 'package:data_collector_app/screens/datasets_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -40,6 +40,6 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     // Start at the datasets list
-    return const DatasetsScreenNew();
+    return const DatasetsScreen();
   }
 }

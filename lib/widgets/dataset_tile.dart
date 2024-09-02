@@ -1,5 +1,5 @@
+import 'package:data_collector_app/screens/input_screen_tabs.dart';
 import 'package:data_collector_app/utility/data_util.dart';
-import 'package:data_collector_app/screens/input_screen_form_new.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -40,7 +40,7 @@ class DatasetTile extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => const InputScreenFormNew(),
+                  builder: (context) => const InputScreenTabs(),
                 ),
               );
             },

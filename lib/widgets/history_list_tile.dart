@@ -29,23 +29,23 @@ class HistoryListTile extends StatelessWidget {
       margin: const EdgeInsets.symmetric(vertical: 2),
       child: IntrinsicHeight(
         child: Row(children: [
-          SizedBox(
-            width: 200,
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0),
             child: SelectionArea(
-                child: Text(dataSamp.timestamp.toString().split(".")[0])),
+                child: Text(
+              dataSamp.timestamp.toString().split(".")[0],
+              style: Theme.of(context).textTheme.bodySmall,     
+            )),
           ),
           divider,
           ...dataFields,
           divider,
-          SizedBox(
-            width: 120,
-            child: IconButton(
-              onPressed: () {
-                Provider.of<DataModel>(context, listen: false)
-                    .removeSample(dataSamp);
-              },
-              icon: const Icon(Icons.delete_forever),
-            ),
+          IconButton(
+            onPressed: () {
+              Provider.of<DataModel>(context, listen: false)
+                  .removeSample(dataSamp);
+            },
+            icon: const Icon(Icons.delete_forever),
           )
         ]),
       ),

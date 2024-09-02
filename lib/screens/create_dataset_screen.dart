@@ -13,7 +13,7 @@ class CreateDatasetScreen extends StatelessWidget {
         title: const Text("New dataset"),
       ),
       body: const Padding(
-        padding: EdgeInsets.fromLTRB(100, 10, 100, 50),
+        padding: EdgeInsets.all(10),
         child: DatasetEditor(),
       ),
     );
@@ -140,8 +140,7 @@ class _DatasetEditorState extends State<DatasetEditor> {
                   padding: const EdgeInsets.only(top: 8),
                   child: Row(
                     children: [
-                      SizedBox(
-                        width: 300,
+                      Expanded(
                         child: TextFormField(
                           controller: _fields[index]["fieldNameController"],
                           decoration:

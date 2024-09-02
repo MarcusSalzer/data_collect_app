@@ -1,5 +1,5 @@
 import 'package:data_collector_app/utility/data_util.dart';
-import 'package:data_collector_app/utility/input_functions.dart';
+import 'package:data_collector_app/utility/input_handler.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 

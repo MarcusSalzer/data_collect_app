@@ -1,5 +1,5 @@
 import 'package:data_collector_app/utility/data_util.dart';
-import 'package:data_collector_app/utility/input_functions.dart';
+import 'package:data_collector_app/utility/input_handler.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -36,21 +36,19 @@ class _InputFormVerticalState extends State<InputFormVertical> {
     // generate fields
     for (var (index, MapEntry(key: name, value: dtype))
         in _dataset.schema.entries.indexed) {
-      _formFields.add(Expanded(
-        child: Padding(
-          // ensure space for form validation messages
-          padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 2),
-          child: TextFormField(
-            decoration: InputDecoration(
-              labelText: "$name ($dtype)",
-            ),
-            controller: _controllers[index],
-            validator: (value) => validateField(value ?? "", dtype),
-            onFieldSubmitted: (value) {
-              _addSample();
-            },
-            focusNode: index == 0 ? _firstFieldFocus : null, // only for first
+      _formFields.add(Padding(
+        // ensure space for form validation messages
+        padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 2),
+        child: TextFormField(
+          decoration: InputDecoration(
+            labelText: "$name ($dtype)",
           ),
+          controller: _controllers[index],
+          validator: (value) => validateField(value ?? "", dtype),
+          onFieldSubmitted: (value) {
+            _addSample();
+          },
+          focusNode: index == 0 ? _firstFieldFocus : null, // only for first
         ),
       ));
     }
@@ -68,31 +66,29 @@ class _InputFormVerticalState extends State<InputFormVertical> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 50),
-      child: Center(
-        child: Form(
-          key: _formKey,
-          child: SizedBox(
-            width: 300,
-            child: Column(
+      padding: const EdgeInsets.symmetric(horizontal: 10),
+      child: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            Column(
               mainAxisSize: MainAxisSize.min,
-              children: [
-                Expanded(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: _formFields,
-                  ),
-                ),
-                ElevatedButton.icon(
-                  onPressed: () {
-                    _addSample();
-                  },
-                  label: const Text("Add"),
-                  icon: const Icon(Icons.add),
-                )
-              ],
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: _formFields,
             ),
-          ),
+            const SizedBox(
+              height: 30,
+            ),
+            ElevatedButton.icon(
+              onPressed: () {
+                _addSample();
+              },
+              label: const Text("Add"),
+              icon: const Icon(Icons.add),
+            )
+          ],
         ),
       ),
     );

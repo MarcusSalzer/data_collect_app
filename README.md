@@ -8,5 +8,4 @@ coming soon...
 
 ## Todo
 
-- datamodel class
 - mobile friendly UI

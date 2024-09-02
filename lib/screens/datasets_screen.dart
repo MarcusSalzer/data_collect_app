@@ -6,8 +6,8 @@ import 'package:provider/provider.dart';
 import 'create_dataset_screen.dart';
 import 'settings_screen.dart';
 
-class DatasetsScreenNew extends StatelessWidget {
-  const DatasetsScreenNew({super.key});
+class DatasetsScreen extends StatelessWidget {
+  const DatasetsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -15,18 +15,18 @@ class DatasetsScreenNew extends StatelessWidget {
       appBar: AppBar(
         title: const Text("Datasets"),
         actions: [
-          TextButton.icon(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const SettingsScreen(),
-                  ),
-                );
-              },
-              icon: const Icon(Icons.settings),
-              label: const Text("Settings")),
-          TextButton.icon(
+          IconButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const SettingsScreen(),
+                ),
+              );
+            },
+            icon: const Icon(Icons.settings),
+          ),
+          IconButton(
               onPressed: () {
                 Navigator.push(
                   context,
@@ -35,8 +35,7 @@ class DatasetsScreenNew extends StatelessWidget {
                   ),
                 );
               },
-              icon: const Icon(Icons.add),
-              label: const Text("New dataset")),
+              icon: const Icon(Icons.add)),
         ],
       ),
       body: Consumer<DataModel>(builder: (context, model, child) {
