@@ -1,12 +1,3 @@
-# Generated folders
-ios/
-linux/
-macos/
-web/
-windows/
-android/
-
-
 # Miscellaneous
 *.class
 *.log
@@ -14,9 +5,11 @@ android/
 *.swp
 .DS_Store
 .atom/
+.build/
 .buildlog/
 .history
 .svn/
+.swiftpm/
 migrate_working_dir/
 
 # IntelliJ related
