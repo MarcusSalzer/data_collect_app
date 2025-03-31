@@ -1,6 +1,6 @@
-import 'package:datacollectv2/db_service.dart';
-import 'package:datacollectv2/screens/home_screen.dart';
-import 'package:datacollectv2/app_state.dart';
+import 'package:data_app2/db_service.dart';
+import 'package:data_app2/screens/home_screen.dart';
+import 'package:data_app2/app_state.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -26,10 +26,12 @@ class MyApp extends StatelessWidget {
             useMaterial3: true,
           ),
           darkTheme: ThemeData(
+            colorScheme: ColorScheme.fromSeed(
+                seedColor: Colors.cyan, brightness: Brightness.dark),
             useMaterial3: true,
             brightness: Brightness.dark,
           ),
-          themeMode: settings.isDarkMode() ? ThemeMode.dark : ThemeMode.light,
+          themeMode: settings.isDarkMode ? ThemeMode.dark : ThemeMode.light,
           home: const HomeScreen(),
         ),
       ),

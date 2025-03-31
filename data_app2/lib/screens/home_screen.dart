@@ -1,5 +1,5 @@
-import 'package:datacollectv2/screens/events_screen.dart';
-import 'package:datacollectv2/screens/settings_screen.dart';
+import 'package:data_app2/screens/events_screen.dart';
+import 'package:data_app2/screens/settings_screen.dart';
 import 'package:flutter/material.dart';
 
 class HomeScreen extends StatelessWidget {
