@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 void main() async {
+  // note: we need the DB to be ready to read user prefs when starting app
   WidgetsFlutterBinding.ensureInitialized();
   runApp(MyApp(service: DBService(await initIsar())));
 }

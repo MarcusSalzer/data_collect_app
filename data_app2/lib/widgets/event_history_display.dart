@@ -2,9 +2,9 @@
 
 import 'package:data_app2/db_service.dart';
 import 'package:data_app2/event_model.dart';
+import 'package:data_app2/fmt.dart';
 import 'package:data_app2/screens/event_edit_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 class EventHistoryDisplay extends StatelessWidget {
@@ -16,33 +16,16 @@ class EventHistoryDisplay extends StatelessWidget {
       padding: const EdgeInsets.all(18.0),
       child: Consumer<EventModel>(
         builder: (context, evtModel, child) {
-          return Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(evtModel.evtCount != null
-                  ? "has ${evtModel.evtCount} events"
-                  : "loading..."),
-              Expanded(
-                child: ListView.builder(
-                    itemCount: evtModel.events.length,
-                    itemBuilder: (context, i) {
-                      final evt = evtModel.events[i];
-                      final start = evt.start;
-                      final end = evt.end;
-                      final startText = start != null
-                          ? DateFormat("HH:mm").format(start)
-                          : "__:__";
-                      final endText = end != null
-                          ? DateFormat("HH:mm").format(end)
-                          : "__:__";
-
-                      return EventListTile(
-                          evt: evt,
-                          subt: "$startText - $endText",
-                          evtModel: evtModel);
-                    }),
-              )
-            ],
+          final count = evtModel.events.length;
+          return ListView.builder(
+            itemCount: count,
+            itemBuilder: (context, i) {
+              return EventListTile(
+                // reverse order
+                evt: evtModel.events[count - 1 - i],
+                evtModel: evtModel,
+              );
+            },
           );
         },
       ),
@@ -54,19 +37,19 @@ class EventListTile extends StatelessWidget {
   const EventListTile({
     super.key,
     required this.evt,
-    required this.subt,
     required this.evtModel,
   });
 
   final Event evt;
-  final String subt;
   final EventModel evtModel;
 
   @override
   Widget build(BuildContext context) {
+    final (startText, endText) = eventTimeFormat(evt);
+
     return ListTile(
       title: Text(evt.name),
-      subtitle: subt.isNotEmpty ? Text(subt) : null,
+      subtitle: Text("$startText - $endText"),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -76,7 +59,9 @@ class EventListTile extends StatelessWidget {
                 MaterialPageRoute(
                   builder: (context) =>
                       ChangeNotifierProvider<EventModel>.value(
-                          value: evtModel, child: EventEditScreen(evt)),
+                    value: evtModel,
+                    child: EventEditScreen(evt),
+                  ),
                 ),
               );
             },

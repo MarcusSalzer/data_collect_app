@@ -50,14 +50,9 @@ class DBService {
   }
 
   /// Load app preferences
-  Future<void> loadPrefs(AppState app) async {
+  Future<Preferences?> loadPrefs() async {
     final prefs = await _isar.preferences.get(0);
-
-    if (prefs != null) {
-      app.setDarkMode(prefs.darkMode);
-      app.setNormCase(prefs.normalizeCase);
-      app.setNormStrip(prefs.normalizeStrip);
-    }
+    return prefs;
   }
 
   /// Export events as CSV
@@ -91,7 +86,6 @@ class DBService {
 
     final lines = await file.readAsLines();
     if (lines[0] != eventsCsvHeader) {
-      // TODO catch this nicely!
       throw Exception("wrong CSV header: ${lines[0]}");
     }
 

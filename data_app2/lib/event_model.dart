@@ -7,13 +7,13 @@ import 'package:data_app2/db_service.dart';
 import 'package:flutter/material.dart';
 import 'package:isar/isar.dart';
 
-// TODO: can optimize counting and updating latest!
 class EventModel extends ChangeNotifier {
   final DBService _db;
   final bool _normStrip;
   final bool _normCase;
-  int? evtCount;
   final int nList = 100;
+
+  bool isLoading = true;
 
   List<Event> _events = [];
   LinkedHashMap<String, int> _evtFreqs = LinkedHashMap<String, int>();
@@ -23,9 +23,15 @@ class EventModel extends ChangeNotifier {
       : _db = appState.db,
         _normStrip = appState.normStrip,
         _normCase = appState.normCase {
-    _countEvents();
-    updateLatest();
-    refreshCounts();
+    _init();
+  }
+
+  /// update latest-list and eventcounts
+  Future<void> _init() {
+    return Future.wait([getLatest(), refreshCounts()]).then((_) {
+      isLoading = false;
+      notifyListeners();
+    });
   }
 
   addEvent(String name, {DateTime? start, DateTime? end}) async {
@@ -36,42 +42,37 @@ class EventModel extends ChangeNotifier {
       name = name.toLowerCase();
     }
     await saveEvent(Event(name, start: start, end: end));
-    _countEvents();
-    updateLatest();
   }
 
   delete(Event event) async {
     await _db.isar.writeTxn(() async {
       _db.isar.events.delete(event.id);
     });
-    _countEvents();
-    updateLatest();
+    _events.remove(event);
+    notifyListeners();
   }
 
   /// Save a new or updated event
   Future<void> saveEvent(Event event) async {
-    await _db.isar.writeTxn(() async {
-      _db.isar.events.put(event);
+    final id = await _db.isar.writeTxn(() async {
+      return _db.isar.events.put(event);
     });
+    event.id = id;
+    _events.add(event);
+    // print("added event $id");
     notifyListeners();
   }
 
-  Future<void> updateLatest() async {
+  Future<void> getLatest() async {
+    _events = [];
     _events = await _db.isar.txn(() async {
       return _db.isar.events
-          .where(sort: Sort.desc)
+          .where(sort: Sort.asc)
           .anyId()
           .limit(nList)
           .findAll();
     });
     notifyListeners();
-  }
-
-  void _countEvents() {
-    _db.isar.events.count().then((c) {
-      evtCount = c;
-      notifyListeners();
-    });
   }
 
   List<String> eventSuggestions([int n = 10]) {
@@ -83,6 +84,7 @@ class EventModel extends ChangeNotifier {
     return common;
   }
 
+  /// Count each event type
   Future<void> refreshCounts() async {
     final evts = await _db.isar.txn(() async {
       return _db.isar.events.where().anyId().findAll();
@@ -96,16 +98,54 @@ class EventModel extends ChangeNotifier {
       ..sort(
         (a, b) => b.value.compareTo(a.value),
       ));
-    notifyListeners();
   }
 
   Future<int> importEvents(String path) async {
     final c = await _db.importEventsCSV(path);
-    updateLatest();
-    _countEvents();
+    getLatest();
     refreshCounts();
 
     notifyListeners();
+    return c;
+  }
+
+  Future<int> exportEvents() async {
+    final c = await _db.exportEvents();
+    // print("exported $c events");
+    return c;
+  }
+
+  Future<int> normalizeLowerAll() async {
+    _events = []; // remove in memory events for consistency
+    isLoading = true;
+    notifyListeners();
+
+    final c = await _db.isar.writeTxn(
+      () async {
+        final evts = await _db.isar.events.where().findAll();
+        final uptdt = await _db.isar.events
+            .putAll(evts.map((e) => e..name = e.name.toLowerCase()).toList());
+        return uptdt.length;
+      },
+    );
+    await _init();
+    return c;
+  }
+
+  Future<int> normalizeStripAll() async {
+    _events = []; // remove in memory events for consistency
+    isLoading = true;
+    notifyListeners();
+
+    final c = await _db.isar.writeTxn(
+      () async {
+        final evts = await _db.isar.events.where().findAll();
+        final uptdt = await _db.isar.events
+            .putAll(evts.map((e) => e..name = e.name.trim()).toList());
+        return uptdt.length;
+      },
+    );
+    await _init();
     return c;
   }
 }

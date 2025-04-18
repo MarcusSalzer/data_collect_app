@@ -26,41 +26,86 @@ class EventsScreen extends StatelessWidget {
             appBar: AppBar(
               title: Text('Events'),
               actions: [
-                // import button
-                TextButton.icon(
-                  onPressed: () async {
-                    final fpRes = await FilePicker.platform.pickFiles();
-                    if (fpRes == null) {
-                      return; // canceled
-                    }
-                    final path = fpRes.files.single.path;
-                    if (path == null) {
-                      return;
-                    }
-                    final nEvt = await evm.importEvents(path);
-
-                    if (context.mounted) {
-                      final snackBar =
-                          SnackBar(content: Text('imported $nEvt events'));
-                      ScaffoldMessenger.of(context).showSnackBar(snackBar);
-                    }
-                  },
-                  label: Text("import"),
-                  icon: Icon(Icons.download),
+                MenuAnchor(
+                  builder: (context, controller, child) => IconButton(
+                    onPressed: () {
+                      if (controller.isOpen) {
+                        controller.close();
+                      } else {
+                        controller.open();
+                      }
+                    },
+                    icon: Icon(Icons.more_vert),
+                  ),
+                  menuChildren: [
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: MenuItemButton(
+                        onPressed: () async {
+                          final fpRes = await FilePicker.platform.pickFiles();
+                          if (fpRes == null) {
+                            return; // canceled
+                          }
+                          final path = fpRes.files.single.path;
+                          if (path == null) {
+                            return;
+                          }
+                          try {
+                            final nEvt = await evm.importEvents(path);
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('imported $nEvt events'),
+                                ),
+                              );
+                            }
+                          } catch (e) {
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    'error: $e',
+                                    style: TextStyle(color: Colors.red),
+                                  ),
+                                ),
+                              );
+                            }
+                          }
+                        },
+                        child: Text("import"),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: MenuItemButton(
+                        onPressed: () async {
+                          final nEvt = await evm.exportEvents();
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('saved $nEvt events'),
+                              ),
+                            );
+                          }
+                        },
+                        child: Text("export"),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: MenuItemButton(
+                        onPressed: () {
+                          showDialog(
+                              context: context,
+                              builder: (context) {
+                                return NormalizeDialog(evm);
+                              });
+                        },
+                        child: Text('normalize'),
+                      ),
+                    )
+                  ],
                 ),
-                TextButton.icon(
-                  onPressed: () async {
-                    final nEvt = await appState.db.exportEvents();
-
-                    if (context.mounted) {
-                      final snackBar =
-                          SnackBar(content: Text('saved $nEvt events'));
-                      ScaffoldMessenger.of(context).showSnackBar(snackBar);
-                    }
-                  },
-                  label: Text("export"),
-                  icon: Icon(Icons.upload),
-                )
               ],
               bottom: TabBar(
                 tabs: [
@@ -80,6 +125,66 @@ class EventsScreen extends StatelessWidget {
           );
         }),
       ),
+    );
+  }
+}
+
+class NormalizeDialog extends StatelessWidget {
+  final EventModel evm;
+
+  const NormalizeDialog(
+    this.evm, {
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SimpleDialog(
+      contentPadding: EdgeInsets.all(20),
+      title: Text("Dataset normalization"),
+      children: [
+        Center(
+            child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          child: Text("Note: these actions are permanent"),
+        )),
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          child: TextButton(
+            onPressed: () async {
+              final c = await evm.normalizeLowerAll();
+
+              if (context.mounted) {
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text("normalized (lowercase) $c events"),
+                  ),
+                );
+              }
+            },
+            child: Text("Lowercase"),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          child: TextButton(
+            onPressed: () async {
+              final c = await evm.normalizeStripAll();
+
+              if (context.mounted) {
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text("normalized (strip) $c events"),
+                  ),
+                );
+              }
+            },
+            child: Text("Strip whitespace"),
+          ),
+        ),
+      ],
     );
   }
 }

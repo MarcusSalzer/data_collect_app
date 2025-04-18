@@ -19,7 +19,14 @@ class AppState extends ChangeNotifier {
   DBService get db => _db;
 
   AppState(this._db) {
-    _db.loadPrefs(this);
+    _db.loadPrefs().then((prefs) {
+      if (prefs != null) {
+        _darkMode = prefs.darkMode;
+        _normStrip = prefs.normalizeStrip;
+        _normCase = prefs.normalizeCase;
+        notifyListeners();
+      }
+    });
   }
 
   setDarkMode(bool value) {
