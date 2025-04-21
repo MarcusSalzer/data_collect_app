@@ -31,8 +31,8 @@ class _EventCreateMenuState extends State<EventCreateMenu> {
               children: [
                 Builder(builder: (context) {
                   // if there is a previous event: display it and allow stopping
-                  if (evm.events.isNotEmpty && evm.events.last.end == null) {
-                    final evt = evm.events.last;
+                  if (evm.events.isNotEmpty && evm.events.first.end == null) {
+                    final evt = evm.events.first;
                     final (startTxt, _) = eventTimeFormat(evt);
                     return Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -45,7 +45,7 @@ class _EventCreateMenuState extends State<EventCreateMenu> {
                         TextButton.icon(
                           onPressed: () {
                             evt.end = DateTime.now();
-                            evm.saveEvent(evt);
+                            evm.putEvent(evt);
                           },
                           label: Text("stop"),
                           icon: Icon(Icons.stop),

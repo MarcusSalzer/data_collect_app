@@ -11,7 +11,7 @@ class EventModel extends ChangeNotifier {
   final DBService _db;
   final bool _normStrip;
   final bool _normCase;
-  final int nList = 100;
+  final int? _nList; // default null -> all
 
   bool isLoading = true;
 
@@ -19,10 +19,11 @@ class EventModel extends ChangeNotifier {
   LinkedHashMap<String, int> _evtFreqs = LinkedHashMap<String, int>();
   List<Event> get events => _events;
 
-  EventModel(AppState appState)
+  EventModel(AppState appState, {int? nList})
       : _db = appState.db,
         _normStrip = appState.normStrip,
-        _normCase = appState.normCase {
+        _normCase = appState.normCase,
+        _nList = nList {
     _init();
   }
 
@@ -41,7 +42,8 @@ class EventModel extends ChangeNotifier {
     if (_normCase) {
       name = name.toLowerCase();
     }
-    await saveEvent(Event(name, start: start, end: end));
+    final evt = await putEvent(Event(name, start: start, end: end));
+    _events.insert(0, evt);
   }
 
   delete(Event event) async {
@@ -53,23 +55,25 @@ class EventModel extends ChangeNotifier {
   }
 
   /// Save a new or updated event
-  Future<void> saveEvent(Event event) async {
+  Future<Event> putEvent(Event evt) async {
     final id = await _db.isar.writeTxn(() async {
-      return _db.isar.events.put(event);
+      return _db.isar.events.put(evt);
     });
-    event.id = id;
-    _events.add(event);
+    evt.id = id;
     // print("added event $id");
     notifyListeners();
+    return evt;
   }
 
+  /// Update in memory list, of reverse chronological events
   Future<void> getLatest() async {
     _events = [];
     _events = await _db.isar.txn(() async {
       return _db.isar.events
-          .where(sort: Sort.asc)
+          .where()
           .anyId()
-          .limit(nList)
+          .sortByStartDesc()
+          .optional(_nList != null, (q) => q.limit(_nList!))
           .findAll();
     });
     notifyListeners();

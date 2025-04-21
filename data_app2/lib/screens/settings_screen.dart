@@ -99,7 +99,7 @@ class _SettingsMenuState extends State<SettingsMenu> {
                           ElevatedButton.icon(
                             onPressed: () async {
                               Navigator.pop(context);
-                              final c = await appState.db.deleteAll();
+                              final c = await appState.db.deleteAllEvents();
                               if (context.mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
