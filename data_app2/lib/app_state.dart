@@ -1,5 +1,6 @@
 // Keep current settings in memory, for convenient access
 
+import 'package:data_app2/event_stats_compute.dart';
 import 'package:data_app2/extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:data_app2/db_service.dart';
@@ -53,21 +54,17 @@ class AppState extends ChangeNotifier {
   }
 
   Future<void> refreshSummary() async {
-    todaySummary = null;
-    notifyListeners();
-    final f = Future<String>.delayed(
-      const Duration(seconds: 1),
-      () => 'Data Loaded',
-    );
-    final t = await f;
     final evts =
         await db.getEventsFiltered(earliest: DateTime.now().startOfDay);
-    todaySummary = TodaySummaryData("$t: ${evts.length}");
+
+    final tpe = timePerEvent(evts, limit: 5);
+    todaySummary = TodaySummaryData(tpe);
     notifyListeners();
   }
 }
 
 class TodaySummaryData {
-  final String data;
-  TodaySummaryData(this.data);
+  final List<MapEntry<String, Duration>> tpe;
+  Duration get trackedTime => tpe.fold(Duration.zero, (p, c) => p + c.value);
+  TodaySummaryData(this.tpe);
 }

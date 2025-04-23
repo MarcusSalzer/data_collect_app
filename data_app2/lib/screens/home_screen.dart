@@ -69,7 +69,7 @@ class HomeScreen extends StatelessWidget {
                         );
                       },
                       label: Text("Stats"),
-                      icon: Icon(Icons.data_thresholding_outlined),
+                      icon: Icon(Icons.stacked_bar_chart),
                     ),
                   ),
                   Padding(

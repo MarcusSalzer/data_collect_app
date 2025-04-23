@@ -10,7 +10,7 @@ import 'package:intl/intl.dart';
   return (startText, endText);
 }
 
-durationHM(Duration d) {
+String durationHM(Duration d) {
   final mins = d.inMinutes;
   if (mins <= 60) return "$mins min";
   return "${mins ~/ 60} h ${mins % 60} min";

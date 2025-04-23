@@ -12,7 +12,7 @@ class EventEditScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Edit event"),
+        title: const Text("Edit event"),
       ),
       body: Padding(
         padding: const EdgeInsets.all(30.0),
@@ -54,7 +54,7 @@ class _EventEditFormState extends State<EventEditForm> {
         children: [
           Row(
             children: [
-              Expanded(child: Text("Name")),
+              Expanded(child: const Text("Name")),
               Expanded(
                 flex: 4,
                 child: TextFormField(

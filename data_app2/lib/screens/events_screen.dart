@@ -20,14 +20,14 @@ class EventsScreen extends StatelessWidget {
         child: Builder(builder: (context) {
           return Scaffold(
             appBar: AppBar(
-              title: Text('Events'),
+              title: const Text('Events'),
               actions: [
                 EventsScreenExtraMenu(),
               ],
               bottom: TabBar(
                 tabs: [
-                  Tab(text: "add"),
-                  Tab(text: "history"),
+                  const Tab(text: "add"),
+                  const Tab(text: "history"),
                 ],
               ),
             ),

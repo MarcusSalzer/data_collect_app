@@ -59,7 +59,10 @@ class EventListTile extends StatelessWidget {
 
     return ListTile(
       title: Text(evt.name + durTxt),
-      subtitle: Text("$startText - $endText"),
+      subtitle: Text(
+        "$startText - $endText",
+        style: TextStyle(fontFamily: 'monospace'),
+      ),
       onTap: () {
         Navigator.of(context).push(
           MaterialPageRoute(
