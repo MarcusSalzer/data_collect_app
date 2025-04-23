@@ -9,21 +9,14 @@ class CreateDatasetScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("New dataset"),
-      ),
-      body: const Padding(
-        padding: EdgeInsets.all(10),
-        child: DatasetEditor(),
-      ),
+      appBar: AppBar(title: const Text("New dataset")),
+      body: const Padding(padding: EdgeInsets.all(10), child: DatasetEditor()),
     );
   }
 }
 
 class DatasetEditor extends StatefulWidget {
-  const DatasetEditor({
-    super.key,
-  });
+  const DatasetEditor({super.key});
 
   @override
   State<DatasetEditor> createState() => _DatasetEditorState();
@@ -52,7 +45,7 @@ class _DatasetEditorState extends State<DatasetEditor> {
     setState(() {
       _fields.add({
         "fieldNameController": TextEditingController(),
-        'type': allowedDatatypes[0]
+        'type': allowedDatatypes[0],
       });
     });
   }
@@ -71,9 +64,10 @@ class _DatasetEditorState extends State<DatasetEditor> {
       );
       return;
     }
-    final List fieldNames = _fields
-        .map((field) => field["fieldNameController"].text.trim())
-        .toList();
+    final List fieldNames =
+        _fields
+            .map((field) => field["fieldNameController"].text.trim())
+            .toList();
     if (Set.from(fieldNames).length < fieldNames.length) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Please use unique field names.")),
@@ -85,7 +79,7 @@ class _DatasetEditorState extends State<DatasetEditor> {
     final datasetName = _nameController.text;
     var schema = <String, String>{
       // "timestamp": "datetime",
-      for (var f in _fields) f["fieldNameController"].text.trim(): f["type"]
+      for (var f in _fields) f["fieldNameController"].text.trim(): f["type"],
     };
 
     final newDataset = Dataset(datasetName, schema, 0);
@@ -116,10 +110,10 @@ class _DatasetEditorState extends State<DatasetEditor> {
               if (value == null || value.trim().isEmpty) {
                 return 'Please enter a dataset name';
               } else {
-                var currentNames =
-                    Provider.of<DataModel>(context, listen: false)
-                        .datasets
-                        .map((ds) => ds.name);
+                var currentNames = Provider.of<DataModel>(
+                  context,
+                  listen: false,
+                ).datasets.map((ds) => ds.name);
                 if (currentNames.contains(value.trim())) {
                   return "Already exists";
                 }
@@ -143,8 +137,9 @@ class _DatasetEditorState extends State<DatasetEditor> {
                       Expanded(
                         child: TextFormField(
                           controller: _fields[index]["fieldNameController"],
-                          decoration:
-                              const InputDecoration(labelText: 'Field Name'),
+                          decoration: const InputDecoration(
+                            labelText: 'Field Name',
+                          ),
                           validator: (value) {
                             if (value == null || value.trim().isEmpty) {
                               return 'Field name cannot be empty';
@@ -156,12 +151,15 @@ class _DatasetEditorState extends State<DatasetEditor> {
                       const SizedBox(width: 10),
                       DropdownButton<String>(
                         value: _fields[index]['type'],
-                        items: allowedDatatypes
-                            .map((type) => DropdownMenuItem(
-                                  value: type,
-                                  child: Text(type),
-                                ))
-                            .toList(),
+                        items:
+                            allowedDatatypes
+                                .map(
+                                  (type) => DropdownMenuItem(
+                                    value: type,
+                                    child: Text(type),
+                                  ),
+                                )
+                                .toList(),
                         onChanged: (newValue) {
                           setState(() {
                             _fields[index]['type'] = newValue!;
@@ -171,17 +169,14 @@ class _DatasetEditorState extends State<DatasetEditor> {
                       IconButton(
                         icon: const Icon(Icons.remove_circle),
                         onPressed: () => _removeField(index),
-                      )
+                      ),
                     ],
                   ),
                 );
               },
             ),
           ),
-          ElevatedButton(
-            onPressed: _addField,
-            child: const Text('Add Field'),
-          ),
+          ElevatedButton(onPressed: _addField, child: const Text('Add Field')),
           const SizedBox(height: 20),
           ElevatedButton(
             onPressed: _saveDataset,

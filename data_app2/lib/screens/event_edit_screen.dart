@@ -12,7 +12,7 @@ class EventEditScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Edit event"),
+        title: const Text("Edit event"),
       ),
       body: Padding(
         padding: const EdgeInsets.all(30.0),
@@ -44,80 +44,33 @@ class _EventEditFormState extends State<EventEditForm> {
     final edTxt = e != null ? DateFormat("yy-MM-dd").format(e) : "__-__-__";
     final etTxt = e != null ? DateFormat("HH:mm").format(e) : "__:__";
 
+    // TODO text edit controller!
+
     final evm = Provider.of<EventModel>(context, listen: false);
 
     return Form(
-        key: _formKey,
-        child: Column(
-          children: [
-            Row(
+      key: _formKey,
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Expanded(child: const Text("Name")),
+              Expanded(
+                flex: 4,
+                child: TextFormField(
+                  initialValue: evt.name,
+                ),
+              )
+            ],
+          ),
+          // EDIT START
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Row(
               children: [
-                Expanded(child: Text("Name")),
+                Expanded(child: Text("Start")),
                 Expanded(
-                  flex: 4,
-                  child: TextFormField(
-                    initialValue: evt.name,
-                  ),
-                )
-              ],
-            ),
-            // EDIT START
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Row(
-                children: [
-                  Expanded(child: Text("Start")),
-                  Expanded(
-                    child: TextButton(
-                        onPressed: () async {
-                          final dt = await showDatePicker(
-                            context: context,
-                            firstDate: DateTime(1970),
-                            lastDate: DateTime(2222),
-                          );
-                          if (dt != null) {
-                            setState(() {
-                              evt.start = evt.start?.copyWith(
-                                  year: dt.year, month: dt.month, day: dt.day);
-                              // save updated event
-                              evm.saveEvent(evt);
-                            });
-                          }
-                        },
-                        child: Text(sdTxt)),
-                  ),
-                  Expanded(
-                    child: TextButton(
-                      onPressed: () async {
-                        final t = await showTimePicker(
-                            context: context,
-                            initialTime: TimeOfDay.fromDateTime(
-                                evt.start ?? DateTime.now()));
-                        if (t != null) {
-                          setState(() {
-                            evt.start = evt.start?.copyWith(
-                              hour: t.hour,
-                              minute: t.minute,
-                            );
-                            // save updated event
-                            evm.saveEvent(evt);
-                          });
-                        } //
-                      },
-                      child: Text(stTxt),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            // EDIT END
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Row(
-                children: [
-                  Expanded(child: Text("End")),
-                  Expanded(
-                    child: TextButton(
+                  child: TextButton(
                       onPressed: () async {
                         final dt = await showDatePicker(
                           context: context,
@@ -126,42 +79,113 @@ class _EventEditFormState extends State<EventEditForm> {
                         );
                         if (dt != null) {
                           setState(() {
-                            evt.end = evt.end?.copyWith(
-                              year: dt.year,
-                              month: dt.month,
-                              day: dt.day,
-                            );
+                            evt.start = evt.start?.copyWith(
+                                year: dt.year, month: dt.month, day: dt.day);
                             // save updated event
-                            evm.saveEvent(evt);
+                            evm.putEvent(evt);
                           });
                         }
                       },
-                      child: Text(edTxt),
-                    ),
+                      child: Text(sdTxt)),
+                ),
+                Expanded(
+                  child: TextButton(
+                    onPressed: () async {
+                      final t = await showTimePicker(
+                          context: context,
+                          initialTime: TimeOfDay.fromDateTime(
+                              evt.start ?? DateTime.now()));
+                      if (t != null) {
+                        setState(() {
+                          evt.start = evt.start?.copyWith(
+                            hour: t.hour,
+                            minute: t.minute,
+                          );
+                          // save updated event
+                          evm.putEvent(evt);
+                        });
+                      } //
+                    },
+                    child: Text(stTxt),
                   ),
-                  Expanded(
-                    child: TextButton(
-                        onPressed: () async {
-                          final t = await showTimePicker(
-                              context: context,
-                              initialTime: TimeOfDay.fromDateTime(
-                                  evt.end ?? DateTime.now()));
-                          if (t != null) {
-                            setState(() {
-                              evt.end = evt.end
-                                  ?.copyWith(hour: t.hour, minute: t.minute);
-                              // save updated event
-                              evm.saveEvent(evt);
-                            });
-                          } //
-                        },
-                        child: Text(etTxt)),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
-        ));
+          ),
+          // EDIT END
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Row(
+              children: [
+                Expanded(child: Text("End")),
+                Expanded(
+                  child: TextButton(
+                    onPressed: () async {
+                      final dt = await showDatePicker(
+                        context: context,
+                        firstDate: DateTime(1970),
+                        lastDate: DateTime(2222),
+                      );
+                      if (dt != null) {
+                        setState(() {
+                          evt.end = evt.end?.copyWith(
+                            year: dt.year,
+                            month: dt.month,
+                            day: dt.day,
+                          );
+                          // save updated event
+                          evm.putEvent(evt);
+                        });
+                      }
+                    },
+                    child: Text(edTxt),
+                  ),
+                ),
+                Expanded(
+                  child: TextButton(
+                      onPressed: () async {
+                        final t = await showTimePicker(
+                            context: context,
+                            initialTime: TimeOfDay.fromDateTime(
+                                evt.end ?? DateTime.now()));
+                        if (t != null) {
+                          setState(() {
+                            evt.end = evt.end
+                                ?.copyWith(hour: t.hour, minute: t.minute);
+                            // save updated event
+                            evm.putEvent(evt);
+                          });
+                        } //
+                      },
+                      child: Text(etTxt)),
+                ),
+              ],
+            ),
+          ),
+          MenuAnchor(
+            builder: (context, controller, child) => IconButton(
+              onPressed: () {
+                if (controller.isOpen) {
+                  controller.close();
+                } else {
+                  controller.open();
+                }
+              },
+              icon: Icon(Icons.delete_forever),
+            ),
+            menuChildren: [
+              MenuItemButton(
+                onPressed: () {
+                  evm.delete(evt);
+                  Navigator.pop(context);
+                },
+                child: Text('Delete'),
+              )
+            ],
+          )
+        ],
+      ),
+    );
   }
 
   @override

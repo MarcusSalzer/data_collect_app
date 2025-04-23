@@ -116,7 +116,7 @@ class DBService {
   }
 
   /// Delete all events...
-  Future<int> deleteAll() async {
+  Future<int> deleteAllEvents() async {
     final c = await _isar.events.count();
 
     _isar.writeTxn(() async {
@@ -124,6 +124,26 @@ class DBService {
     });
 
     return c;
+  }
+
+  /// Get a some events. Note that this is independent of the EventModel
+  Future<List<Event>> getEventsFiltered({
+    List<String>? names,
+    DateTime? earliest,
+    DateTime? latest,
+  }) async {
+    final evts = await _isar.txn(() async {
+      return _isar.events
+          .filter()
+          // optinally filter by time range
+          .optional(earliest != null, (q) => q.startGreaterThan(earliest))
+          .optional(latest != null, (q) => q.startLessThan(latest))
+          // optionally filter by name
+          .optional(names != null,
+              (q) => q..anyOf(names!, (q, String n) => q.nameEqualTo(n)))
+          .findAll();
+    });
+    return evts;
   }
 }
 

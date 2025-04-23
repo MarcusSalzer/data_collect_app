@@ -22,7 +22,7 @@ class EventHistoryDisplay extends StatelessWidget {
             itemBuilder: (context, i) {
               return EventListTile(
                 // reverse order
-                evt: evtModel.events[count - 1 - i],
+                evt: evtModel.events[i],
                 evtModel: evtModel,
               );
             },
@@ -47,49 +47,32 @@ class EventListTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final (startText, endText) = eventTimeFormat(evt);
 
+    final start = evt.start;
+    final end = evt.end;
+    String durTxt;
+    if (start != null && end != null) {
+      final dur = end.difference(start);
+      durTxt = " (${durationHM(dur)})";
+    } else {
+      durTxt = "";
+    }
+
     return ListTile(
-      title: Text(evt.name),
-      subtitle: Text("$startText - $endText"),
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          IconButton(
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) =>
-                      ChangeNotifierProvider<EventModel>.value(
-                    value: evtModel,
-                    child: EventEditScreen(evt),
-                  ),
-                ),
-              );
-            },
-            icon: Icon(Icons.edit),
-          ),
-          SizedBox(width: 10),
-          MenuAnchor(
-            builder: (context, controller, child) => IconButton(
-              onPressed: () {
-                if (controller.isOpen) {
-                  controller.close();
-                } else {
-                  controller.open();
-                }
-              },
-              icon: Icon(Icons.delete_forever),
-            ),
-            menuChildren: [
-              MenuItemButton(
-                onPressed: () {
-                  evtModel.delete(evt);
-                },
-                child: Text('Delete'),
-              )
-            ],
-          ),
-        ],
+      title: Text(evt.name + durTxt),
+      subtitle: Text(
+        "$startText - $endText",
+        style: TextStyle(fontFamily: 'monospace'),
       ),
+      onTap: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => ChangeNotifierProvider<EventModel>.value(
+              value: evtModel,
+              child: EventEditScreen(evt),
+            ),
+          ),
+        );
+      },
     );
   }
 }

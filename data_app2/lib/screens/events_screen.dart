@@ -1,5 +1,3 @@
-// ignore_for_file: avoid_print
-
 import 'package:data_app2/app_state.dart';
 import 'package:data_app2/event_model.dart';
 import 'package:data_app2/widgets/event_create_menu.dart';
@@ -18,101 +16,18 @@ class EventsScreen extends StatelessWidget {
     return DefaultTabController(
       length: 2,
       child: ChangeNotifierProvider<EventModel>(
-        create: (_) => EventModel(appState),
+        create: (_) => EventModel(appState, nList: 100),
         child: Builder(builder: (context) {
-          final evm = Provider.of<EventModel>(context, listen: false);
-
           return Scaffold(
             appBar: AppBar(
-              title: Text('Events'),
+              title: const Text('Events'),
               actions: [
-                MenuAnchor(
-                  builder: (context, controller, child) => IconButton(
-                    onPressed: () {
-                      if (controller.isOpen) {
-                        controller.close();
-                      } else {
-                        controller.open();
-                      }
-                    },
-                    icon: Icon(Icons.more_vert),
-                  ),
-                  menuChildren: [
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: MenuItemButton(
-                        onPressed: () async {
-                          final fpRes = await FilePicker.platform.pickFiles();
-                          if (fpRes == null) {
-                            return; // canceled
-                          }
-                          final path = fpRes.files.single.path;
-                          if (path == null) {
-                            return;
-                          }
-                          try {
-                            final nEvt = await evm.importEvents(path);
-                            if (context.mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text('imported $nEvt events'),
-                                ),
-                              );
-                            }
-                          } catch (e) {
-                            if (context.mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    'error: $e',
-                                    style: TextStyle(color: Colors.red),
-                                  ),
-                                ),
-                              );
-                            }
-                          }
-                        },
-                        child: Text("import"),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: MenuItemButton(
-                        onPressed: () async {
-                          final nEvt = await evm.exportEvents();
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('saved $nEvt events'),
-                              ),
-                            );
-                          }
-                        },
-                        child: Text("export"),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: MenuItemButton(
-                        onPressed: () {
-                          showDialog(
-                              context: context,
-                              builder: (context) {
-                                return NormalizeDialog(evm);
-                              });
-                        },
-                        child: Text('normalize'),
-                      ),
-                    )
-                  ],
-                ),
+                EventsScreenExtraMenu(),
               ],
               bottom: TabBar(
                 tabs: [
-                  Tab(
-                    text: "add",
-                  ),
-                  Tab(text: "history"),
+                  const Tab(text: "add"),
+                  const Tab(text: "history"),
                 ],
               ),
             ),
@@ -125,6 +40,97 @@ class EventsScreen extends StatelessWidget {
           );
         }),
       ),
+    );
+  }
+}
+
+class EventsScreenExtraMenu extends StatelessWidget {
+  const EventsScreenExtraMenu({
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final evm = Provider.of<EventModel>(context, listen: false);
+    return MenuAnchor(
+      builder: (context, controller, child) => IconButton(
+        onPressed: () {
+          if (controller.isOpen) {
+            controller.close();
+          } else {
+            controller.open();
+          }
+        },
+        icon: Icon(Icons.more_vert),
+      ),
+      menuChildren: [
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: MenuItemButton(
+            onPressed: () async {
+              final fpRes = await FilePicker.platform.pickFiles();
+              if (fpRes == null) {
+                return; // canceled
+              }
+              final path = fpRes.files.single.path;
+              if (path == null) {
+                return;
+              }
+              try {
+                final nEvt = await evm.importEvents(path);
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('imported $nEvt events'),
+                    ),
+                  );
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        'error: $e',
+                        style: TextStyle(color: Colors.red),
+                      ),
+                    ),
+                  );
+                }
+              }
+            },
+            child: Text("import"),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: MenuItemButton(
+            onPressed: () async {
+              final nEvt = await evm.exportEvents();
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('saved $nEvt events'),
+                  ),
+                );
+              }
+            },
+            child: Text("export"),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: MenuItemButton(
+            onPressed: () {
+              showDialog(
+                  context: context,
+                  builder: (context) {
+                    return NormalizeDialog(evm);
+                  });
+            },
+            child: Text('normalize'),
+          ),
+        )
+      ],
     );
   }
 }
@@ -188,5 +194,3 @@ class NormalizeDialog extends StatelessWidget {
     );
   }
 }
-
-// class EventExportDialog extends SimpleDialog {}
