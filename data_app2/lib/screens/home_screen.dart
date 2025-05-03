@@ -1,4 +1,5 @@
 import 'package:data_app2/app_state.dart';
+import 'package:data_app2/screens/event_manager_screen.dart';
 import 'package:data_app2/screens/events_screen.dart';
 import 'package:data_app2/screens/events_stats_screen.dart';
 import 'package:data_app2/screens/events_time_summary_screen.dart';
@@ -78,14 +79,12 @@ class HomeScreen extends StatelessWidget {
                       onPressed: () {
                         Navigator.of(context).push(
                           MaterialPageRoute(
-                            builder: (context) => EventsTimeSummaryScreen(
-                              appState: appState,
-                            ),
+                            builder: (context) => EventManagerScreen(),
                           ),
                         );
                       },
-                      label: Text("Timeline"),
-                      icon: Icon(Icons.auto_graph),
+                      label: Text("Manage events"),
+                      icon: Icon(Icons.settings),
                     ),
                   ),
                 ],

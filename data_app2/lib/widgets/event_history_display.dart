@@ -45,14 +45,14 @@ class EventListTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final (startText, endText) = eventTimeFormat(evt);
+    final (startText, endText) = eventTimeFmt(evt);
 
     final start = evt.start;
     final end = evt.end;
     String durTxt;
     if (start != null && end != null) {
       final dur = end.difference(start);
-      durTxt = " (${durationHM(dur)})";
+      durTxt = " (${durationHMFmt(dur)})";
     } else {
       durTxt = "";
     }

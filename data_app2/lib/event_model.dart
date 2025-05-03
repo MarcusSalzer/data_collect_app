@@ -4,6 +4,7 @@ import 'dart:collection';
 
 import 'package:data_app2/app_state.dart';
 import 'package:data_app2/db_service.dart';
+import 'package:data_app2/io.dart';
 import 'package:flutter/material.dart';
 import 'package:isar/isar.dart';
 
@@ -18,6 +19,7 @@ class EventModel extends ChangeNotifier {
   List<Event> _events = [];
   LinkedHashMap<String, int> _evtFreqs = LinkedHashMap<String, int>();
   List<Event> get events => _events;
+  Map<String, int> get evtFreqs => _evtFreqs;
 
   EventModel(AppState appState, {int? nList})
       : _db = appState.db,
@@ -104,8 +106,15 @@ class EventModel extends ChangeNotifier {
       ));
   }
 
-  Future<int> importEvents(String path) async {
-    final c = await _db.importEventsCSV(path);
+  Future<(Iterable<EvtRec>, EvtRecSummary)> prepareImportEvts(
+      String path) async {
+    final recs = await importEvtsCSV(path);
+    final summary = EvtRecSummary(recs);
+    return (recs, summary);
+  }
+
+  Future<int> importEvents(Iterable<EvtRec> recs) async {
+    final c = await _db.importEventsDB(recs);
     getLatest();
     refreshCounts();
 

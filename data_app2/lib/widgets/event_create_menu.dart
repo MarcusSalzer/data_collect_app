@@ -33,7 +33,7 @@ class _EventCreateMenuState extends State<EventCreateMenu> {
                   // if there is a previous event: display it and allow stopping
                   if (evm.events.isNotEmpty && evm.events.first.end == null) {
                     final evt = evm.events.first;
-                    final (startTxt, _) = eventTimeFormat(evt);
+                    final (startTxt, _) = eventTimeFmt(evt);
                     return Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [

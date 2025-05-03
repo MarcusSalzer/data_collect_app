@@ -2,7 +2,7 @@
 import 'package:data_app2/db_service.dart' show Event;
 import 'package:intl/intl.dart';
 
-(String, String) eventTimeFormat(Event evt) {
+(String, String) eventTimeFmt(Event evt) {
   final start = evt.start;
   final end = evt.end;
   final startText = start != null ? DateFormat("HH:mm").format(start) : "__:__";
@@ -10,8 +10,15 @@ import 'package:intl/intl.dart';
   return (startText, endText);
 }
 
-String durationHM(Duration d) {
+String durationHMFmt(Duration d) {
   final mins = d.inMinutes;
   if (mins <= 60) return "$mins min";
   return "${mins ~/ 60} h ${mins % 60} min";
+}
+
+String dtDateFmt(DateTime? dt) {
+  if (dt == null) {
+    return "?";
+  }
+  return DateFormat("yyyy-MM-dd").format(dt);
 }

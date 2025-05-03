@@ -108,7 +108,7 @@ class EventDurationTable extends StatelessWidget {
             Flexible(
               flex: 1,
               child: Text(
-                durationHM(entry.value),
+                durationHMFmt(entry.value),
                 textAlign: TextAlign.right,
                 style: const TextStyle(
                   fontFamily: 'monospace',
@@ -141,7 +141,7 @@ class EventDurationTable extends StatelessWidget {
                   Flexible(
                     flex: 1,
                     child: Text(
-                      durationHM(trackedTime),
+                      durationHMFmt(trackedTime),
                       textAlign: TextAlign.right,
                       style: const TextStyle(
                         fontFamily: 'monospace',

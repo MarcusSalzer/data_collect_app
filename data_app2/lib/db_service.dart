@@ -1,13 +1,12 @@
 import 'dart:io';
 
 import 'package:data_app2/app_state.dart';
+import 'package:data_app2/io.dart';
 import 'package:isar/isar.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 // important: this file will contain Isar's generated code.
 part 'db_service.g.dart';
-
-const eventsCsvHeader = "id, name, start, end";
 
 /// A singleton Isar object holding app prefs
 @collection
@@ -21,6 +20,7 @@ class Preferences {
   // TODO String? dataPath;
 }
 
+/// A timed event
 @collection
 class Event {
   Id id = Isar.autoIncrement;
@@ -30,6 +30,16 @@ class Event {
   DateTime? end;
 
   Event(this.name, {this.start, this.end});
+}
+
+/// A type of event
+@collection
+class EventType {
+  Id id = Isar.autoIncrement;
+  String name;
+  String? category;
+
+  EventType(this.name);
 }
 
 class DBService {
@@ -64,7 +74,7 @@ class DBService {
       final nameSafe = evt.name.replaceAll(",", ";");
       return "${evt.id}, $nameSafe, ${evt.start?.toIso8601String()}, ${evt.end?.toIso8601String()}";
     });
-
+    const eventsCsvHeader = "id,name,start,end";
     final csvContent = "$eventsCsvHeader\n${lines.join('\n')}";
 
     final dir = await defaultStoreDir();
@@ -80,28 +90,8 @@ class DBService {
     return nEvt;
   }
 
-  /// Load events from CSV file.
-  Future<int> importEventsCSV(String path) async {
-    final file = File(path);
-
-    final lines = await file.readAsLines();
-    if (lines[0] != eventsCsvHeader) {
-      throw Exception("wrong CSV header: ${lines[0]}");
-    }
-
-    // parse text
-    final data = [];
-    for (var line in lines.skip(1)) {
-      final fields = line.split(",");
-      // print(fields[2]);
-      final r = (
-        name: fields[1],
-        start: DateTime.tryParse(fields[2].trim()),
-        end: DateTime.tryParse(fields[3].trim()),
-      );
-      data.add(r);
-    }
-
+  ///
+  Future<int> importEventsDB(Iterable<EvtRec> data) async {
     final c = await _isar.writeTxn(() async {
       final ids = await _isar.events.putAll(
         data
@@ -126,7 +116,7 @@ class DBService {
     return c;
   }
 
-  /// Get a some events. Note that this is independent of the EventModel
+  /// Get some events. Note that this is independent of the EventModel
   Future<List<Event>> getEventsFiltered({
     List<String>? names,
     DateTime? earliest,
@@ -140,7 +130,7 @@ class DBService {
           .optional(latest != null, (q) => q.startLessThan(latest))
           // optionally filter by name
           .optional(names != null,
-              (q) => q..anyOf(names!, (q, String n) => q.nameEqualTo(n)))
+              (q) => q.anyOf(names!, (q, String n) => q.nameEqualTo(n)))
           .findAll();
     });
     return evts;

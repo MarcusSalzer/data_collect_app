@@ -1,5 +1,7 @@
 import 'package:data_app2/app_state.dart';
 import 'package:data_app2/event_model.dart';
+import 'package:data_app2/fmt.dart';
+import 'package:data_app2/io.dart';
 import 'package:data_app2/widgets/event_create_menu.dart';
 import 'package:data_app2/widgets/event_history_display.dart';
 import 'package:file_picker/file_picker.dart';
@@ -77,13 +79,23 @@ class EventsScreenExtraMenu extends StatelessWidget {
                 return;
               }
               try {
-                final nEvt = await evm.importEvents(path);
+                final (recs, summary) = await evm.prepareImportEvts(path);
+
                 if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('imported $nEvt events'),
-                    ),
-                  );
+                  showDialog(
+                      context: context,
+                      builder: (context) {
+                        return ImportDialog(summary, () async {
+                          final c = await evm.importEvents(recs);
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text("Imported $c events"),
+                              ),
+                            );
+                          }
+                        });
+                      });
                 }
               } catch (e) {
                 if (context.mounted) {
@@ -192,5 +204,48 @@ class NormalizeDialog extends StatelessWidget {
         ),
       ],
     );
+  }
+}
+
+class ImportDialog extends StatelessWidget {
+  final EvtRecSummary summary;
+  final void Function() callback;
+  const ImportDialog(this.summary, this.callback, {super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final early = dtDateFmt(summary.earliest);
+    final late = dtDateFmt(summary.latest);
+    return SimpleDialog(
+        contentPadding: EdgeInsets.all(20),
+        title: Text("Import?"),
+        children: [
+          Text("Events between $early and $late"),
+          SizedBox(height: 20),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text("Total"),
+              Text("Start"),
+              Text("End"),
+            ],
+          ),
+          Divider(),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text("${summary.cTot}"),
+              Text("${summary.cStart}"),
+              Text("${summary.cEnd}"),
+            ],
+          ),
+          SizedBox(height: 20),
+          ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context);
+                callback();
+              },
+              child: Text("Import"))
+        ]);
   }
 }
