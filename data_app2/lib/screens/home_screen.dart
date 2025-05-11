@@ -4,6 +4,7 @@ import 'package:data_app2/screens/events_screen.dart';
 import 'package:data_app2/screens/events_stats_screen.dart';
 import 'package:data_app2/screens/events_time_summary_screen.dart';
 import 'package:data_app2/screens/settings_screen.dart';
+import 'package:data_app2/screens/tabular_screen.dart';
 import 'package:data_app2/widgets/events_today_summary.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -85,6 +86,20 @@ class HomeScreen extends StatelessWidget {
                       },
                       label: Text("Manage events"),
                       icon: Icon(Icons.settings),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: TextButton.icon(
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => TabularScreen(),
+                          ),
+                        );
+                      },
+                      label: Text("Tabular datasets"),
+                      icon: Icon(Icons.tab_unselected),
                     ),
                   ),
                 ],

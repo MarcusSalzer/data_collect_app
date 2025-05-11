@@ -16,8 +16,7 @@ class Preferences {
   // input normalization preferences (applies globally for now)
   bool normalizeStrip = false;
   bool normalizeCase = false;
-  // where to store data
-  // TODO String? dataPath;
+  // where to store data?
 }
 
 /// A timed event
@@ -40,6 +39,33 @@ class EventType {
   String? category;
 
   EventType(this.name);
+}
+
+// USER-DEFINED TABULAR DATASETS
+enum TabularType { int, cat }
+
+@collection
+class UserTable {
+  Id id = Isar.autoIncrement;
+  String name;
+  List<String> colNames;
+  // the datatype for each column
+  @Enumerated(EnumType.ordinal)
+  List<TabularType> schema;
+
+  UserTable(this.name, this.colNames, this.schema);
+}
+
+@collection
+class UserRow {
+  Id id = Isar.autoIncrement;
+  // what table does the record belong to?
+  int tableId;
+  // values for each column, decode according to the Table's schema
+  DateTime timestamp;
+  List<int> values;
+
+  UserRow(this.tableId, this.timestamp, this.values);
 }
 
 class DBService {
@@ -135,6 +161,22 @@ class DBService {
     });
     return evts;
   }
+
+  /// Save a new tabular dataset NOTE: ONLY INT FOR NOW
+  saveUserTable(String name, List<String> colNames) async {
+    final schema = List.filled(colNames.length, TabularType.int);
+    final tableDef = UserTable(name, colNames, schema);
+    await _isar.writeTxn(() async {
+      _isar.userTables.put(tableDef);
+    });
+  }
+
+  /// Load all tabular datasets
+  Future<List<UserTable>> loadUserTables() async {
+    return await _isar.txn(() async {
+      return _isar.userTables.where().anyId().findAll();
+    });
+  }
 }
 
 Future<Directory> defaultStoreDir() async {
@@ -151,7 +193,8 @@ Future<Isar> initIsar() async {
   final path = p.join(docDir.path, 'data_collect');
   // Ensure storage folder exists
   Directory(path).createSync();
-  final isar =
-      await Isar.open([PreferencesSchema, EventSchema], directory: path);
+  final isar = await Isar.open(
+      [PreferencesSchema, EventSchema, UserTableSchema, UserRowSchema],
+      directory: path);
   return isar;
 }

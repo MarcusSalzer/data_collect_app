@@ -5,8 +5,9 @@
 - ✅ 23/4 TodaySummary widget
 - ✅ 26/4 EventManager
 - ✅ 03/5 cleaner CSV import (avoid inserting spaces before)
-- ❓ 11/5 tabular data: numeric
+- 🟨 11/5 tabular data: numeric
 - ❓ ??/5 detect duplicates and overlapping events
+- ❓ ??/? user defined export directory
 - ❓ 18/5 categories
 - ❓ ??/5 category colors
 - ❓ ??/? daily form
