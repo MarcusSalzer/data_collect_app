@@ -5,9 +5,9 @@ import 'package:data_app2/fmt.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class ASCsummary extends StatelessWidget {
+class EventsTodaySummary extends StatelessWidget {
   final List<Color> colors = Colors.primaries;
-  const ASCsummary({super.key});
+  const EventsTodaySummary({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -36,6 +36,9 @@ class ASCsummary extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               EventDurationTable(tpe: s.tpe, colors: colors),
+              SizedBox(
+                height: 10,
+              ),
               HorizontalMultiBar(
                 sizes: s.tpe.map((entry) => entry.value.inMinutes),
                 colors: colors,

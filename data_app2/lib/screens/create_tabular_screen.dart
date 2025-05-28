@@ -1,8 +1,10 @@
+import 'package:data_app2/db_service.dart';
+import 'package:data_app2/extensions.dart';
 import 'package:data_app2/user_tabular.dart';
 import 'package:flutter/material.dart';
 
 class CreateTabularScreen extends StatelessWidget {
-  final TabularModel model;
+  final TableManager model;
   const CreateTabularScreen(this.model, {super.key});
 
   @override
@@ -20,7 +22,7 @@ class CreateTabularScreen extends StatelessWidget {
 }
 
 class CreateTabularForm extends StatefulWidget {
-  final TabularModel model;
+  final TableManager model;
 
   const CreateTabularForm(this.model, {super.key});
 
@@ -33,6 +35,7 @@ class _CreateTabularFormState extends State<CreateTabularForm> {
   final _nameTec = TextEditingController();
   final _fieldTecList = <TextEditingController>[];
   final _candidateNames = <String>[];
+  TableFreq _chosenFreq = TableFreq.free;
   @override
   Widget build(BuildContext context) {
     final fieldElements = _fieldTecList.indexed.map(
@@ -101,12 +104,39 @@ class _CreateTabularFormState extends State<CreateTabularForm> {
               TextButton(onPressed: addField, child: Text("add field")),
             ],
           ),
+          // frequency picker
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: TableFreq.values
+                .map(
+                  (tf) => Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Row(
+                      children: [
+                        Radio<TableFreq>(
+                          value: tf,
+                          groupValue: _chosenFreq,
+                          onChanged: updateFreq,
+                        ),
+                        Text(tf.name.capitalized),
+                      ],
+                    ),
+                  ),
+                )
+                .toList(),
+          ),
           SizedBox(height: 20),
           if (_fieldTecList.isNotEmpty)
             TextButton(onPressed: save, child: Text("Save")),
         ],
       ),
     );
+  }
+
+  void updateFreq(TableFreq? value) {
+    setState(() {
+      _chosenFreq = value ?? _chosenFreq;
+    });
   }
 
   /// Add a field to the form
@@ -135,7 +165,7 @@ class _CreateTabularFormState extends State<CreateTabularForm> {
 
     final tableName = _nameTec.text;
     final colNames = _fieldTecList.map((t) => t.text).toList();
-    widget.model.newTable(tableName, colNames);
+    widget.model.newTable(tableName, colNames, _chosenFreq);
     Navigator.pop(context);
   }
 

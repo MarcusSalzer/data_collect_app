@@ -1,5 +1,7 @@
 import 'package:data_app2/app_state.dart';
+import 'package:data_app2/extensions.dart';
 import 'package:data_app2/screens/create_tabular_screen.dart';
+import 'package:data_app2/screens/table_edit_screen.dart';
 import 'package:data_app2/user_tabular.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -11,10 +13,10 @@ class TabularScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context, listen: false);
 
-    return ChangeNotifierProvider<TabularModel>(
+    return ChangeNotifierProvider<TableManager>(
       // make model, and start async init
-      create: (context) => TabularModel(appState.db)..init(),
-      child: Consumer<TabularModel>(
+      create: (context) => TableManager(appState.db)..init(),
+      child: Consumer<TableManager>(
         builder: (context, model, child) {
           return Scaffold(
             appBar: AppBar(
@@ -55,7 +57,7 @@ class TabularScreen extends StatelessWidget {
                         child: ListView.builder(
                           itemCount: tables.length,
                           itemBuilder: (context, index) {
-                            return UserTableListTile(tables[index]);
+                            return UserTableListTile(tables[index], model);
                           },
                         ),
                       ),
@@ -72,15 +74,33 @@ class TabularScreen extends StatelessWidget {
 }
 
 class UserTableListTile extends StatelessWidget {
-  final TabularProcessor table;
+  final TableProcessor table;
+  final TableManager tModel;
 
-  const UserTableListTile(this.table, {super.key});
+  const UserTableListTile(this.table, this.tModel, {super.key});
 
   @override
   Widget build(BuildContext context) {
     return ListTile(
       leading: Icon(Icons.table_bar),
       title: Text(table.name),
+      subtitle: Text(
+        table.dtypes.map((t) => t.name).join(", "),
+        style: TextStyle(fontFamily: "monospace"),
+        overflow: TextOverflow.ellipsis,
+      ),
+      trailing: Text(table.freq.name.capitalized),
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ChangeNotifierProvider.value(
+              value: tModel,
+              child: TableEditScreen(table),
+            ),
+          ),
+        );
+      },
     );
   }
 }

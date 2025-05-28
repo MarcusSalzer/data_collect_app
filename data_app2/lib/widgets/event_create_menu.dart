@@ -123,48 +123,25 @@ class CommonEventsSuggest extends StatelessWidget {
           ),
         ),
       ),
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  "Quick start",
-                  style: TextStyle(fontSize: 25),
-                ),
-                IconButton(
-                  onPressed: () {
-                    Provider.of<EventModel>(context, listen: false)
-                        .refreshCounts();
-                  },
-                  icon: Icon(Icons.refresh),
+      child: Consumer<EventModel>(
+        builder: (context, evm, child) {
+          return Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: evm
+                .eventSuggestions()
+                .map(
+                  (s) => ActionChip(
+                    label: Text(s),
+                    onPressed: () {
+                      // add event
+                      evm.addEvent(s, start: DateTime.now());
+                    },
+                  ),
                 )
-              ],
-            ),
-          ),
-          Consumer<EventModel>(
-            builder: (context, evm, child) {
-              return Wrap(
-                spacing: 6,
-                runSpacing: 6,
-                children: evm
-                    .eventSuggestions()
-                    .map(
-                      (s) => ActionChip(
-                        label: Text(s),
-                        onPressed: () {
-                          // add event
-                          evm.addEvent(s, start: DateTime.now());
-                        },
-                      ),
-                    )
-                    .toList(),
-              );
-            },
-          )
-        ],
+                .toList(),
+          );
+        },
       ),
     );
   }

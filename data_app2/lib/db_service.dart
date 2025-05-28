@@ -42,34 +42,45 @@ class EventType {
 }
 
 // USER-DEFINED TABULAR DATASETS
-enum TabularType { int, cat }
+
+/// Datatype for table column
+enum TabularType { int, cat } // TODO Add dec?
+
+/// Frequency of table records
+enum TableFreq { free, day, week }
 
 @collection
 class UserTable {
   Id id = Isar.autoIncrement;
   String name;
   List<String> colNames;
-  // the datatype for each column
+  // the datatype for each column (enum for each column)
   @Enumerated(EnumType.ordinal)
   List<TabularType> schema;
+  // optionally keep records at a fixed frequency
+  @Enumerated(EnumType.ordinal)
+  TableFreq frequency = TableFreq.free;
 
-  UserTable(this.name, this.colNames, this.schema);
+  UserTable(this.name, this.colNames, this.schema,
+      {this.frequency = TableFreq.free});
 }
 
 @collection
 class UserRow {
-  Id id = Isar.autoIncrement;
+  Id? id;
   // what table does the record belong to?
   int tableId;
-  // values for each column, decode according to the Table's schema
   DateTime timestamp;
-  List<int> values;
+  // values for each column, decode according to the Table's schema
+  List<int?> values;
 
-  UserRow(this.tableId, this.timestamp, this.values);
+  UserRow(this.tableId, this.timestamp, this.values, {this.id});
 }
 
 class DBService {
   final Isar _isar;
+
+  // TODO: remove this to encapsulate db use
   Isar get isar => _isar;
 
   DBService(this._isar);
@@ -116,7 +127,7 @@ class DBService {
     return nEvt;
   }
 
-  ///
+  /// Save [EvtRec]s to database
   Future<int> importEventsDB(Iterable<EvtRec> data) async {
     final c = await _isar.writeTxn(() async {
       final ids = await _isar.events.putAll(
@@ -163,9 +174,10 @@ class DBService {
   }
 
   /// Save a new tabular dataset NOTE: ONLY INT FOR NOW
-  saveUserTable(String name, List<String> colNames) async {
+  Future<void> saveUserTable(
+      String name, List<String> colNames, TableFreq freq) async {
     final schema = List.filled(colNames.length, TabularType.int);
-    final tableDef = UserTable(name, colNames, schema);
+    final tableDef = UserTable(name, colNames, schema, frequency: freq);
     await _isar.writeTxn(() async {
       _isar.userTables.put(tableDef);
     });
@@ -176,6 +188,46 @@ class DBService {
     return await _isar.txn(() async {
       return _isar.userTables.where().anyId().findAll();
     });
+  }
+
+  Future<bool> deleteUserTable(int tableId) async {
+    final didDelete = await _isar.writeTxn(() async {
+      return await _isar.userTables.delete(tableId);
+    });
+    return didDelete;
+  }
+
+  /// Delete all records from a table
+  Future<int> truncateTable(int tableId) async {
+    final count = await _isar.writeTxn(() async {
+      return await _isar.userRows.filter().tableIdEqualTo(tableId).deleteAll();
+    });
+    return count;
+  }
+
+  /// Save one record to table
+  Future<int> saveTableRecord(
+      int tableId, DateTime timestamp, List<int?> values, int? id) async {
+    final row = UserRow(tableId, timestamp, values, id: id);
+
+    final idPut = await _isar.writeTxn(() async {
+      return await _isar.userRows.put(row);
+    });
+    return idPut;
+  }
+
+  Future<bool> deleteTableRecord(int tableId, int recordId) async {
+    final didDel = await _isar.writeTxn(() async {
+      return await _isar.userRows.delete(recordId);
+    });
+    return didDel;
+  }
+
+  Future<List<UserRow>> getAllRecords(int tableId) async {
+    final recs = await _isar.txn(() async {
+      return await _isar.userRows.filter().tableIdEqualTo(tableId).findAll();
+    });
+    return recs;
   }
 }
 

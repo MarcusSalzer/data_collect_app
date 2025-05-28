@@ -3,7 +3,7 @@
 import 'package:data_app2/db_service.dart';
 import 'package:data_app2/event_model.dart';
 import 'package:data_app2/fmt.dart';
-import 'package:data_app2/screens/event_edit_screen.dart';
+import 'package:data_app2/screens/events/event_edit_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 

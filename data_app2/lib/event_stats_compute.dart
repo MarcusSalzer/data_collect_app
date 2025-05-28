@@ -24,7 +24,10 @@ List<MapEntry<String, Duration>> timePerEvent(Iterable<Event> events,
         Duration.zero,
         (p, entry) => p + entry.value,
       );
-  keepList.add(MapEntry("other", restSum));
+
+  if (restSum > Duration.zero) {
+    keepList.add(MapEntry("other", restSum));
+  }
 
   return keepList;
 }

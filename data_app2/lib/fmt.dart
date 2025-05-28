@@ -1,6 +1,13 @@
 // Text formatting
-import 'package:data_app2/db_service.dart' show Event;
+import 'package:data_app2/db_service.dart';
 import 'package:intl/intl.dart';
+
+(String, String) dateTimeFmt(DateTime? dt) {
+  if (dt == null) {
+    return ("__-__-__", "__:__");
+  }
+  return (DateFormat("yy-MM-dd").format(dt), DateFormat("HH:mm").format(dt));
+}
 
 (String, String) eventTimeFmt(Event evt) {
   final start = evt.start;
@@ -21,4 +28,15 @@ String dtDateFmt(DateTime? dt) {
     return "?";
   }
   return DateFormat("yyyy-MM-dd").format(dt);
+}
+
+String dtFreqFmt(DateTime dt, TableFreq freq) {
+  switch (freq) {
+    case TableFreq.free:
+      return dt.toString();
+    case TableFreq.day:
+      return dtDateFmt(dt);
+    case TableFreq.week:
+      return "Week of ${dtDateFmt(dt)}";
+  }
 }

@@ -1,10 +1,10 @@
 import 'package:data_app2/app_state.dart';
-import 'package:data_app2/screens/event_manager_screen.dart';
-import 'package:data_app2/screens/events_screen.dart';
-import 'package:data_app2/screens/events_stats_screen.dart';
-import 'package:data_app2/screens/events_time_summary_screen.dart';
+import 'package:data_app2/screens/month_screen.dart';
+import 'package:data_app2/screens/events/event_manager_screen.dart';
+import 'package:data_app2/screens/events/events_screen.dart';
+import 'package:data_app2/screens/events/events_stats_screen.dart';
 import 'package:data_app2/screens/settings_screen.dart';
-import 'package:data_app2/screens/tabular_screen.dart';
+import 'package:data_app2/screens/tabular_overview.dart';
 import 'package:data_app2/widgets/events_today_summary.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -33,10 +33,7 @@ class HomeScreen extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Expanded(
-              flex: 1,
-              child: ASCsummary(),
-            ),
+            EventsTodaySummary(),
             SizedBox(height: 20),
             Expanded(
               flex: 1,
@@ -100,6 +97,20 @@ class HomeScreen extends StatelessWidget {
                       },
                       label: Text("Tabular datasets"),
                       icon: Icon(Icons.tab_unselected),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: TextButton.icon(
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => MonthScreen(),
+                          ),
+                        );
+                      },
+                      label: Text("Calendar"),
+                      icon: Icon(Icons.calendar_month),
                     ),
                   ),
                 ],

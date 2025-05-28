@@ -1,4 +1,6 @@
 import 'package:data_app2/app_state.dart';
+import 'package:data_app2/dummy_data.dart';
+import 'package:data_app2/widgets/confirm_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -127,6 +129,26 @@ class _SettingsMenuState extends State<SettingsMenu> {
           },
           label: Text("delete all"),
           icon: Icon(Icons.delete_forever),
+        ),
+        TextButton.icon(
+          onPressed: () {
+            showDialog(
+              context: context,
+              builder: (context) {
+                return ConfirmDialog(
+                  title: "Generate dummy data",
+                  action: () {
+                    final recs = dummyEvents();
+                    appState.db.importEventsDB(recs);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text("open events to refresh!")));
+                  },
+                );
+              },
+            );
+          },
+          label: Text("Generate dummy data"),
+          icon: Icon(Icons.shuffle),
         )
       ],
     );

@@ -5,14 +5,17 @@
 - ✅ 23/4 TodaySummary widget
 - ✅ 26/4 EventManager
 - ✅ 03/5 cleaner CSV import (avoid inserting spaces before)
-- 🟨 11/5 tabular data: numeric
-- ❓ ??/5 detect duplicates and overlapping events
+- ✅ 18/5 tabular data: integers
+- ✅ 28/5 edit event names
+- ❓ ??/? calendar view
+- ❓ ??/? day view
+- ❓ ??/? prevent rotation
+- ❓ ??/5 categories, colors
 - ❓ ??/? user defined export directory
-- ❓ 18/5 categories
-- ❓ ??/5 category colors
-- ❓ ??/? daily form
-- ❓ ??/? event notes: allow writing like a diary
 - ❓ ??/? auto-backup
+- ❓ ??/5 detect duplicates and overlapping events
+- ❓ ??/5 user defined "day starts at"
+- ❓ ??/? event notes: allow writing like a diary
 
 ## notes
 
