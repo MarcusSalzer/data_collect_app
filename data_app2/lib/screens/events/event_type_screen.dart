@@ -49,7 +49,7 @@ class EventTypeScreen extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   Text("has ${evts.length} instances"),
-                  Text("total time: ${durationHMFmt(totTime)}"),
+                  Text("total time: ${Fmt.durationHM(totTime)}"),
                 ],
               );
             },

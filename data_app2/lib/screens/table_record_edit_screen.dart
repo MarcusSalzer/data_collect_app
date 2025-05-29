@@ -1,4 +1,4 @@
-import 'package:data_app2/db_service.dart';
+import 'package:data_app2/enums.dart';
 import 'package:data_app2/fmt.dart';
 import 'package:data_app2/user_tabular.dart';
 import 'package:data_app2/widgets/confirm_dialog.dart';
@@ -21,7 +21,7 @@ class _TableRecordEditScreenState extends State<TableRecordEditScreen> {
   final tecs = <String, TextEditingController>{};
 
   // Make non-final to allow changing?
-  late final TableRecord record;
+  TableRecord? record;
   bool isNew = false;
 
   _TableRecordEditScreenState() {
@@ -36,20 +36,36 @@ class _TableRecordEditScreenState extends State<TableRecordEditScreen> {
       record = wRec;
     } else {
       isNew = true;
-      record = TableRecord(null, widget.table.now());
+      _initNewRecord();
     }
 
     super.initState();
   }
 
+  Future<void> _initNewRecord() async {
+    final r = await widget.table.findByTimeOrNew();
+    setState(() {
+      record = r;
+      isNew = r.id == null;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final table = widget.table;
+    final rec = record;
+
+    if (rec == null) {
+      return Scaffold(
+        appBar: AppBar(
+          title: Text("Loading"),
+        ),
+      );
+    }
 
     // Make all fields
     final fieldInputs = table.columns.map((c) {
-      tecs[c.name] =
-          TextEditingController(text: record.data[c.name]?.toString());
+      tecs[c.name] = TextEditingController(text: rec.data[c.name]?.toString());
 
       return Row(
         children: [
@@ -89,7 +105,7 @@ class _TableRecordEditScreenState extends State<TableRecordEditScreen> {
                   builder: (context) => ConfirmDialog(
                     title: "delete",
                     action: () async {
-                      final didDelete = await table.delete(record);
+                      final didDelete = await table.delete(rec);
                       if (context.mounted) {
                         if (didDelete) {
                           ScaffoldMessenger.of(context).showSnackBar(
@@ -115,7 +131,7 @@ class _TableRecordEditScreenState extends State<TableRecordEditScreen> {
               children: [
                 TableRecTimestampDisplay(
                   freq: table.freq,
-                  rec: record,
+                  rec: rec,
                 ),
                 Divider(),
                 Column(
@@ -124,13 +140,17 @@ class _TableRecordEditScreenState extends State<TableRecordEditScreen> {
               ],
             ),
           ),
-          if (!isNew) Text("id: ${record.id}")
+          if (!isNew) Text("id: ${rec.id}")
         ],
       ),
     );
   }
 
   Future<void> save() async {
+    final rec = record;
+    if (rec == null) {
+      return;
+    }
     final state = _formKey.currentState;
     if (state == null) return;
 
@@ -140,8 +160,8 @@ class _TableRecordEditScreenState extends State<TableRecordEditScreen> {
         data[col.name] = col.parse(tecs[col.name]?.text);
       }
 
-      record.data = data;
-      widget.table.save(record);
+      rec.data = data;
+      widget.table.save(rec);
       // then leave page
       Navigator.maybePop(context);
     }

@@ -1,7 +1,9 @@
 import 'dart:io';
 
 import 'package:data_app2/app_state.dart';
+import 'package:data_app2/enums.dart';
 import 'package:data_app2/io.dart';
+import 'package:flutter/material.dart';
 import 'package:isar/isar.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
@@ -42,12 +44,6 @@ class EventType {
 }
 
 // USER-DEFINED TABULAR DATASETS
-
-/// Datatype for table column
-enum TabularType { int, cat } // TODO Add dec?
-
-/// Frequency of table records
-enum TableFreq { free, day, week }
 
 @collection
 class UserTable {
@@ -163,7 +159,8 @@ class DBService {
       return _isar.events
           .filter()
           // optinally filter by time range
-          .optional(earliest != null, (q) => q.startGreaterThan(earliest))
+          .optional(earliest != null,
+              (q) => q.startGreaterThan(earliest, include: true))
           .optional(latest != null, (q) => q.startLessThan(latest))
           // optionally filter by name
           .optional(names != null,
@@ -226,6 +223,55 @@ class DBService {
   Future<List<UserRow>> getAllRecords(int tableId) async {
     final recs = await _isar.txn(() async {
       return await _isar.userRows.filter().tableIdEqualTo(tableId).findAll();
+    });
+    return recs;
+  }
+
+  /// Get all record from a year/month, from all tables or one specific
+  Future<List<UserRow>> getTableRecordsTime(
+      {required int? table, required DateTime dt}) async {
+    final recs = await _isar.txn(() async {
+      return _isar.userRows
+          .filter()
+          .optional(
+            table != null,
+            (q) => q.tableIdEqualTo(table!),
+          )
+          .timestampEqualTo(dt)
+          .findAll();
+    });
+    return recs;
+  }
+
+  /// Get all record from a year/month, from all tables or one specific
+  Future<List<UserRow>> getTableRecordsPeriod({
+    required int? table,
+    required int year,
+    int? month,
+    int? day,
+  }) async {
+    final start = DateTime(year, month ?? 1, day ?? 1);
+    DateTime end;
+    if (month != null && day == null) {
+      end = DateUtils.addMonthsToMonthDate(start, 1);
+    } else if (day != null) {
+      end = start.copyWith(day: start.day + 1);
+    } else {
+      // default on year
+      end = start.copyWith(year: start.year + 1);
+    }
+    print("range: $start -> $end");
+
+    final recs = await _isar.txn(() async {
+      _isar.userRows
+          .filter()
+          .optional(
+            table != null,
+            (q) => q.tableIdEqualTo(table!),
+          )
+          .optional(month != null,
+              (q) => q.timestampBetween(start, end, includeLower: true))
+          .findAll();
     });
     return recs;
   }

@@ -30,8 +30,8 @@ class _EventEditScreenState extends State<EventEditScreen> {
   @override
   Widget build(BuildContext context) {
     final evt = widget._evt;
-    final (sdTxt, stTxt) = dateTimeFmt(evt.start);
-    final (edTxt, etTxt) = dateTimeFmt(evt.end);
+    final (sdTxt, stTxt) = Fmt.dateTime(evt.start);
+    final (edTxt, etTxt) = Fmt.dateTime(evt.end);
 
     return Scaffold(
       appBar: AppBar(

@@ -2,6 +2,7 @@
 // initially, only integers
 
 import 'package:data_app2/db_service.dart';
+import 'package:data_app2/enums.dart';
 import 'package:flutter/material.dart';
 
 class ColumnDef {
@@ -127,6 +128,20 @@ class TableProcessor extends ChangeNotifier {
     }
   }
 
+  /// Make an empty record for the table, or load an old match.
+  Future<TableRecord> findByTimeOrNew() async {
+    final nowLocal = now();
+    if (freq != TableFreq.free) {
+      final existing =
+          await _db.getTableRecordsTime(table: tableId, dt: nowLocal);
+      if (existing.isNotEmpty) {
+        final rec = decodeRow(existing.first);
+        return rec;
+      }
+    }
+    return TableRecord(null, nowLocal);
+  }
+
   /// Encode a record to save
   Future<void> save(TableRecord rec) async {
     final isNew = rec.id == null;
@@ -134,14 +149,12 @@ class TableProcessor extends ChangeNotifier {
     for (var (i, col) in columns.indexed) {
       values[i] = col.encode(rec.data[col.name]);
     }
-    print("saving $rec");
     final newId =
         await _db.saveTableRecord(tableId, rec.timestamp, values, rec.id);
     if (isNew) {
       rec.id = newId;
       _data.add(rec);
     }
-    print("newId $newId");
     notifyListeners();
   }
 
@@ -154,8 +167,7 @@ class TableProcessor extends ChangeNotifier {
 
     final deleted = await _db.deleteTableRecord(tableId, recId);
     if (deleted) {
-      data.remove(rec);
-      _data.add(rec);
+      _data.remove(rec);
       notifyListeners();
     }
     return deleted;

@@ -7,7 +7,7 @@
 - ✅ 03/5 cleaner CSV import (avoid inserting spaces before)
 - ✅ 18/5 tabular data: integers
 - ✅ 28/5 edit event names
-- ❓ ??/? calendar view
+- ✅ 29/5 calendar view
 - ❓ ??/? day view
 - ❓ ??/? prevent rotation
 - ❓ ??/5 categories, colors

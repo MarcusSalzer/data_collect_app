@@ -1,4 +1,5 @@
 import 'package:data_app2/db_service.dart';
+import 'package:data_app2/enums.dart';
 import 'package:data_app2/extensions.dart';
 import 'package:data_app2/user_tabular.dart';
 import 'package:flutter/material.dart';

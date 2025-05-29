@@ -1,5 +1,5 @@
 import 'package:data_app2/app_state.dart';
-import 'package:data_app2/screens/month_screen.dart';
+import 'package:data_app2/screens/month_calendar_screen.dart';
 import 'package:data_app2/screens/events/event_manager_screen.dart';
 import 'package:data_app2/screens/events/events_screen.dart';
 import 'package:data_app2/screens/events/events_stats_screen.dart';
@@ -105,7 +105,7 @@ class HomeScreen extends StatelessWidget {
                       onPressed: () {
                         Navigator.of(context).push(
                           MaterialPageRoute(
-                            builder: (context) => MonthScreen(),
+                            builder: (context) => MonthCalendarScreen(appState),
                           ),
                         );
                       },
