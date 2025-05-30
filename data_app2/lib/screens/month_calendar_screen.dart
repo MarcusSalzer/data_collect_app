@@ -11,7 +11,7 @@ import 'package:provider/provider.dart';
 
 /// Handle data for showing stats for a month
 class MonthViewModel extends ChangeNotifier {
-  DBService _db;
+  final DBService _db;
   DateTime _current = DateTime.now().startOfMonth;
 
   List<DateTime> _days = [];
@@ -43,7 +43,7 @@ class MonthViewModel extends ChangeNotifier {
     final offset = _current.monthFirstWeekday;
 
     _days = List.generate(42,
-        (i) => DateUtils.addDaysToDate(_current.startOfMonth, i - offset + 2));
+        (i) => DateUtils.addDaysToDate(_current.startOfMonth, i - offset + 1));
   }
 
   /// Move to a new month and reload data
@@ -146,10 +146,12 @@ class CalendarGrid extends StatelessWidget {
       itemCount: model.days.length,
       itemBuilder: (context, index) {
         final d = model.days[index];
+        final isActive = model.isInMonth(d);
         return CalDayTile(
           dt: d,
-          active: model.isInMonth(d),
-          weight: evtCounts[index] / maxCount,
+          active: isActive,
+          // use weight for corresponding day if in current month
+          weight: isActive ? evtCounts[d.day] / maxCount : 0,
         );
       },
     );

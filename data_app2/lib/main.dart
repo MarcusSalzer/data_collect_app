@@ -2,11 +2,14 @@ import 'package:data_app2/db_service.dart';
 import 'package:data_app2/screens/home_screen.dart';
 import 'package:data_app2/app_state.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 void main() async {
   // note: we need the DB to be ready to read user prefs when starting app
   WidgetsFlutterBinding.ensureInitialized();
+  // prevent landscape mode (no use for landscape now)
+  SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
   runApp(MyApp(service: DBService(await initIsar())));
 }
 

@@ -8,9 +8,9 @@
 - ✅ 18/5 tabular data: integers
 - ✅ 28/5 edit event names
 - ✅ 29/5 calendar view
-- ❓ ??/? day view
-- ❓ ??/? prevent rotation
+- ✅ 30/5 prevent rotation
 - ❓ ??/5 categories, colors
+- ❓ ??/? day view
 - ❓ ??/? user defined export directory
 - ❓ ??/? auto-backup
 - ❓ ??/5 detect duplicates and overlapping events

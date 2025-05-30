@@ -260,7 +260,7 @@ class DBService {
       // default on year
       end = start.copyWith(year: start.year + 1);
     }
-    print("range: $start -> $end");
+    // print("range: $start -> $end");
 
     final recs = await _isar.txn(() async {
       _isar.userRows
