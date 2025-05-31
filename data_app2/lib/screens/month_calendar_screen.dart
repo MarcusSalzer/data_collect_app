@@ -2,8 +2,11 @@ import 'dart:math';
 
 import 'package:data_app2/app_state.dart';
 import 'package:data_app2/db_service.dart';
+import 'package:data_app2/event_stats_compute.dart';
 import 'package:data_app2/extensions.dart';
+import 'package:data_app2/fmt.dart';
 import 'package:data_app2/screens/day_screen.dart';
+import 'package:data_app2/widgets/events_summary.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:isar/isar.dart';
@@ -13,6 +16,7 @@ import 'package:provider/provider.dart';
 class MonthViewModel extends ChangeNotifier {
   final DBService _db;
   DateTime _current = DateTime.now().startOfMonth;
+  List<MapEntry<String, Duration>> tpe = [];
 
   List<DateTime> _days = [];
   List<Event> _events = [];
@@ -23,7 +27,7 @@ class MonthViewModel extends ChangeNotifier {
     _makeDayGrid();
   }
 
-  DateTime get current => _current;
+  DateTime get currentMonth => _current;
   List<DateTime> get days => _days;
   List<Event> get events => _events;
 
@@ -34,6 +38,7 @@ class MonthViewModel extends ChangeNotifier {
         earliest: _current,
         latest: DateUtils.addMonthsToMonthDate(_current, 1));
     _events = evts;
+    tpe = timePerEvent(_events);
     // eventsPerDay();
     notifyListeners();
   }
@@ -48,7 +53,7 @@ class MonthViewModel extends ChangeNotifier {
 
   /// Move to a new month and reload data
   void stepMonth(int offset) {
-    _current = DateUtils.addMonthsToMonthDate(current, offset);
+    _current = DateUtils.addMonthsToMonthDate(currentMonth, offset);
     _makeDayGrid();
     notifyListeners();
     _loadEvents();
@@ -69,61 +74,150 @@ class MonthViewModel extends ChangeNotifier {
   bool isInMonth(DateTime day) => day.month == _current.month;
 }
 
-class MonthCalendarScreen extends StatelessWidget {
+class MonthCalendarScreen extends StatefulWidget {
   final AppState appstate;
 
   const MonthCalendarScreen(this.appstate, {super.key});
 
   @override
+  State<MonthCalendarScreen> createState() => _MonthCalendarScreenState();
+}
+
+class _MonthCalendarScreenState extends State<MonthCalendarScreen> {
+  final PageController _pageViewController = PageController();
+  int _pageIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider<MonthViewModel>(
-      create: (context) => MonthViewModel(appstate.db),
+      create: (context) => MonthViewModel(widget.appstate.db),
       child: Consumer<MonthViewModel>(
         builder: (context, model, child) {
+          final pages = [
+            CalendarMonthDisplay(model),
+            EventsSummary(
+                title: Fmt.monthName(model.currentMonth),
+                tpe: model.tpe,
+                colors: Colors.primaries),
+            Text("More"),
+            Text("and more"),
+          ];
           return Scaffold(
             appBar: AppBar(
               title: Text("Calendar"),
             ),
             body: Column(
               children: [
+                Expanded(
+                  child: PageView(
+                    controller: _pageViewController,
+                    onPageChanged: (value) {
+                      setState(() {
+                        _pageIndex = value;
+                      });
+                    },
+                    scrollDirection: Axis.vertical,
+                    children: pages,
+                  ),
+                ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     IconButton(
-                      onPressed: () {
-                        model.stepMonth(-1);
-                      },
-                      icon: Icon(Icons.keyboard_double_arrow_left),
-                    ),
-                    Expanded(
-                      child: Center(
-                        child: Text(
-                            DateFormat("MMMM yyyy").format(model._current)),
-                      ),
-                    ),
+                        onPressed: () {
+                          if (_pageIndex > 0) {
+                            _updatePage(_pageIndex - 1);
+                          }
+                        },
+                        icon: Icon(Icons.arrow_left)),
+                    Text("page $_pageIndex"),
                     IconButton(
                       onPressed: () {
-                        model.stepMonth(1);
+                        if (_pageIndex < pages.length - 1) {
+                          _updatePage(_pageIndex + 1);
+                        }
                       },
-                      icon: Icon(Icons.keyboard_double_arrow_right),
+                      icon: Icon(Icons.arrow_right),
                     ),
                   ],
-                ),
-                Divider(),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: "MTWTFSS".characters.map((c) => Text(c)).toList(),
-                ),
-                Divider(),
-                Expanded(
-                  child: CalendarGrid(model),
-                ),
-                Divider(),
-                Text("Events? ${model.events.length}"),
+                )
               ],
             ),
           );
         },
+      ),
+    );
+  }
+
+  void _updatePage(int index) {
+    _pageViewController.animateToPage(
+      index,
+      duration: const Duration(milliseconds: 100),
+      curve: Curves.easeInOut,
+    );
+  }
+}
+
+class CalendarMonthDisplay extends StatelessWidget {
+  final MonthViewModel model;
+
+  const CalendarMonthDisplay(
+    this.model, {
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Container(
+        color: Colors.white10,
+        margin: EdgeInsets.all(4),
+        padding: EdgeInsets.all(4),
+        constraints: BoxConstraints(maxWidth: 500),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                IconButton(
+                  onPressed: () {
+                    model.stepMonth(-1);
+                  },
+                  icon: Icon(Icons.keyboard_double_arrow_left),
+                ),
+                Expanded(
+                  child: Center(
+                    child: Text(DateFormat("MMMM yyyy").format(model._current)),
+                  ),
+                ),
+                IconButton(
+                  onPressed: () {
+                    model.stepMonth(1);
+                  },
+                  icon: Icon(Icons.keyboard_double_arrow_right),
+                ),
+              ],
+            ),
+            Divider(),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: "MTWTFSS".characters.map((c) => Text(c)).toList(),
+            ),
+            Divider(),
+            AspectRatio(
+              aspectRatio: 7 / 6 - 0.01, // to match grid
+              child: CalendarGrid(model),
+            ),
+            Divider(),
+            Text("Events: ${model.events.length}"),
+          ],
+        ),
       ),
     );
   }
@@ -143,6 +237,7 @@ class CalendarGrid extends StatelessWidget {
     return GridView.builder(
       gridDelegate:
           const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 7),
+      physics: NeverScrollableScrollPhysics(),
       itemCount: model.days.length,
       itemBuilder: (context, index) {
         final d = model.days[index];
@@ -172,6 +267,7 @@ class CalDayTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final monthModel = Provider.of<MonthViewModel>(context, listen: false);
     final color = Colors.red.withAlpha((255 * weight).round());
     // final theme = Theme.of(context);
     var tStyle = TextStyle(fontFamily: "monospace", fontSize: 20);
@@ -184,11 +280,20 @@ class CalDayTile extends StatelessWidget {
     }
 
     return InkWell(
-      onTap: () {
-        Navigator.of(context).push(MaterialPageRoute(
-          builder: (context) => DayScreen(dt),
-        ));
-      },
+      onTap: active
+          ? () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => DayScreen(
+                    dt,
+                    events: monthModel.events
+                        .where((e) => e.start?.startOfDay == dt)
+                        .toList(),
+                  ),
+                ),
+              );
+            }
+          : null,
       child: Container(
         color: color,
         child: Center(

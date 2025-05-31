@@ -1,8 +1,28 @@
+import 'package:data_app2/db_service.dart';
+import 'package:data_app2/event_stats_compute.dart';
+import 'package:data_app2/fmt.dart';
+import 'package:data_app2/screens/events/plots.dart';
+import 'package:data_app2/widgets/events_summary.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+class DayViewModel extends ChangeNotifier {
+  List<Event> _events = [];
+
+  List<MapEntry<String, Duration>> tpe = [];
+  List<Event> get events => _events;
+
+  DayViewModel({List<Event>? events}) {
+    _events = events ?? [];
+    tpe = timePerEvent(_events, limit: 16);
+  }
+}
 
 class DayScreen extends StatefulWidget {
   final DateTime dt;
-  const DayScreen(this.dt, {super.key});
+
+  final List<Event>? events;
+  const DayScreen(this.dt, {super.key, this.events});
 
   @override
   State<DayScreen> createState() => _DayScreenState();
@@ -18,9 +38,38 @@ class _DayScreenState extends State<DayScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(dt.toString()),
+    return ChangeNotifierProvider(
+      create: (_) => DayViewModel(events: widget.events),
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(Fmt.verboseDate(dt)),
+        ),
+        body: Consumer<DayViewModel>(
+          builder: (context, value, child) {
+            if (value.events.isEmpty) {
+              return Center(
+                child: Text("No events"),
+              );
+            }
+            return ListView(
+              children: [
+                EventsSummary(
+                  title: Fmt.verboseDate(dt),
+                  tpe: value.tpe,
+                  colors: Colors.primaries,
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: EventPieChart(
+                    timings: value.tpe,
+                    colors: Colors.primaries,
+                    nTitles: 8,
+                  ),
+                )
+              ],
+            );
+          },
+        ),
       ),
     );
   }

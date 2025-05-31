@@ -1,9 +1,7 @@
-import 'dart:math';
-
 import 'package:data_app2/app_state.dart';
 import 'package:data_app2/event_model.dart';
 import 'package:data_app2/event_stats_compute.dart';
-import 'package:fl_chart/fl_chart.dart';
+import 'package:data_app2/screens/events/plots.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -51,22 +49,7 @@ class EventsStatsView extends StatelessWidget {
         children: [
           Text("Last week: ${filtered.length} events"),
           Expanded(
-            child: AspectRatio(
-              aspectRatio: 1.0,
-              child: PieChart(
-                PieChartData(
-                  sections: [
-                    for (int i = 0; i < timings.length; i++)
-                      PieChartSectionData(
-                        value: max(timings[i].value.inMinutes.toDouble(), 1),
-                        radius: 100,
-                        title: timings[i].key,
-                        color: colors[i],
-                      )
-                  ],
-                ),
-              ),
-            ),
+            child: EventPieChart(timings: timings, colors: colors),
           )
         ],
       );

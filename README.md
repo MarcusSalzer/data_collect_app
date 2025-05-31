@@ -9,13 +9,15 @@
 - ✅ 28/5 edit event names
 - ✅ 29/5 calendar view
 - ✅ 30/5 prevent rotation
-- ❓ ??/5 categories, colors
 - ❓ ??/? day view
-- ❓ ??/? user defined export directory
+- ❓ ??/? migrate events from String -> Cats
+- ❓ ??/? tabular CSV import+export
+- ❓ ??/? categories, colors
+- ❓ ??/? user defined export directory, and improved settings page
 - ❓ ??/? auto-backup
-- ❓ ??/5 detect duplicates and overlapping events
-- ❓ ??/5 user defined "day starts at"
-- ❓ ??/? event notes: allow writing like a diary
+- ❓ ??/? detect duplicates and overlapping events
+- ❓ ??/? user defined "day starts at"
+- ❓ ??/? event notes: allow writing like a diary (or day notes?)
 
 ## notes
 

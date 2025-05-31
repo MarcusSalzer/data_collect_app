@@ -5,6 +5,7 @@ import 'dart:collection';
 import 'package:data_app2/app_state.dart';
 import 'package:data_app2/db_service.dart';
 import 'package:data_app2/io.dart';
+import 'package:data_app2/stats.dart';
 import 'package:flutter/material.dart';
 import 'package:isar/isar.dart';
 
@@ -81,7 +82,7 @@ class EventModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  List<String> eventSuggestions([int n = 10]) {
+  List<String> eventSuggestions([int n = 20]) {
     var common = <String>[];
     for (var k in _evtFreqs.keys.take(n)) {
       // print("$k: ${_evtFreqs[k]}");
@@ -96,10 +97,8 @@ class EventModel extends ChangeNotifier {
       return _db.isar.events.where().anyId().findAll();
     });
 
-    var counts = <String, int>{};
-    for (var evt in evts) {
-      counts[evt.name] = (counts[evt.name] ?? 0) + 1;
-    }
+    var counts = valueCounts(evts.map((e) => e.name));
+
     _evtFreqs = LinkedHashMap.fromEntries(counts.entries.toList()
       ..sort(
         (a, b) => b.value.compareTo(a.value),

@@ -31,3 +31,16 @@ List<MapEntry<String, Duration>> timePerEvent(Iterable<Event> events,
 
   return keepList;
 }
+
+/// get sum of event durations, for all events with start and end defined
+Duration totalEventTime(List<Event> evts) {
+  return evts.fold(Duration.zero, (p, e) {
+    final es = e.start;
+    final ee = e.end;
+    if (es != null && ee != null) {
+      final d = ee.difference(es);
+      return p + d;
+    }
+    return p;
+  });
+}

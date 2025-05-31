@@ -5,7 +5,7 @@ import 'package:data_app2/screens/events/events_screen.dart';
 import 'package:data_app2/screens/events/events_stats_screen.dart';
 import 'package:data_app2/screens/settings_screen.dart';
 import 'package:data_app2/screens/tabular_overview.dart';
-import 'package:data_app2/widgets/events_today_summary.dart';
+import 'package:data_app2/widgets/events_summary.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -33,7 +33,7 @@ class HomeScreen extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            EventsTodaySummary(),
+            EventsTodaySummaryFromAppState(),
             SizedBox(height: 20),
             Expanded(
               flex: 1,

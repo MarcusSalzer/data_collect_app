@@ -1,6 +1,7 @@
 import 'package:data_app2/enums.dart';
 
 extension DateOnly on DateTime {
+  /// This date, with only year, month, date.
   DateTime get startOfDay => DateTime(year, month, day);
 
   /// Most recent monday

@@ -10,6 +10,24 @@ class Fmt {
     return DateFormat("MMMM").format(dt);
   }
 
+  /// Day name
+  static String dayName(DateTime dt) {
+    return DateFormat("EEEE").format(dt);
+  }
+
+  /// Day name
+  static String verboseDate(DateTime dt) {
+    return DateFormat("EEEE MMMM dd").format(dt);
+  }
+
+  /// Date and time strings, or placeholder
+  static String date(DateTime? dt) {
+    if (dt == null) {
+      return ("__-__-__");
+    }
+    return DateFormat("yy-MM-dd").format(dt);
+  }
+
   /// Date and time strings, or placeholder
   static (String, String) dateTime(DateTime? dt) {
     if (dt == null) {
@@ -31,7 +49,8 @@ class Fmt {
   static String durationHM(Duration d) {
     final mins = d.inMinutes;
     if (mins <= 60) return "$mins min";
-    return "${mins ~/ 60} h ${mins % 60} min";
+    final minStr = (mins % 60).toString().padLeft(2);
+    return "${mins ~/ 60} h $minStr min";
   }
 }
 
