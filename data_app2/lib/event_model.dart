@@ -5,6 +5,7 @@ import 'dart:collection';
 import 'package:data_app2/app_state.dart';
 import 'package:data_app2/db_service.dart';
 import 'package:data_app2/io.dart';
+import 'package:data_app2/io.dart' as io;
 import 'package:data_app2/stats.dart';
 import 'package:flutter/material.dart';
 import 'package:isar/isar.dart';
@@ -122,7 +123,7 @@ class EventModel extends ChangeNotifier {
   }
 
   Future<int> exportEvents() async {
-    final c = await _db.exportEvents();
+    final c = await io.exportEvents(await _db.getAllEvents());
     // print("exported $c events");
     return c;
   }

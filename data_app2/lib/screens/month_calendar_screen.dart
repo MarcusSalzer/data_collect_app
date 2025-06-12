@@ -5,7 +5,9 @@ import 'package:data_app2/db_service.dart';
 import 'package:data_app2/event_stats_compute.dart';
 import 'package:data_app2/extensions.dart';
 import 'package:data_app2/fmt.dart';
+import 'package:data_app2/plots.dart';
 import 'package:data_app2/screens/day_screen.dart';
+import 'package:data_app2/stats.dart';
 import 'package:data_app2/widgets/events_summary.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -100,16 +102,40 @@ class _MonthCalendarScreenState extends State<MonthCalendarScreen> {
         builder: (context, model, child) {
           final pages = [
             CalendarMonthDisplay(model),
-            EventsSummary(
-                title: Fmt.monthName(model.currentMonth),
-                tpe: model.tpe,
-                colors: Colors.primaries),
-            Text("More"),
-            Text("and more"),
+            MonthSummaryDisplay(model),
           ];
           return Scaffold(
             appBar: AppBar(
               title: Text("Calendar"),
+              bottom: PreferredSize(
+                preferredSize: Size(double.infinity, 45),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      IconButton(
+                        onPressed: () {
+                          model.stepMonth(-1);
+                        },
+                        icon: Icon(Icons.keyboard_double_arrow_left),
+                      ),
+                      Expanded(
+                        child: Center(
+                          child: Text(
+                              DateFormat("MMMM yyyy").format(model._current)),
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: () {
+                          model.stepMonth(1);
+                        },
+                        icon: Icon(Icons.keyboard_double_arrow_right),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ),
             body: Column(
               children: [
@@ -163,6 +189,45 @@ class _MonthCalendarScreenState extends State<MonthCalendarScreen> {
   }
 }
 
+/// event time table and pie chart for a month
+class MonthSummaryDisplay extends StatelessWidget {
+  final MonthViewModel model;
+
+  const MonthSummaryDisplay(
+    this.model, {
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (model.events.isEmpty) {
+      return Center(
+        child: Text("No events in ${Fmt.monthName(model.currentMonth)}"),
+      );
+    }
+    return Column(
+      children: [
+        EventsSummary(
+          title: Fmt.monthName(model.currentMonth),
+          tpe: model.tpe,
+          colors: Colors.primaries,
+          listHeight: 350,
+        ),
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: EventPieChart(
+              timings: groupLastEntries(model.tpe, n: 16),
+              colors: Colors.primaries,
+              nTitles: 5,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 class CalendarMonthDisplay extends StatelessWidget {
   final MonthViewModel model;
 
@@ -182,28 +247,6 @@ class CalendarMonthDisplay extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                IconButton(
-                  onPressed: () {
-                    model.stepMonth(-1);
-                  },
-                  icon: Icon(Icons.keyboard_double_arrow_left),
-                ),
-                Expanded(
-                  child: Center(
-                    child: Text(DateFormat("MMMM yyyy").format(model._current)),
-                  ),
-                ),
-                IconButton(
-                  onPressed: () {
-                    model.stepMonth(1);
-                  },
-                  icon: Icon(Icons.keyboard_double_arrow_right),
-                ),
-              ],
-            ),
             Divider(),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,

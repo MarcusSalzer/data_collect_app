@@ -1,7 +1,7 @@
 import 'package:data_app2/app_state.dart';
 import 'package:data_app2/event_model.dart';
 import 'package:data_app2/event_stats_compute.dart';
-import 'package:data_app2/screens/events/plots.dart';
+import 'package:data_app2/plots.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 

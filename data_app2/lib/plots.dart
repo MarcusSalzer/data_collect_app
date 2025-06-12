@@ -27,7 +27,9 @@ class EventPieChart extends StatelessWidget {
                 value: max(timings[i].value.inMinutes.toDouble(), 1),
                 radius: 100,
                 title: i < nTitles ? timings[i].key : "",
-                color: colors[i],
+                color: timings[i].key == "other"
+                    ? Colors.grey
+                    : colors[i % colors.length],
               )
           ],
         ),

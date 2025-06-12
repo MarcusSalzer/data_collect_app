@@ -29,23 +29,32 @@ List<double> linspace(num start, num end, int count) {
 
 /// Compute histogram of numbers
 ///
+/// ## parameters
+/// - arr: Iterable of numbers
+/// - nBins: number of bin, null uses rule of thumb
+///
 /// ## returns
-/// - bins
+/// - binCenters
 /// - hist
-(List<double>, List<int>) histogram<T extends num>(Iterable<T> arr,
-    {nBins = 10}) {
+(List<double>, List<int>) histogram<T extends num>(
+  Iterable<T> arr, {
+  int? nBins,
+}) {
+  // auto bins
+  nBins = math.sqrt(arr.length).toInt();
+
   final mini = arr.min;
   final maxi = arr.max;
   final bw = (maxi - mini) / nBins;
   final hist = List.filled(nBins, 0);
-  final bins = linspace(mini, maxi, nBins);
+  final binCenters = linspace(mini + bw / 2, maxi + bw / 2, nBins);
   for (var v in arr) {
-    // TODO FIX
-    final binIdx = (v - mini) ~/ (bw + 0.0001);
+    // all should be inside
+    final binIdx = (v - mini) ~/ (bw + 1e-9);
     hist[binIdx]++;
   }
 
-  return (bins, hist);
+  return (binCenters, hist);
 }
 
 /// Count unique values
@@ -67,4 +76,17 @@ Map<T, int> valueCounts<T extends Comparable>(
   } else {
     return counts;
   }
+}
+
+/// reduce a list of map-entries to [n] first, + "other"
+List<MapEntry<String, Duration>> groupLastEntries(
+    Iterable<MapEntry<String, Duration>> entries,
+    {int n = 10}) {
+  var other = Duration.zero;
+  for (var entry in entries.skip(n)) {
+    other += entry.value;
+  }
+  final result = entries.take(n).toList();
+  result.add(MapEntry("other", other));
+  return result;
 }

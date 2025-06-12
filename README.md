@@ -9,7 +9,7 @@
 - ✅ 28/5 edit event names
 - ✅ 29/5 calendar view
 - ✅ 30/5 prevent rotation
-- ❓ ??/? day view
+- ✅ 08/6 day view
 - ❓ ??/? migrate events from String -> Cats
 - ❓ ??/? tabular CSV import+export
 - ❓ ??/? categories, colors

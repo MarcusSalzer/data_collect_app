@@ -1,7 +1,7 @@
 import 'package:data_app2/db_service.dart';
 import 'package:data_app2/event_stats_compute.dart';
 import 'package:data_app2/fmt.dart';
-import 'package:data_app2/screens/events/plots.dart';
+import 'package:data_app2/plots.dart';
 import 'package:data_app2/widgets/events_summary.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -51,21 +51,24 @@ class _DayScreenState extends State<DayScreen> {
                 child: Text("No events"),
               );
             }
-            return ListView(
+            return Column(
+              mainAxisSize: MainAxisSize.max,
               children: [
                 EventsSummary(
                   title: Fmt.verboseDate(dt),
                   tpe: value.tpe,
                   colors: Colors.primaries,
                 ),
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: EventPieChart(
-                    timings: value.tpe,
-                    colors: Colors.primaries,
-                    nTitles: 8,
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: EventPieChart(
+                      timings: value.tpe,
+                      colors: Colors.primaries,
+                      nTitles: 8,
+                    ),
                   ),
-                )
+                ),
               ],
             );
           },

@@ -1,5 +1,7 @@
 // a small widget for seeing todays events
 
+import 'dart:math';
+
 import 'package:data_app2/app_state.dart';
 import 'package:data_app2/fmt.dart';
 import 'package:flutter/material.dart';
@@ -109,12 +111,16 @@ class EventDurationTable extends StatelessWidget {
 
   final bool includeBar;
 
-  EventDurationTable(
-      {super.key,
-      required this.tpe,
-      this.colors = Colors.primaries,
-      this.title = "Tracked time today",
-      this.includeBar = false}) {
+  final double height;
+
+  EventDurationTable({
+    super.key,
+    required this.tpe,
+    this.colors = Colors.primaries,
+    this.title = "Tracked time today",
+    this.includeBar = false,
+    this.height = 220,
+  }) {
     trackedTime = tpe.fold(Duration.zero, (p, c) => p + c.value);
   }
 
@@ -166,48 +172,47 @@ class EventDurationTable extends StatelessWidget {
             color: Theme.of(context).colorScheme.onSecondaryContainer,
           );
 
-    return SizedBox(
-      height: 220, // fits ca 6 rows
-      child: Column(
-        // mainAxisSize: MainAxisSize.min,
-        children: [
-          // TITLE ROW
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 2),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Flexible(
-                  flex: 2,
-                  child: Text(
-                    title,
-                    style: TextStyle(fontWeight: FontWeight.bold),
+    return Column(
+      // mainAxisSize: MainAxisSize.min,
+      children: [
+        // TITLE ROW
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 2),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Flexible(
+                flex: 2,
+                child: Text(
+                  title,
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ),
+              Flexible(
+                flex: 1,
+                child: Text(
+                  Fmt.durationHM(trackedTime),
+                  textAlign: TextAlign.right,
+                  style: const TextStyle(
+                    fontFamily: 'monospace',
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
-                Flexible(
-                  flex: 1,
-                  child: Text(
-                    Fmt.durationHM(trackedTime),
-                    textAlign: TextAlign.right,
-                    style: const TextStyle(
-                      fontFamily: 'monospace',
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
-          div,
-          // Table rows
-          Expanded(
-            child: ListView(
-              children: comps,
-            ),
+        ),
+        div,
+        // Table rows
+        SizedBox(
+          height: min(height, 30.0 * comps.length),
+          child: ListView(
+            itemExtent: 30,
+            children: comps,
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
@@ -217,13 +222,16 @@ class EventsSummary extends StatelessWidget {
       {super.key,
       required this.title,
       required this.tpe,
-      required this.colors});
+      required this.colors,
+      this.listHeight = 220});
 
   final String title;
 
   final List<Color> colors;
 
   final dynamic tpe;
+
+  final double listHeight;
 
   @override
   Widget build(BuildContext context) {
@@ -245,6 +253,7 @@ class EventsSummary extends StatelessWidget {
         colors: Colors.primaries,
         title: title,
         includeBar: true,
+        height: listHeight,
       ),
     );
   }

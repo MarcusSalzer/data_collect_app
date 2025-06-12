@@ -98,29 +98,10 @@ class DBService {
     return prefs;
   }
 
-  /// Export events as CSV
-  Future<int> exportEvents() async {
-    final events = await _isar.events.where().findAll();
-
-    final nEvt = events.length;
-    final lines = events.map((evt) {
-      final nameSafe = evt.name.replaceAll(",", ";");
-      return "${evt.id}, $nameSafe, ${evt.start?.toIso8601String()}, ${evt.end?.toIso8601String()}";
+  Future<List<Event>> getAllEvents() async {
+    return await _isar.txn(() async {
+      return await _isar.events.where().findAll();
     });
-    const eventsCsvHeader = "id,name,start,end";
-    final csvContent = "$eventsCsvHeader\n${lines.join('\n')}";
-
-    final dir = await defaultStoreDir();
-    if (!dir.existsSync()) {
-      dir.createSync(recursive: true);
-    }
-    final n = DateTime.now();
-    final file = File(
-      p.join(dir.path,
-          'events_${n.year}-${n.month}-${n.day}-${n.hour}-${n.minute}.csv'),
-    );
-    file.writeAsString(csvContent);
-    return nEvt;
   }
 
   /// Save [EvtRec]s to database
@@ -274,14 +255,6 @@ class DBService {
           .findAll();
     });
     return recs;
-  }
-}
-
-Future<Directory> defaultStoreDir() async {
-  if (Platform.isAndroid) {
-    return Directory('/storage/emulated/0/Documents/data_app');
-  } else {
-    return getApplicationDocumentsDirectory();
   }
 }
 

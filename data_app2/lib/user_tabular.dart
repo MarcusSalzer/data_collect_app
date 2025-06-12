@@ -3,6 +3,7 @@
 
 import 'package:data_app2/db_service.dart';
 import 'package:data_app2/enums.dart';
+import 'package:data_app2/extensions.dart';
 import 'package:flutter/material.dart';
 
 class ColumnDef {
@@ -119,12 +120,10 @@ class TableProcessor extends ChangeNotifier {
       case TableFreq.free:
         return dt;
       case TableFreq.day:
-        return DateTime(dt.year, dt.month, dt.day);
+        return dt.startOfDay;
       case TableFreq.week:
         // Most recent monday
-        return DateTime(dt.year, dt.month, dt.day).subtract(
-          Duration(days: (dt.weekday - 1)),
-        );
+        return dt.startOfweek;
     }
   }
 
