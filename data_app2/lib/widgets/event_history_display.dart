@@ -1,5 +1,6 @@
 // ignore_for_file: avoid_print
 
+import 'package:data_app2/app_state.dart' show AppState;
 import 'package:data_app2/db_service.dart';
 import 'package:data_app2/event_model.dart';
 import 'package:data_app2/fmt.dart';
@@ -45,6 +46,7 @@ class EventListTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final app = Provider.of<AppState>(context, listen: false);
     final (startText, endText) = Fmt.eventTimes(evt);
 
     final start = evt.start;
@@ -58,7 +60,7 @@ class EventListTile extends StatelessWidget {
     }
 
     return ListTile(
-      title: Text(evt.name + durTxt),
+      title: Text(app.eventName(evt.typeId)! + durTxt),
       subtitle: Text(
         "$startText - $endText",
         style: TextStyle(fontFamily: 'monospace'),

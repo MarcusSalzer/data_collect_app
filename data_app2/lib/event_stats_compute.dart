@@ -1,15 +1,15 @@
 import 'package:data_app2/db_service.dart' show Event;
 
 /// Get total time for each event type.
-List<MapEntry<String, Duration>> timePerEvent(Iterable<Event> events,
+List<MapEntry<int, Duration>> timePerEvent(Iterable<Event> events,
     {int? limit}) {
-  final Map<String, Duration> result = {};
+  final Map<int, Duration> result = {};
   for (final evt in events) {
     final start = evt.start;
     final end = evt.end;
     if (start != null && end != null) {
-      result[evt.name] =
-          (result[evt.name] ?? Duration.zero) + end.difference(start);
+      result[evt.typeId] =
+          (result[evt.typeId] ?? Duration.zero) + end.difference(start);
     }
   }
   final resList = result.entries.toList();
@@ -26,7 +26,7 @@ List<MapEntry<String, Duration>> timePerEvent(Iterable<Event> events,
       );
 
   if (restSum > Duration.zero) {
-    keepList.add(MapEntry("other", restSum));
+    keepList.add(MapEntry(-1, restSum));
   }
 
   return keepList;

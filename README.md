@@ -14,7 +14,7 @@
 - ❓ ??/? tabular CSV import+export
 - ❓ ??/? categories, colors
 - ❓ ??/? user defined export directory, and improved settings page
-- ❓ ??/? auto-backup
+- ❓ ??/? auto-backup (more compact file format?)
 - ❓ ??/? detect duplicates and overlapping events
 - ❓ ??/? user defined "day starts at"
 - ❓ ??/? event notes: allow writing like a diary (or day notes?)

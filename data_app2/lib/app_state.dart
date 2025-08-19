@@ -11,6 +11,8 @@ class AppState extends ChangeNotifier {
   bool _normStrip = false;
   bool _normCase = false;
   final DBService _db;
+  Map<String, int> _evtNameToType = {};
+  Map<int, String> _evtTypeToName = {};
 
   // get preferences
   bool get isDarkMode => _darkMode;
@@ -19,6 +21,8 @@ class AppState extends ChangeNotifier {
 
   // get db instance
   DBService get db => _db;
+  Map<String, int> get evtNameToType => _evtNameToType;
+  Map<int, String> get evtTypeToName => _evtTypeToName;
 
   // keep track of today summary
   TodaySummaryData? todaySummary;
@@ -32,7 +36,38 @@ class AppState extends ChangeNotifier {
         notifyListeners();
       }
     });
+    _db.loadEventTypes().then((types) {
+      _evtNameToType = {};
+      _evtTypeToName = {};
+      for (var e in types) {
+        _evtNameToType[e.name] = e.id;
+        _evtTypeToName[e.id] = e.name;
+      }
+    });
+
     refreshSummary();
+  }
+
+  // TODO, store whole object to get colors etc.
+  String? eventName(int typeId) {
+    final name = _evtTypeToName[typeId];
+
+    return name;
+  }
+
+  /// maybe only needed in a freeform text input?
+  int? eventTypeId(String name) {
+    final type = _evtNameToType[name];
+
+    return type;
+  }
+
+  Future<int> newEventType(String name) async {
+    final newTypeId = await _db.putEventType(name);
+    _evtNameToType[name] = newTypeId;
+    _evtTypeToName[newTypeId] = name;
+    notifyListeners();
+    return newTypeId;
   }
 
   setDarkMode(bool value) {
@@ -53,6 +88,7 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// For keeping summary after leaving events screen
   Future<void> refreshSummary() async {
     final evts =
         await db.getEventsFiltered(earliest: DateTime.now().startOfDay);
@@ -64,7 +100,7 @@ class AppState extends ChangeNotifier {
 }
 
 class TodaySummaryData {
-  final List<MapEntry<String, Duration>> tpe;
+  final List<MapEntry<int, Duration>> tpe;
   Duration get trackedTime => tpe.fold(Duration.zero, (p, c) => p + c.value);
   TodaySummaryData(this.tpe);
 }

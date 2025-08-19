@@ -37,3 +37,12 @@ extension Capitalized on String {
   /// Capitalize first character
   String get capitalized => replaceRange(0, 1, substring(0, 1).toUpperCase());
 }
+
+extension CompareStr on String {
+  bool equalsIgnoreSpace(String? other) {
+    if (other is String) {
+      return replaceAll(" ", "") == other.replaceAll(" ", "");
+    }
+    return false;
+  }
+}

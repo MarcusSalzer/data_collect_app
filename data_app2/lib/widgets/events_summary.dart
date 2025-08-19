@@ -15,6 +15,7 @@ class EventsTodaySummaryFromAppState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final thm = Theme.of(context);
+    final app = Provider.of<AppState>(context);
     return Consumer<AppState>(
       builder: (context, value, child) {
         final s = value.todaySummary;
@@ -39,7 +40,10 @@ class EventsTodaySummaryFromAppState extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               EventDurationTable(
-                tpe: s.tpe,
+                tpe: s.tpe
+                    .map((e) =>
+                        MapEntry(app.eventName(e.key) ?? "unknown", e.value))
+                    .toList(),
                 colors: colors,
               ),
               SizedBox(
@@ -229,7 +233,7 @@ class EventsSummary extends StatelessWidget {
 
   final List<Color> colors;
 
-  final dynamic tpe;
+  final List<MapEntry<String, Duration>> tpe;
 
   final double listHeight;
 

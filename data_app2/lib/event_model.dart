@@ -4,14 +4,13 @@ import 'dart:collection';
 
 import 'package:data_app2/app_state.dart';
 import 'package:data_app2/db_service.dart';
-import 'package:data_app2/io.dart';
 import 'package:data_app2/io.dart' as io;
 import 'package:data_app2/stats.dart';
+import 'package:data_app2/user_events.dart';
 import 'package:flutter/material.dart';
-import 'package:isar/isar.dart';
 
 class EventModel extends ChangeNotifier {
-  final DBService _db;
+  final AppState _app;
   final bool _normStrip;
   final bool _normCase;
   final int? _nList; // default null -> all
@@ -19,12 +18,12 @@ class EventModel extends ChangeNotifier {
   bool isLoading = true;
 
   List<Event> _events = [];
-  LinkedHashMap<String, int> _evtFreqs = LinkedHashMap<String, int>();
+  LinkedHashMap<int, int> _evtFreqs = LinkedHashMap<int, int>();
   List<Event> get events => _events;
-  Map<String, int> get evtFreqs => _evtFreqs;
+  Map<int, int> get evtFreqs => _evtFreqs;
 
   EventModel(AppState appState, {int? nList})
-      : _db = appState.db,
+      : _app = appState,
         _normStrip = appState.normStrip,
         _normCase = appState.normCase,
         _nList = nList {
@@ -46,23 +45,30 @@ class EventModel extends ChangeNotifier {
     if (_normCase) {
       name = name.toLowerCase();
     }
-    final evt = await putEvent(Event(name, start: start, end: end));
+
+    final typeId = _app.eventTypeId(name);
+
+    Event evt;
+    if (typeId != null) {
+      evt = await putEvent(Event(typeId, start: start, end: end));
+    } else {
+      print("UNKNONW NEW");
+      // create new event type
+      final newTypeId = await _app.newEventType(name);
+      evt = await putEvent(Event(newTypeId, start: start, end: end));
+    }
     _events.insert(0, evt);
   }
 
   delete(Event event) async {
-    await _db.isar.writeTxn(() async {
-      _db.isar.events.delete(event.id);
-    });
+    _app.db.deleteEvent(event.id);
     _events.remove(event);
     notifyListeners();
   }
 
   /// Save a new or updated event
   Future<Event> putEvent(Event evt) async {
-    final id = await _db.isar.writeTxn(() async {
-      return _db.isar.events.put(evt);
-    });
+    final id = await _app.db.putEvent(evt);
     evt.id = id;
     // print("added event $id");
     notifyListeners();
@@ -71,20 +77,12 @@ class EventModel extends ChangeNotifier {
 
   /// Update in memory list, of reverse chronological events
   Future<void> getLatest() async {
-    _events = [];
-    _events = await _db.isar.txn(() async {
-      return _db.isar.events
-          .where()
-          .anyId()
-          .sortByStartDesc()
-          .optional(_nList != null, (q) => q.limit(_nList!))
-          .findAll();
-    });
+    _events = await _app.db.latestEvents(_nList);
     notifyListeners();
   }
 
-  List<String> eventSuggestions([int n = 20]) {
-    var common = <String>[];
+  List<int> eventSuggestions([int n = 20]) {
+    var common = <int>[];
     for (var k in _evtFreqs.keys.take(n)) {
       // print("$k: ${_evtFreqs[k]}");
       common.add(k);
@@ -94,11 +92,9 @@ class EventModel extends ChangeNotifier {
 
   /// Count each event type
   Future<void> refreshCounts() async {
-    final evts = await _db.isar.txn(() async {
-      return _db.isar.events.where().anyId().findAll();
-    });
+    final evts = await _app.db.getAllEvents();
 
-    var counts = valueCounts(evts.map((e) => e.name));
+    var counts = valueCounts(evts.map((e) => e.typeId));
 
     _evtFreqs = LinkedHashMap.fromEntries(counts.entries.toList()
       ..sort(
@@ -106,15 +102,8 @@ class EventModel extends ChangeNotifier {
       ));
   }
 
-  Future<(Iterable<EvtRec>, EvtRecSummary)> prepareImportEvts(
-      String path) async {
-    final recs = await importEvtsCSV(path);
-    final summary = EvtRecSummary(recs);
-    return (recs, summary);
-  }
-
   Future<int> importEvents(Iterable<EvtRec> recs) async {
-    final c = await _db.importEventsDB(recs);
+    final c = await _app.db.importEventsDB(recs);
     getLatest();
     refreshCounts();
 
@@ -123,42 +112,9 @@ class EventModel extends ChangeNotifier {
   }
 
   Future<int> exportEvents() async {
-    final c = await io.exportEvents(await _db.getAllEvents());
+    final c =
+        await io.exportEvents(await _app.db.getAllEvents(), _app.evtTypeToName);
     // print("exported $c events");
-    return c;
-  }
-
-  Future<int> normalizeLowerAll() async {
-    _events = []; // remove in memory events for consistency
-    isLoading = true;
-    notifyListeners();
-
-    final c = await _db.isar.writeTxn(
-      () async {
-        final evts = await _db.isar.events.where().findAll();
-        final uptdt = await _db.isar.events
-            .putAll(evts.map((e) => e..name = e.name.toLowerCase()).toList());
-        return uptdt.length;
-      },
-    );
-    await _init();
-    return c;
-  }
-
-  Future<int> normalizeStripAll() async {
-    _events = []; // remove in memory events for consistency
-    isLoading = true;
-    notifyListeners();
-
-    final c = await _db.isar.writeTxn(
-      () async {
-        final evts = await _db.isar.events.where().findAll();
-        final uptdt = await _db.isar.events
-            .putAll(evts.map((e) => e..name = e.name.trim()).toList());
-        return uptdt.length;
-      },
-    );
-    await _init();
     return c;
   }
 }

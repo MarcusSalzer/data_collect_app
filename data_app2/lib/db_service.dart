@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:data_app2/app_state.dart';
 import 'package:data_app2/enums.dart';
-import 'package:data_app2/io.dart';
+import 'package:data_app2/user_events.dart';
 import 'package:flutter/material.dart';
 import 'package:isar/isar.dart';
 import 'package:path_provider/path_provider.dart';
@@ -25,22 +25,35 @@ class Preferences {
 @collection
 class Event {
   Id id = Isar.autoIncrement;
-  String name;
+  int typeId;
+
   // start and end times are optional
+  @Index()
   DateTime? start;
   DateTime? end;
 
-  Event(this.name, {this.start, this.end});
+  Event(this.typeId, {this.start, this.end});
 }
 
 /// A type of event
 @collection
 class EventType {
   Id id = Isar.autoIncrement;
+  @Index(unique: true)
   String name;
-  String? category;
+  int? categoryId;
 
   EventType(this.name);
+}
+
+/// A type of event
+@collection
+class EventCategory {
+  Id id = Isar.autoIncrement;
+  @Index(unique: true)
+  String name;
+
+  EventCategory(this.name);
 }
 
 // USER-DEFINED TABULAR DATASETS
@@ -76,9 +89,6 @@ class UserRow {
 class DBService {
   final Isar _isar;
 
-  // TODO: remove this to encapsulate db use
-  Isar get isar => _isar;
-
   DBService(this._isar);
 
   /// Save app preferences
@@ -98,9 +108,63 @@ class DBService {
     return prefs;
   }
 
+  Future<List<EventType>> loadEventTypes() async {
+    final evtTypes = await _isar.txn(() async {
+      return await _isar.eventTypes.where().findAll();
+    });
+
+    return evtTypes;
+  }
+
+  Future<EventType?> getEventType({int? id, String? name}) async {
+    return await _isar.txn(() async {
+      if (id != null) {
+        return await _isar.eventTypes.get(id);
+      } else if (name != null) {
+        return await _isar.eventTypes.where().nameEqualTo(name).findFirst();
+      }
+      return null;
+    });
+  }
+
+  Future<int> putEventType(String name) async {
+    return await _isar.writeTxn(() async {
+      final existing =
+          await _isar.eventTypes.filter().nameEqualTo(name).findFirst();
+      if (existing != null) {
+        return existing.id;
+      }
+      return await _isar.eventTypes.put(EventType(name));
+    });
+  }
+
   Future<List<Event>> getAllEvents() async {
     return await _isar.txn(() async {
       return await _isar.events.where().findAll();
+    });
+  }
+
+  Future<void> deleteEvent(int id) async {
+    await _isar.writeTxn(() async {
+      _isar.events.delete(id);
+    });
+  }
+
+  /// Save a new or updated event
+  Future<int> putEvent(Event evt) async {
+    return await _isar.writeTxn(() async {
+      return _isar.events.put(evt);
+    });
+  }
+
+  /// reverse chronological events
+  Future<List<Event>> latestEvents(int? count) async {
+    return await _isar.txn(() async {
+      return _isar.events
+          .where(sort: Sort.desc)
+          .anyStart()
+          .optional(count != null, (q) => q.limit(count!))
+          .findAll();
     });
   }
 
@@ -108,11 +172,11 @@ class DBService {
   Future<int> importEventsDB(Iterable<EvtRec> data) async {
     final c = await _isar.writeTxn(() async {
       final ids = await _isar.events.putAll(
-        data
-            .map(
-              (r) => Event(r.name, start: r.start, end: r.end),
-            )
-            .toList(),
+        data.map(
+          (r) {
+            return Event(r.typeId, start: r.start, end: r.end);
+          },
+        ).toList(),
       );
       return ids.length;
     });
@@ -132,7 +196,7 @@ class DBService {
 
   /// Get some events. Note that this is independent of the EventModel
   Future<List<Event>> getEventsFiltered({
-    List<String>? names,
+    List<int>? typeIds,
     DateTime? earliest,
     DateTime? latest,
   }) async {
@@ -144,8 +208,8 @@ class DBService {
               (q) => q.startGreaterThan(earliest, include: true))
           .optional(latest != null, (q) => q.startLessThan(latest))
           // optionally filter by name
-          .optional(names != null,
-              (q) => q.anyOf(names!, (q, String n) => q.nameEqualTo(n)))
+          .optional(typeIds != null,
+              (q) => q.anyOf(typeIds!, (q, int n) => q.typeIdEqualTo(n)))
           .findAll();
     });
     return evts;
@@ -154,6 +218,7 @@ class DBService {
   /// Save a new tabular dataset NOTE: ONLY INT FOR NOW
   Future<void> saveUserTable(
       String name, List<String> colNames, TableFreq freq) async {
+    // TODO actually define schema
     final schema = List.filled(colNames.length, TabularType.int);
     final tableDef = UserTable(name, colNames, schema, frequency: freq);
     await _isar.writeTxn(() async {
@@ -264,8 +329,13 @@ Future<Isar> initIsar() async {
   final path = p.join(docDir.path, 'data_collect');
   // Ensure storage folder exists
   Directory(path).createSync();
-  final isar = await Isar.open(
-      [PreferencesSchema, EventSchema, UserTableSchema, UserRowSchema],
-      directory: path);
+  final isar = await Isar.open([
+    PreferencesSchema,
+    EventSchema,
+    UserTableSchema,
+    UserRowSchema,
+    EventTypeSchema,
+    EventCategorySchema
+  ], directory: path);
   return isar;
 }

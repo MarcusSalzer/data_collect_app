@@ -1,3 +1,4 @@
+import 'package:data_app2/app_state.dart';
 import 'package:data_app2/event_model.dart';
 import 'package:data_app2/fmt.dart';
 import 'package:flutter/material.dart';
@@ -17,6 +18,7 @@ class _EventCreateMenuState extends State<EventCreateMenu> {
   @override
   Widget build(BuildContext context) {
     final evtModelprov = Provider.of<EventModel>(context, listen: false);
+    final app = Provider.of<AppState>(context, listen: false);
     return Consumer<EventModel>(
       builder: (context, evm, child) {
         if (evm.isLoading) {
@@ -41,7 +43,9 @@ class _EventCreateMenuState extends State<EventCreateMenu> {
                           width: 100,
                           child: Text(startTxt),
                         ),
-                        Expanded(child: Text(evt.name)),
+                        Expanded(
+                            child:
+                                Text(app.eventName(evt.typeId) ?? "unknown")),
                         TextButton.icon(
                           onPressed: () {
                             evt.end = DateTime.now();
@@ -113,6 +117,8 @@ class CommonEventsSuggest extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final thm = Theme.of(context);
+    final app = Provider.of<AppState>(context, listen: false);
+
     return Container(
       padding: EdgeInsets.all(4),
       decoration: ShapeDecoration(
@@ -128,18 +134,18 @@ class CommonEventsSuggest extends StatelessWidget {
           return Wrap(
             spacing: 6,
             runSpacing: 6,
-            children: evm
-                .eventSuggestions()
-                .map(
-                  (s) => ActionChip(
-                    label: Text(s),
-                    onPressed: () {
-                      // add event
-                      evm.addEvent(s, start: DateTime.now());
-                    },
-                  ),
-                )
-                .toList(),
+            children: evm.eventSuggestions().map(
+              (s) {
+                final name = app.eventName(s) ?? "unknown";
+                return ActionChip(
+                  label: Text(name),
+                  onPressed: () {
+                    // add event
+                    evm.addEvent(name, start: DateTime.now());
+                  },
+                );
+              },
+            ).toList(),
           );
         },
       ),

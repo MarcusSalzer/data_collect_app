@@ -79,14 +79,14 @@ Map<T, int> valueCounts<T extends Comparable>(
 }
 
 /// reduce a list of map-entries to [n] first, + "other"
-List<MapEntry<String, Duration>> groupLastEntries(
-    Iterable<MapEntry<String, Duration>> entries,
+List<MapEntry<int, Duration>> groupLastEntries(
+    Iterable<MapEntry<int, Duration>> entries,
     {int n = 10}) {
   var other = Duration.zero;
   for (var entry in entries.skip(n)) {
     other += entry.value;
   }
   final result = entries.take(n).toList();
-  result.add(MapEntry("other", other));
+  result.add(MapEntry(-1, other));
   return result;
 }

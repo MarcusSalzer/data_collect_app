@@ -2,9 +2,10 @@
 
 import 'dart:math';
 
-import 'package:data_app2/io.dart';
+import 'package:data_app2/app_state.dart';
+import 'package:data_app2/user_events.dart';
 
-const evtTypes = [
+const evtSamples = [
   (name: "work", time: Duration(minutes: 75)),
   (name: "work", time: Duration(minutes: 102)),
   (name: "work", time: Duration(minutes: 75)),
@@ -22,20 +23,27 @@ const evtTypes = [
 
 const nDays = 7;
 const nPerDay = 7;
+const durNoise = 15; // minutes
 
-Iterable<EvtRec> dummyEvents() {
+Future<Iterable<EvtRec>> dummyEvents(AppState app) async {
   final recs = <EvtRec>[];
   for (var day = 0; day < nDays; day++) {
     var pos = DateTime.now().subtract(Duration(days: day));
-    final eIdxDay = randomSample(evtTypes.length, nPerDay);
+    final eIdxDay = randomSample(evtSamples.length, nPerDay);
+
+    // add a few events for this day:
     for (var k in eIdxDay) {
-      final ev = evtTypes[k];
-
+      final ev = evtSamples[k];
+      // add some noise to duration
+      final noise = (Random().nextDouble() - 0.5) * durNoise;
+      final dur = ev.time + Duration(minutes: noise.round());
       final end = pos;
-      final start = pos.subtract(ev.time);
-      pos = pos.subtract(ev.time);
+      final start = pos.subtract(dur);
+      pos = pos.subtract(dur);
+      final name = ev.name;
 
-      final r = EvtRec(null, ev.name, start, end);
+      final r = EvtRec(null,
+          app.eventTypeId(name) ?? await app.newEventType(name), start, end);
       recs.add(r);
     }
   }

@@ -15,7 +15,7 @@ class Fmt {
     return DateFormat("EEEE").format(dt);
   }
 
-  /// Day name
+  /// Day name month and day
   static String verboseDate(DateTime dt) {
     return DateFormat("EEEE MMMM dd").format(dt);
   }
@@ -25,11 +25,19 @@ class Fmt {
     if (dt == null) {
       return ("__-__-__");
     }
-    return DateFormat("yy-MM-dd").format(dt);
+    return DateFormat("yyyy-MM-dd").format(dt);
+  }
+
+  /// string with year, month,... second
+  static String dateTimeSecond(DateTime? dt) {
+    if (dt == null) {
+      return "____";
+    }
+    return DateFormat("yyyy-MM-dd HH:mm:ss").format(dt);
   }
 
   /// Date and time strings, or placeholder
-  static (String, String) dateTime(DateTime? dt) {
+  static (String, String) dateTimeSeparate(DateTime? dt) {
     if (dt == null) {
       return ("__-__-__", "__:__");
     }

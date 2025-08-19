@@ -31,6 +31,7 @@ class EventsStatsView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final app = Provider.of<AppState>(context);
     return Consumer<EventModel>(builder: (context, evm, child) {
       if (evm.isLoading) {
         return Center(child: Text("Loading events..."));
@@ -49,7 +50,12 @@ class EventsStatsView extends StatelessWidget {
         children: [
           Text("Last week: ${filtered.length} events"),
           Expanded(
-            child: EventPieChart(timings: timings, colors: colors),
+            child: EventPieChart(
+                timings: timings
+                    .map((e) =>
+                        MapEntry(app.eventName(e.key) ?? "unknown", e.value))
+                    .toList(),
+                colors: colors),
           )
         ],
       );

@@ -1,3 +1,4 @@
+import 'package:data_app2/app_state.dart';
 import 'package:data_app2/db_service.dart';
 import 'package:data_app2/event_model.dart';
 import 'package:data_app2/fmt.dart';
@@ -17,21 +18,23 @@ class _EventEditScreenState extends State<EventEditScreen> {
 
   late final Event evt;
   late final EventModel evm;
+  late final AppState app;
   late final TextEditingController nameTec;
 
   @override
   void initState() {
     evm = Provider.of<EventModel>(context, listen: false);
+    app = Provider.of<AppState>(context, listen: false);
     evt = widget._evt;
-    nameTec = TextEditingController(text: evt.name);
+    nameTec = TextEditingController(text: app.eventName(evt.typeId));
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
     final evt = widget._evt;
-    final (sdTxt, stTxt) = Fmt.dateTime(evt.start);
-    final (edTxt, etTxt) = Fmt.dateTime(evt.end);
+    final (sdTxt, stTxt) = Fmt.dateTimeSeparate(evt.start);
+    final (edTxt, etTxt) = Fmt.dateTimeSeparate(evt.end);
 
     return Scaffold(
       appBar: AppBar(
@@ -200,7 +203,13 @@ class _EventEditScreenState extends State<EventEditScreen> {
 
     if (state.validate()) {
       setState(() {
-        evt.name = nameTec.text;
+        final name = nameTec.text;
+        var newType = app.eventTypeId(name);
+        if (newType == null) {
+          print("UNKNOWN");
+          return;
+        }
+        evt.typeId = newType;
         // save updated event
         evm.putEvent(evt);
       });

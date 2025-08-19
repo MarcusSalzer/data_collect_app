@@ -1,4 +1,7 @@
 import 'package:data_app2/app_state.dart';
+import 'package:data_app2/import_any_model.dart';
+import 'package:data_app2/io.dart';
+import 'package:data_app2/screens/import_any_screen.dart';
 import 'package:data_app2/screens/month_calendar_screen.dart';
 import 'package:data_app2/screens/events/event_manager_screen.dart';
 import 'package:data_app2/screens/events/events_screen.dart';
@@ -111,6 +114,32 @@ class HomeScreen extends StatelessWidget {
                       },
                       label: Text("Calendar"),
                       icon: Icon(Icons.calendar_month),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: TextButton.icon(
+                      onPressed: () async {
+                        final path = await pickSingleFile();
+                        if (path == null) {
+                          return;
+                        }
+
+                        if (context.mounted) {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  ChangeNotifierProvider.value(
+                                // make provider and load data
+                                value: ImportAnyModel(path, appState)..load(),
+                                child: ImportAnyScreen(),
+                              ),
+                            ),
+                          );
+                        }
+                      },
+                      label: Text("Import data"),
+                      icon: Icon(Icons.download),
                     ),
                   ),
                 ],

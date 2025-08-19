@@ -18,7 +18,7 @@ import 'package:provider/provider.dart';
 class MonthViewModel extends ChangeNotifier {
   final DBService _db;
   DateTime _current = DateTime.now().startOfMonth;
-  List<MapEntry<String, Duration>> tpe = [];
+  List<MapEntry<int, Duration>> tpe = [];
 
   List<DateTime> _days = [];
   List<Event> _events = [];
@@ -200,6 +200,7 @@ class MonthSummaryDisplay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final app = Provider.of<AppState>(context, listen: false);
     if (model.events.isEmpty) {
       return Center(
         child: Text("No events in ${Fmt.monthName(model.currentMonth)}"),
@@ -209,7 +210,11 @@ class MonthSummaryDisplay extends StatelessWidget {
       children: [
         EventsSummary(
           title: Fmt.monthName(model.currentMonth),
-          tpe: model.tpe,
+          tpe: model.tpe
+              .map(
+                (e) => MapEntry(app.eventName(e.key) ?? "unknown", e.value),
+              )
+              .toList(),
           colors: Colors.primaries,
           listHeight: 350,
         ),
@@ -217,7 +222,9 @@ class MonthSummaryDisplay extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.all(8.0),
             child: EventPieChart(
-              timings: groupLastEntries(model.tpe, n: 16),
+              timings: groupLastEntries(model.tpe, n: 16)
+                  .map((g) => MapEntry(g.key.toString(), g.value))
+                  .toList(),
               colors: Colors.primaries,
               nTitles: 5,
             ),

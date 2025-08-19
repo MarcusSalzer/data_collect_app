@@ -1,6 +1,7 @@
 import 'package:data_app2/fmt.dart';
 import 'package:data_app2/screens/table_record_edit_screen.dart';
 import 'package:data_app2/user_tabular.dart';
+import 'package:data_app2/util.dart';
 import 'package:data_app2/widgets/confirm_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -16,7 +17,7 @@ class TableEditScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // for deleting table
-    final tModel = Provider.of<TableManager>(context, listen: false);
+    final tableManager = Provider.of<TableManager>(context, listen: false);
     return FutureBuilder(
         future: _initF,
         builder: (context, snap) {
@@ -48,6 +49,27 @@ class TableEditScreen extends StatelessWidget {
                         showDialog(
                           context: context,
                           builder: (context) => ConfirmDialog(
+                            title:
+                                "Export ${table.data.length} records as CSV?",
+                            action: () async {
+                              await table.exportCsv();
+                              if (context.mounted) {
+                                simpleSnack(context, "Export OK!");
+                              }
+                            },
+                          ),
+                        );
+                      },
+                      style: ButtonStyle(
+                        padding: WidgetStatePropertyAll(EdgeInsets.all(8)),
+                      ),
+                      child: Text("Export CSV"),
+                    ),
+                    MenuItemButton(
+                      onPressed: () {
+                        showDialog(
+                          context: context,
+                          builder: (context) => ConfirmDialog(
                             title: "Clear all records?",
                             action: table.truncate,
                           ),
@@ -65,7 +87,7 @@ class TableEditScreen extends StatelessWidget {
                           builder: (context) => ConfirmDialog(
                             title: "Permanently delete table?",
                             action: () async {
-                              await tModel.deleteTable(table);
+                              await tableManager.deleteTable(table);
                               if (context.mounted) {
                                 // leave edit page
                                 Navigator.pop(context);

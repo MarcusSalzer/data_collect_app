@@ -1,5 +1,6 @@
 import 'package:data_app2/app_state.dart';
 import 'package:data_app2/dummy_data.dart';
+import 'package:data_app2/util.dart';
 import 'package:data_app2/widgets/confirm_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -30,7 +31,7 @@ class SettingsMenu extends StatefulWidget {
 class _SettingsMenuState extends State<SettingsMenu> {
   @override
   Widget build(BuildContext context) {
-    AppState appState = Provider.of<AppState>(context, listen: false);
+    AppState app = Provider.of<AppState>(context, listen: false);
     return Column(
       children: [
         Text("settings"),
@@ -38,10 +39,10 @@ class _SettingsMenuState extends State<SettingsMenu> {
           children: [
             Text("Dark mode"),
             Switch(
-              value: appState.isDarkMode,
+              value: app.isDarkMode,
               onChanged: (bool value) {
                 setState(() {
-                  appState.setDarkMode(value);
+                  app.setDarkMode(value);
                 });
               },
             ),
@@ -55,10 +56,10 @@ class _SettingsMenuState extends State<SettingsMenu> {
           children: [
             Text("Strip leading/trailing whitespace"),
             Checkbox(
-                value: appState.normStrip,
+                value: app.normStrip,
                 onChanged: (bool? value) {
                   setState(() {
-                    appState.setNormStrip(value ?? false);
+                    app.setNormStrip(value ?? false);
                   });
                 })
           ],
@@ -67,10 +68,10 @@ class _SettingsMenuState extends State<SettingsMenu> {
           children: [
             Text("Lowercase"),
             Checkbox(
-              value: appState.normCase,
+              value: app.normCase,
               onChanged: (bool? value) {
                 setState(() {
-                  appState.setNormCase(value ?? false);
+                  app.setNormCase(value ?? false);
                 });
               },
             ),
@@ -101,13 +102,9 @@ class _SettingsMenuState extends State<SettingsMenu> {
                           ElevatedButton.icon(
                             onPressed: () async {
                               Navigator.pop(context);
-                              final c = await appState.db.deleteAllEvents();
+                              final c = await app.db.deleteAllEvents();
                               if (context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text("deleted $c events"),
-                                  ),
-                                );
+                                simpleSnack(context, "deleted $c events");
                               }
                             },
                             label: Text(
@@ -137,11 +134,12 @@ class _SettingsMenuState extends State<SettingsMenu> {
               builder: (context) {
                 return ConfirmDialog(
                   title: "Generate dummy data",
-                  action: () {
-                    final recs = dummyEvents();
-                    appState.db.importEventsDB(recs);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text("open events to refresh!")));
+                  action: () async {
+                    final recs = await dummyEvents(app);
+                    app.db.importEventsDB(recs);
+                    if (context.mounted) {
+                      simpleSnack(context, "open events to refresh!");
+                    }
                   },
                 );
               },

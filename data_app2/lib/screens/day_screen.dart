@@ -14,7 +14,7 @@ class DayViewModel extends ChangeNotifier {
 
   DayViewModel({List<Event>? events}) {
     _events = events ?? [];
-    tpe = timePerEvent(_events, limit: 16);
+    // tpe = timePerEvent(_events, limit: 16);
   }
 }
 

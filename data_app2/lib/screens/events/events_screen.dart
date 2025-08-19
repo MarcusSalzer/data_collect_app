@@ -1,10 +1,15 @@
+import 'dart:io';
+
 import 'package:data_app2/app_state.dart';
 import 'package:data_app2/event_model.dart';
+import 'package:data_app2/extensions.dart';
 import 'package:data_app2/fmt.dart';
 import 'package:data_app2/io.dart';
+import 'package:data_app2/user_events.dart';
+import 'package:data_app2/util.dart';
 import 'package:data_app2/widgets/event_create_menu.dart';
 import 'package:data_app2/widgets/event_history_display.dart';
-import 'package:file_picker/file_picker.dart';
+import 'package:data_app2/widgets/import_summary_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -53,6 +58,7 @@ class EventsScreenExtraMenu extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final app = Provider.of<AppState>(context, listen: false);
     final evm = Provider.of<EventModel>(context, listen: false);
     return MenuAnchor(
       builder: (context, controller, child) => IconButton(
@@ -70,29 +76,26 @@ class EventsScreenExtraMenu extends StatelessWidget {
           padding: const EdgeInsets.all(8.0),
           child: MenuItemButton(
             onPressed: () async {
-              final fpRes = await FilePicker.platform.pickFiles();
-              if (fpRes == null) {
-                return; // canceled
-              }
-              final path = fpRes.files.single.path;
+              final path = await pickSingleFile();
               if (path == null) {
                 return;
               }
               try {
-                final (recs, summary) = await evm.prepareImportEvts(path);
+                final lines = await File(path).readAsLines();
+                if (!eventsCsvHeader.equalsIgnoreSpace(lines.first)) {
+                  throw FormatException("Wrong header");
+                }
+                final (recs, summary) =
+                    await prepareImportEvts(lines.skip(1), app);
 
                 if (context.mounted) {
                   showDialog(
                       context: context,
                       builder: (context) {
-                        return ImportDialog(summary, () async {
+                        return ImportSummaryDialog(summary, () async {
                           final c = await evm.importEvents(recs);
                           if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text("Imported $c events"),
-                              ),
-                            );
+                            simpleSnack(context, "Imported $c events");
                           }
                         });
                       });
@@ -102,7 +105,7 @@ class EventsScreenExtraMenu extends StatelessWidget {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text(
-                        'error: $e',
+                        e.toString(),
                         style: TextStyle(color: Colors.red),
                       ),
                     ),
@@ -119,11 +122,7 @@ class EventsScreenExtraMenu extends StatelessWidget {
             onPressed: () async {
               final nEvt = await evm.exportEvents();
               if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('saved $nEvt events'),
-                  ),
-                );
+                simpleSnack(context, "saved $nEvt events");
               }
             },
             child: Text("export"),
@@ -166,86 +165,43 @@ class NormalizeDialog extends StatelessWidget {
           padding: const EdgeInsets.symmetric(vertical: 10),
           child: Text("Note: these actions are permanent"),
         )),
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 10),
-          child: TextButton(
-            onPressed: () async {
-              final c = await evm.normalizeLowerAll();
+        // Padding(
+        //   padding: const EdgeInsets.symmetric(vertical: 10),
+        //   child: TextButton(
+        //     onPressed: () async {
+        //       final c = await evm.normalizeLowerAll();
 
-              if (context.mounted) {
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text("normalized (lowercase) $c events"),
-                  ),
-                );
-              }
-            },
-            child: Text("Lowercase"),
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 10),
-          child: TextButton(
-            onPressed: () async {
-              final c = await evm.normalizeStripAll();
+        //       if (context.mounted) {
+        //         Navigator.pop(context);
+        //         ScaffoldMessenger.of(context).showSnackBar(
+        //           SnackBar(
+        //             content: Text("normalized (lowercase) $c events"),
+        //           ),
+        //         );
+        //       }
+        //     },
+        //     child: Text("Lowercase"),
+        //   ),
+        // ),
+        // Padding(
+        //   padding: const EdgeInsets.symmetric(vertical: 10),
+        //   child: TextButton(
+        //     onPressed: () async {
+        //       final c = await evm.normalizeStripAll();
 
-              if (context.mounted) {
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text("normalized (strip) $c events"),
-                  ),
-                );
-              }
-            },
-            child: Text("Strip whitespace"),
-          ),
-        ),
+        //       if (context.mounted) {
+        //         Navigator.pop(context);
+        //         ScaffoldMessenger.of(context).showSnackBar(
+        //           SnackBar(
+        //             content: Text("normalized (strip) $c events"),
+        //           ),
+        //         );
+        //       }
+        //     },
+        //     child: Text("Strip whitespace"),
+        //   ),
+        // ),
       ],
     );
-  }
-}
-
-class ImportDialog extends StatelessWidget {
-  final EvtRecSummary summary;
-  final void Function() callback;
-  const ImportDialog(this.summary, this.callback, {super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final early = dtDateFmt(summary.earliest);
-    final late = dtDateFmt(summary.latest);
-    return SimpleDialog(
-        contentPadding: EdgeInsets.all(20),
-        title: Text("Import?"),
-        children: [
-          Text("Events between $early and $late"),
-          SizedBox(height: 20),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text("Total"),
-              Text("Start"),
-              Text("End"),
-            ],
-          ),
-          Divider(),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text("${summary.cTot}"),
-              Text("${summary.cStart}"),
-              Text("${summary.cEnd}"),
-            ],
-          ),
-          SizedBox(height: 20),
-          ElevatedButton(
-              onPressed: () {
-                Navigator.pop(context);
-                callback();
-              },
-              child: Text("Import"))
-        ]);
   }
 }

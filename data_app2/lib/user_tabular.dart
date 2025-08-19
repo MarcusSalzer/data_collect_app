@@ -4,6 +4,8 @@
 import 'package:data_app2/db_service.dart';
 import 'package:data_app2/enums.dart';
 import 'package:data_app2/extensions.dart';
+import 'package:data_app2/fmt.dart';
+import 'package:data_app2/io.dart';
 import 'package:flutter/material.dart';
 
 class ColumnDef {
@@ -64,6 +66,12 @@ class TableRecord {
   @override
   String toString() {
     return "record $id: ${data.values.join(', ')}";
+  }
+
+  /// CSV row of data record
+  String toCsvRow() {
+    final dataStr = data.values.join(", ");
+    return "$id, ${timestamp.toIso8601String()}, $dataStr";
   }
 }
 
@@ -185,6 +193,21 @@ class TableProcessor extends ChangeNotifier {
   @override
   String toString() {
     return "Table($name): $columns";
+  }
+
+  String csvHeader({bool withSchema = false}) {
+    if (withSchema) {
+      return "id, time, ${columns.map((c) => "${c.name}[${c.dtype.name}]").join(", ")}";
+    } else {
+      return "id, time, ${columns.map((c) => c.name).join(", ")}";
+    }
+  }
+
+  Future<void> exportCsv({bool withSchema = false}) async {
+    final csvContent =
+        tableRecordsToCsv(_data, csvHeader(withSchema: withSchema));
+    final fileName = "${name}_${Fmt.dateTimeSecond(DateTime.now())}";
+    exportFile(fileName, csvContent);
   }
 }
 

@@ -1,6 +1,7 @@
 import 'package:data_app2/enums.dart';
 import 'package:data_app2/fmt.dart';
 import 'package:data_app2/user_tabular.dart';
+import 'package:data_app2/util.dart';
 import 'package:data_app2/widgets/confirm_dialog.dart';
 import 'package:flutter/material.dart';
 
@@ -108,11 +109,7 @@ class _TableRecordEditScreenState extends State<TableRecordEditScreen> {
                       final didDelete = await table.delete(rec);
                       if (context.mounted) {
                         if (didDelete) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text("deleted $record"),
-                            ),
-                          );
+                          simpleSnack(context, "deleted $record");
                         }
                         Navigator.pop(context);
                       }
