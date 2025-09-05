@@ -1,15 +1,9 @@
-import 'dart:io';
-
 import 'package:data_app2/app_state.dart';
+import 'package:data_app2/enums.dart';
 import 'package:data_app2/event_model.dart';
-import 'package:data_app2/extensions.dart';
-import 'package:data_app2/fmt.dart';
-import 'package:data_app2/io.dart';
-import 'package:data_app2/user_events.dart';
-import 'package:data_app2/util.dart';
+import 'package:data_app2/screens/events/events_export_screen.dart';
 import 'package:data_app2/widgets/event_create_menu.dart';
 import 'package:data_app2/widgets/event_history_display.dart';
-import 'package:data_app2/widgets/import_summary_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -29,7 +23,23 @@ class EventsScreen extends StatelessWidget {
             appBar: AppBar(
               title: const Text('Events'),
               actions: [
-                EventsScreenExtraMenu(),
+                TextButton(
+                  onPressed: () async {
+                    // final nEvt = await evm.exportEvents();
+                    // if (context.mounted) {
+                    //   simpleSnack(context, "saved $nEvt events");
+                    // }
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => ExportScreen(),
+                      ),
+                    );
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text("Export"),
+                  ),
+                ),
               ],
               bottom: TabBar(
                 tabs: [
@@ -41,7 +51,14 @@ class EventsScreen extends StatelessWidget {
             body: TabBarView(
               children: [
                 EventCreateMenu(),
-                EventHistoryDisplay(),
+                Consumer<EventModel>(builder: (context, evtModel, child) {
+                  return EventHistoryDisplay(
+                    evtModel.events,
+                    isScrollable: true,
+                    headingMode: GroupFreq.day,
+                    reloadAction: evtModel.load,
+                  );
+                }),
               ],
             ),
           );
@@ -58,8 +75,6 @@ class EventsScreenExtraMenu extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final app = Provider.of<AppState>(context, listen: false);
-    final evm = Provider.of<EventModel>(context, listen: false);
     return MenuAnchor(
       builder: (context, controller, child) => IconButton(
         onPressed: () {
@@ -72,75 +87,36 @@ class EventsScreenExtraMenu extends StatelessWidget {
         icon: Icon(Icons.more_vert),
       ),
       menuChildren: [
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: MenuItemButton(
-            onPressed: () async {
-              final path = await pickSingleFile();
-              if (path == null) {
-                return;
-              }
-              try {
-                final lines = await File(path).readAsLines();
-                if (!eventsCsvHeader.equalsIgnoreSpace(lines.first)) {
-                  throw FormatException("Wrong header");
-                }
-                final (recs, summary) =
-                    await prepareImportEvts(lines.skip(1), app);
-
-                if (context.mounted) {
-                  showDialog(
-                      context: context,
-                      builder: (context) {
-                        return ImportSummaryDialog(summary, () async {
-                          final c = await evm.importEvents(recs);
-                          if (context.mounted) {
-                            simpleSnack(context, "Imported $c events");
-                          }
-                        });
-                      });
-                }
-              } catch (e) {
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        e.toString(),
-                        style: TextStyle(color: Colors.red),
-                      ),
-                    ),
-                  );
-                }
-              }
-            },
-            child: Text("import"),
+        MenuItemButton(
+          onPressed: () async {
+            // final nEvt = await evm.exportEvents();
+            // if (context.mounted) {
+            //   simpleSnack(context, "saved $nEvt events");
+            // }
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => ExportScreen(),
+              ),
+            );
+          },
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Text("Export"),
           ),
         ),
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: MenuItemButton(
-            onPressed: () async {
-              final nEvt = await evm.exportEvents();
-              if (context.mounted) {
-                simpleSnack(context, "saved $nEvt events");
-              }
-            },
-            child: Text("export"),
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: MenuItemButton(
-            onPressed: () {
-              showDialog(
-                  context: context,
-                  builder: (context) {
-                    return NormalizeDialog(evm);
-                  });
-            },
-            child: Text('normalize'),
-          ),
-        )
+        // Padding(
+        //   padding: const EdgeInsets.all(8.0),
+        //   child: MenuItemButton(
+        //     onPressed: () {
+        //       showDialog(
+        //           context: context,
+        //           builder: (context) {
+        //             return NormalizeDialog(evm);
+        //           });
+        //     },
+        //     child: Text('normalize'),
+        //   ),
+        // )
       ],
     );
   }

@@ -102,9 +102,11 @@ class _SettingsMenuState extends State<SettingsMenu> {
                           ElevatedButton.icon(
                             onPressed: () async {
                               Navigator.pop(context);
-                              final c = await app.db.deleteAllEvents();
+                              final cEvent = await app.db.deleteAllEvents();
+                              final cType = await app.db.deleteAllEventTypes();
                               if (context.mounted) {
-                                simpleSnack(context, "deleted $c events");
+                                simpleSnack(context,
+                                    "deleted: $cEvent events, $cType event-types");
                               }
                             },
                             label: Text(
@@ -136,7 +138,7 @@ class _SettingsMenuState extends State<SettingsMenu> {
                   title: "Generate dummy data",
                   action: () async {
                     final recs = await dummyEvents(app);
-                    app.db.importEventsDB(recs);
+                    app.db.importEventsDB(recs.map((r) => r.toIsar()).toList());
                     if (context.mounted) {
                       simpleSnack(context, "open events to refresh!");
                     }

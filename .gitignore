@@ -6,6 +6,9 @@ web/
 windows/
 android/
 
+# utility things
+/data
+__pycache__/
 
 # Miscellaneous
 *.class

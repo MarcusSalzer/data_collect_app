@@ -32,7 +32,7 @@ class EventsTodaySummaryFromAppState extends StatelessWidget {
             color: thm.colorScheme.secondaryContainer,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.all(
-                Radius.circular(10),
+                Radius.circular(1),
               ),
             ),
           ),
@@ -41,8 +41,9 @@ class EventsTodaySummaryFromAppState extends StatelessWidget {
             children: [
               EventDurationTable(
                 tpe: s.tpe
-                    .map((e) =>
-                        MapEntry(app.eventName(e.key) ?? "unknown", e.value))
+                    .map((e) => MapEntry(
+                        app.evtTypeRepo.resolveById(e.key)?.name ?? "unknown",
+                        e.value))
                     .toList(),
                 colors: colors,
               ),
@@ -248,7 +249,7 @@ class EventsSummary extends StatelessWidget {
         color: thm.colorScheme.secondaryContainer,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.all(
-            Radius.circular(10),
+            Radius.circular(1),
           ),
         ),
       ),

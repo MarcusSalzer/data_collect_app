@@ -22,11 +22,12 @@ Future<int> exportEvents(
       throw Exception("not in map");
     }
     final nameSafe = name.replaceAll(",", ";");
-    return "${evt.id}, $nameSafe, ${evt.start?.toIso8601String()}, ${evt.end?.toIso8601String()}";
+
+    return "${evt.id}, $nameSafe, ${evt.startUtcMillis}, ${evt.startLocalMillis}, ${evt.startLocalMillis}, ${evt.endLocalMillis}";
   });
   final csvContent = "$eventsCsvHeader\n${lines.join('\n')}";
 
-  final fileName = 'events_${Fmt.dateTimeSecond(DateTime.now())}.csv';
+  final fileName = 'events_${Fmt.dtSecond(DateTime.now())}.csv';
   exportFile(fileName, csvContent);
   return nEvt;
 }
@@ -78,19 +79,21 @@ String tableRecordsToCsv(Iterable<TableRecord> recs, String header) {
 
 /// Write a [String] of content to a file in the storage folder
 Future<void> exportFile(String name, String content) async {
-  final dir = await defaultStoreDir();
-  if (!dir.existsSync()) {
-    dir.createSync(recursive: true);
-  }
-  final file = File(
-    p.join(dir.path, name),
-  );
-  file.writeAsString(content);
+  // throw Deprecated("message");
+  // final dir = await defaultStoreDir();
+  // if (!dir.existsSync()) {
+  //   dir.createSync(recursive: true);
+  // }
+  // final file = File(
+  //   p.join(dir.path, name),
+  // );
+  // file.writeAsString(content);
 }
 
 /// Let user pick a single file
 Future<String?> pickSingleFile() async {
-  final fpRes = await FilePicker.platform.pickFiles();
+  final fpRes = await FilePicker.platform
+      .pickFiles(initialDirectory: (await defaultStoreDir()).path);
   if (fpRes == null) {
     return null; // canceled
   }
@@ -105,12 +108,13 @@ class ImportableSummary {
   DateTime? earliest;
   DateTime? latest;
   ImportMode mode;
+  int? idOverlapCount;
 
   ImportableSummary.fromEvtRecs(Iterable<EvtRec> recs)
       : mode = ImportMode.event {
     for (final r in recs) {
-      final s = r.start;
-      final e = r.end;
+      final s = r.start?.asLocal;
+      final e = r.end?.asLocal;
       if (s != null) {
         if (earliest == null || s.isBefore(earliest!)) {
           earliest = s;

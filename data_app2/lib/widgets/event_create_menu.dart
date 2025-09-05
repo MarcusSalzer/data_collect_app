@@ -1,6 +1,7 @@
 import 'package:data_app2/app_state.dart';
 import 'package:data_app2/event_model.dart';
 import 'package:data_app2/fmt.dart';
+import 'package:data_app2/local_datetime.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -44,11 +45,12 @@ class _EventCreateMenuState extends State<EventCreateMenu> {
                           child: Text(startTxt),
                         ),
                         Expanded(
-                            child:
-                                Text(app.eventName(evt.typeId) ?? "unknown")),
+                            child: Text(
+                                app.evtTypeRepo.resolveById(evt.typeId)?.name ??
+                                    "unknown")),
                         TextButton.icon(
                           onPressed: () {
-                            evt.end = DateTime.now();
+                            evt.start = LocalDateTime.now();
                             evm.putEvent(evt);
                           },
                           label: Text("stop"),
@@ -136,7 +138,7 @@ class CommonEventsSuggest extends StatelessWidget {
             runSpacing: 6,
             children: evm.eventSuggestions().map(
               (s) {
-                final name = app.eventName(s) ?? "unknown";
+                final name = app.evtTypeRepo.resolveById(s)?.name ?? "unknown";
                 return ActionChip(
                   label: Text(name),
                   onPressed: () {

@@ -6,8 +6,9 @@ import 'package:data_app2/event_stats_compute.dart';
 import 'package:data_app2/extensions.dart';
 import 'package:data_app2/fmt.dart';
 import 'package:data_app2/plots.dart';
-import 'package:data_app2/screens/day_screen.dart';
+import 'package:data_app2/screens/day_inmonth_screen.dart';
 import 'package:data_app2/stats.dart';
+import 'package:data_app2/user_events.dart';
 import 'package:data_app2/widgets/events_summary.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -21,7 +22,7 @@ class MonthViewModel extends ChangeNotifier {
   List<MapEntry<int, Duration>> tpe = [];
 
   List<DateTime> _days = [];
-  List<Event> _events = [];
+  List<EvtRec> _events = [];
   late Future<void> loadFuture;
 
   MonthViewModel(this._db) {
@@ -31,7 +32,7 @@ class MonthViewModel extends ChangeNotifier {
 
   DateTime get currentMonth => _current;
   List<DateTime> get days => _days;
-  List<Event> get events => _events;
+  List<EvtRec> get events => _events;
 
   /// load events for current month
   Future<void> _loadEvents() async {
@@ -39,7 +40,7 @@ class MonthViewModel extends ChangeNotifier {
     final evts = await _db.getEventsFiltered(
         earliest: _current,
         latest: DateUtils.addMonthsToMonthDate(_current, 1));
-    _events = evts;
+    _events = evts.map((e) => EvtRec.fromIsar(e)).toList();
     tpe = timePerEvent(_events);
     // eventsPerDay();
     notifyListeners();
@@ -64,10 +65,10 @@ class MonthViewModel extends ChangeNotifier {
   List<int> eventsPerDay() {
     final counts = List.filled(_days.length, 0);
     for (var e in _events) {
-      final s = e.start;
-      if (s == null) continue;
+      final startLocal = e.start?.asLocal;
+      if (startLocal == null) continue;
 
-      final idx = s.day;
+      final idx = startLocal.day;
       counts[idx]++;
     }
     return counts;
@@ -212,7 +213,9 @@ class MonthSummaryDisplay extends StatelessWidget {
           title: Fmt.monthName(model.currentMonth),
           tpe: model.tpe
               .map(
-                (e) => MapEntry(app.eventName(e.key) ?? "unknown", e.value),
+                (e) => MapEntry(
+                    app.evtTypeRepo.resolveById(e.key)?.name ?? "unknown",
+                    e.value),
               )
               .toList(),
           colors: Colors.primaries,
@@ -334,12 +337,7 @@ class CalDayTile extends StatelessWidget {
           ? () {
               Navigator.of(context).push(
                 MaterialPageRoute(
-                  builder: (context) => DayScreen(
-                    dt,
-                    events: monthModel.events
-                        .where((e) => e.start?.startOfDay == dt)
-                        .toList(),
-                  ),
+                  builder: (context) => DayInmonthScreen(dt, monthModel),
                 ),
               );
             }

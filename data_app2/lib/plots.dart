@@ -11,27 +11,31 @@ class EventPieChart extends StatelessWidget {
   });
 
   final List<MapEntry<String, Duration>> timings;
-  final List<MaterialColor> colors;
+  final List<Color?> colors;
 
   final int nTitles;
 
   @override
   Widget build(BuildContext context) {
-    return AspectRatio(
-      aspectRatio: 1.0,
-      child: PieChart(
-        PieChartData(
-          sections: [
-            for (int i = 0; i < timings.length; i++)
-              PieChartSectionData(
-                value: max(timings[i].value.inMinutes.toDouble(), 1),
-                radius: 100,
-                title: i < nTitles ? timings[i].key : "",
-                color: timings[i].key == "other"
-                    ? Colors.grey
-                    : colors[i % colors.length],
-              )
-          ],
+    return ConstrainedBox(
+      constraints: BoxConstraints.loose(Size.fromWidth(320)),
+      child: AspectRatio(
+        aspectRatio: 1.0,
+        child: PieChart(
+          PieChartData(
+            sections: [
+              for (int i = 0; i < timings.length; i++)
+                PieChartSectionData(
+                  value: max(timings[i].value.inMinutes.toDouble(), 1),
+                  radius: 100,
+                  title: i < nTitles ? timings[i].key : "",
+                  titleStyle: TextStyle(shadows: [Shadow(blurRadius: 3)]),
+                  color: timings[i].key == "other"
+                      ? Colors.grey
+                      : colors[i % colors.length],
+                )
+            ],
+          ),
         ),
       ),
     );

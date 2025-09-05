@@ -1,34 +1,22 @@
+import 'package:data_app2/day_view_model.dart';
 import 'package:data_app2/db_service.dart';
-import 'package:data_app2/event_stats_compute.dart';
 import 'package:data_app2/fmt.dart';
 import 'package:data_app2/plots.dart';
 import 'package:data_app2/widgets/events_summary.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class DayViewModel extends ChangeNotifier {
-  List<Event> _events = [];
-
-  List<MapEntry<String, Duration>> tpe = [];
-  List<Event> get events => _events;
-
-  DayViewModel({List<Event>? events}) {
-    _events = events ?? [];
-    // tpe = timePerEvent(_events, limit: 16);
-  }
-}
-
-class DayScreen extends StatefulWidget {
+class DayScreenOld extends StatefulWidget {
   final DateTime dt;
 
   final List<Event>? events;
-  const DayScreen(this.dt, {super.key, this.events});
+  const DayScreenOld(this.dt, {super.key, this.events});
 
   @override
-  State<DayScreen> createState() => _DayScreenState();
+  State<DayScreenOld> createState() => _DayScreenOldState();
 }
 
-class _DayScreenState extends State<DayScreen> {
+class _DayScreenOldState extends State<DayScreenOld> {
   late DateTime dt;
   @override
   void initState() {

@@ -206,7 +206,7 @@ class TableProcessor extends ChangeNotifier {
   Future<void> exportCsv({bool withSchema = false}) async {
     final csvContent =
         tableRecordsToCsv(_data, csvHeader(withSchema: withSchema));
-    final fileName = "${name}_${Fmt.dateTimeSecond(DateTime.now())}";
+    final fileName = "${name}_${Fmt.dtSecond(DateTime.now())}";
     exportFile(fileName, csvContent);
   }
 }

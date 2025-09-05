@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:data_app2/app_state.dart';
+import 'package:data_app2/colors.dart';
 import 'package:data_app2/enums.dart';
 import 'package:data_app2/user_events.dart';
 import 'package:flutter/material.dart';
@@ -22,6 +23,7 @@ class Preferences {
 }
 
 /// A timed event
+/// Store the time both in local and utc to avoid ambiguities when traveling or DST
 @collection
 class Event {
   Id id = Isar.autoIncrement;
@@ -29,10 +31,34 @@ class Event {
 
   // start and end times are optional
   @Index()
-  DateTime? start;
-  DateTime? end;
+  int? startLocalMillis;
+  int? startUtcMillis;
+  @Index()
+  int? endLocalMillis;
+  int? endUtcMillis;
 
-  Event(this.typeId, {this.start, this.end});
+  Event({
+    required this.typeId,
+    this.startLocalMillis,
+    this.startUtcMillis,
+    this.endLocalMillis,
+    this.endUtcMillis,
+  });
+
+  factory Event.fromDateTimes(
+      int typeId, DateTime? startLocal, DateTime? endLocal) {
+    if (startLocal != null && startLocal.isUtc ||
+        (endLocal != null && endLocal.isUtc)) {
+      throw ArgumentError("Expects local datetimes");
+    }
+    return Event(
+      typeId: typeId,
+      startLocalMillis: startLocal?.toUtc().millisecondsSinceEpoch,
+      startUtcMillis: startLocal?.millisecondsSinceEpoch,
+      endLocalMillis: endLocal?.toUtc().millisecondsSinceEpoch,
+      endUtcMillis: endLocal?.millisecondsSinceEpoch,
+    );
+  }
 }
 
 /// A type of event
@@ -41,9 +67,11 @@ class EventType {
   Id id = Isar.autoIncrement;
   @Index(unique: true)
   String name;
+  @Enumerated(EnumType.ordinal)
+  ColorKey color;
   int? categoryId;
 
-  EventType(this.name);
+  EventType(this.name, [this.color = ColorKey.base, this.categoryId]);
 }
 
 /// A type of event
@@ -108,12 +136,33 @@ class DBService {
     return prefs;
   }
 
-  Future<List<EventType>> loadEventTypes() async {
+  Future<List<EventType>> getEventTypes() async {
     final evtTypes = await _isar.txn(() async {
       return await _isar.eventTypes.where().findAll();
     });
 
     return evtTypes;
+  }
+
+  /// get all event id:s from db
+  Future<Set<int>> allEventIds() async {
+    return await _isar.txn(() async {
+      return (await _isar.events.where().idProperty().findAll()).toSet();
+    });
+  }
+
+  /// get all referenced typeId:s on events
+  Future<Set<int>> allReferencedTypeIds() async {
+    return await _isar.txn(() async {
+      return (await _isar.events.where().typeIdProperty().findAll()).toSet();
+    });
+  }
+
+  /// get all existing typeId:s
+  Future<Set<int>> allTypeIds() async {
+    return await _isar.txn(() async {
+      return (await _isar.eventTypes.where().idProperty().findAll()).toSet();
+    });
   }
 
   Future<EventType?> getEventType({int? id, String? name}) async {
@@ -127,13 +176,16 @@ class DBService {
     });
   }
 
-  Future<int> putEventType(String name) async {
+  /// save or update EventType, returns id.
+  Future<int> putEventType(EvtTypeRec rec) async {
     return await _isar.writeTxn(() async {
-      final existing =
-          await _isar.eventTypes.filter().nameEqualTo(name).findFirst();
-      if (existing != null) {
-        return existing.id;
-      }
+      return await _isar.eventTypes.put(rec.toIsar());
+    });
+  }
+
+  /// create and save new EventType, with name and defaults
+  Future<int> newEventType(String name) async {
+    return await _isar.writeTxn(() async {
       return await _isar.eventTypes.put(EventType(name));
     });
   }
@@ -144,13 +196,33 @@ class DBService {
     });
   }
 
-  Future<void> deleteEvent(int id) async {
-    await _isar.writeTxn(() async {
-      _isar.events.delete(id);
+  Future<Event?> getOneEvent() async {
+    return await _isar.txn(() async {
+      return await _isar.events.where().anyId().findFirst();
+    });
+  }
+
+  Future<int> countEvents() async {
+    return await _isar.txn(() async {
+      return await _isar.events.count();
+    });
+  }
+
+  Future<int> countEventTypes() async {
+    return await _isar.txn(() async {
+      return await _isar.eventTypes.count();
+    });
+  }
+
+  Future<bool> deleteEvent(int id) async {
+    return await _isar.writeTxn(() async {
+      return _isar.events.delete(id);
     });
   }
 
   /// Save a new or updated event
+  ///
+  /// returns: id.
   Future<int> putEvent(Event evt) async {
     return await _isar.writeTxn(() async {
       return _isar.events.put(evt);
@@ -162,33 +234,38 @@ class DBService {
     return await _isar.txn(() async {
       return _isar.events
           .where(sort: Sort.desc)
-          .anyStart()
+          .anyStartLocalMillis()
           .optional(count != null, (q) => q.limit(count!))
           .findAll();
     });
   }
 
   /// Save [EvtRec]s to database
-  Future<int> importEventsDB(Iterable<EvtRec> data) async {
+  Future<int> importEventsDB(List<Event> data) async {
     final c = await _isar.writeTxn(() async {
-      final ids = await _isar.events.putAll(
-        data.map(
-          (r) {
-            return Event(r.typeId, start: r.start, end: r.end);
-          },
-        ).toList(),
-      );
+      final ids = await _isar.events.putAll(data);
       return ids.length;
     });
     return c;
   }
 
-  /// Delete all events...
+  /// Delete all events
   Future<int> deleteAllEvents() async {
     final c = await _isar.events.count();
 
-    _isar.writeTxn(() async {
+    await _isar.writeTxn(() async {
       _isar.events.clear();
+    });
+
+    return c;
+  }
+
+  /// Delete all event types
+  Future<int> deleteAllEventTypes() async {
+    final c = await _isar.eventTypes.count();
+
+    await _isar.writeTxn(() async {
+      _isar.eventTypes.clear();
     });
 
     return c;
@@ -202,11 +279,18 @@ class DBService {
   }) async {
     final evts = await _isar.txn(() async {
       return _isar.events
+          // sort reverse chrono
+          .where(sort: Sort.desc)
+          .anyStartLocalMillis()
           .filter()
           // optinally filter by time range
-          .optional(earliest != null,
-              (q) => q.startGreaterThan(earliest, include: true))
-          .optional(latest != null, (q) => q.startLessThan(latest))
+          .optional(
+              earliest != null,
+              (q) => q.startLocalMillisGreaterThan(
+                  earliest!.millisecondsSinceEpoch,
+                  include: true))
+          .optional(latest != null,
+              (q) => q.endLocalMillisLessThan(latest!.millisecondsSinceEpoch))
           // optionally filter by name
           .optional(typeIds != null,
               (q) => q.anyOf(typeIds!, (q, int n) => q.typeIdEqualTo(n)))
