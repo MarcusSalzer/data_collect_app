@@ -67,7 +67,8 @@ class ImportAnyScreen extends StatelessWidget {
                         ...examples.map(
                           (e) => Text(
                             e,
-                            style: TextStyle(fontSize: 10),
+                            style: TextStyle(
+                                fontSize: 10, fontFamily: "monospace"),
                           ),
                         )
                       ],

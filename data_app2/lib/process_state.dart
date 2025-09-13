@@ -14,7 +14,8 @@ class Ready<T> extends ProcessState<T> {
 }
 
 class Done<T> extends ProcessState<T> {
-  const Done();
+  final List<String>? log;
+  const Done([this.log]);
 }
 
 class Error<T> extends ProcessState<T> {

@@ -57,7 +57,7 @@ void main() {
 
     final row = adapter.toRow(evtRec);
     expect(adapter.header,
-        "id,type_name,start_utc_dt,start_local_dt,end_utc_dt,end_local_dt");
+        "id,type_name,start_utc,start_local,end_utc,end_local");
     expect(row,
         "33,$typeName,1970-01-01T05:00:00Z,1970-01-01T10:00:00,1970-01-01T05:00:10Z,1970-01-01T10:00:10");
   });

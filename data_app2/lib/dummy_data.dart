@@ -44,7 +44,7 @@ Future<Iterable<EvtRec>> dummyEvents(AppState app) async {
 
       final r = EvtRec.inCurrentTZ(
         id: null,
-        typeId: await app.evtTypeRepo.resolveOrCreate(app, name: name),
+        typeId: await app.evtTypeRepo.resolveOrCreate(name: name),
         start: start,
         end: end,
       );

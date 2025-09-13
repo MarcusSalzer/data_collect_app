@@ -10,6 +10,8 @@ class LocalDateTime {
   const LocalDateTime(this.utcMillis, this.localMillis);
 
   int get offsetMillis => localMillis - utcMillis;
+  int get offsetSeconds => offsetMillis ~/ 1000;
+
   Duration get offset => Duration(milliseconds: offsetMillis);
 
   DateTime get asUtc =>
@@ -28,6 +30,19 @@ class LocalDateTime {
       : utcMillis = dt.millisecondsSinceEpoch,
         localMillis =
             dt.millisecondsSinceEpoch + dt.timeZoneOffset.inMilliseconds;
+
+  factory LocalDateTime.fromUtcISOAndffset({
+    required String utcIso,
+    required int offsetMillis,
+  }) {
+    if (!utcIso.endsWith("Z")) {
+      throw FormatException("Expected UTC ISO string with 'Z' suffix", utcIso);
+    }
+
+    final utcMillis = DateTime.parse(utcIso).millisecondsSinceEpoch;
+
+    return LocalDateTime(utcMillis, utcMillis + offsetMillis);
+  }
 
   LocalDateTime copyWith({int? utcMillis, int? localMillis}) {
     return LocalDateTime(
@@ -72,4 +87,12 @@ class LocalDateTime {
 
   @override
   int get hashCode => Object.hash(utcMillis, localMillis);
+
+  /// Make a localdatetime or null if some timestamp is missing
+  static LocalDateTime? maybeFromMillis(int? utcMillis, int? localMillis) {
+    if (utcMillis == null || localMillis == null) {
+      return null;
+    }
+    return LocalDateTime(utcMillis, localMillis);
+  }
 }

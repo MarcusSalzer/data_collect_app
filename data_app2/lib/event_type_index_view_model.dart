@@ -37,7 +37,8 @@ class EventTypeIndexViewModel extends ChangeNotifier {
     return types;
   }
 
-  void _onRepoChanged() {
+  void _onRepoChanged() async {
+    await load();
     notifyListeners();
   }
 
@@ -46,7 +47,7 @@ class EventTypeIndexViewModel extends ChangeNotifier {
     _app.evtTypeRepo.addListener(_onRepoChanged);
   }
 
-  Future load() async {
+  Future<void> load() async {
     // Check for dangling type references
     danglingTypeRefs = await _app.evtTypeRepo.danglingTypeRefs();
     await refreshCounts();

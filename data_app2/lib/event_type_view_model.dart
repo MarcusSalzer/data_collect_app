@@ -30,7 +30,8 @@ class EventTypeViewModel extends ChangeNotifier {
     _evts = [];
     notifyListeners();
 
-    final evtsIsar = await _app.db.getEventsFiltered(typeIds: [typeId]);
+    final evtsIsar =
+        await _app.db.getEventsFilteredLocalTime(typeIds: [typeId]);
     _evts = evtsIsar.map((evIsar) => EvtRec.fromIsar(evIsar)).toList();
 
     _totTime = totalEventTime(_evts);
@@ -46,13 +47,17 @@ class EventTypeViewModel extends ChangeNotifier {
   }
 
   // get bins and hist values
-  (List<double>, List<int>) getHistogram() {
-    return histogram(
-      evts.map(
-        (e) {
-          return e.duration?.inMinutes;
-        },
-      ).removeNulls,
-    );
+  ({List<double> x, List<int> y})? getHistogram() {
+    final points = evts.map(
+      (e) {
+        return e.duration?.inMinutes;
+      },
+    ).removeNulls;
+
+    if (points.length < 4) {
+      return null;
+    }
+
+    return histogram(points);
   }
 }

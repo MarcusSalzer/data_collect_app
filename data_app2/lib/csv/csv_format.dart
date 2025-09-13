@@ -108,7 +108,7 @@ class EventCsvAdapter extends CsvAdapter<EvtRec> {
 
         if (evtType == null) {
           if (typeRepo is EvtTypeRepositoryPersist) {
-            throw UnimplementedError("make new type (needs ASYNC)");
+            // make new type (needs ASYNC)??
             // persist new type
             // use new type
           } else {
@@ -170,4 +170,19 @@ class EventTypeCsvAdapter extends CsvAdapter<EvtTypeRec> {
         throw UnimplementedError("cannot parse Human schema");
     }
   }
+}
+
+/// A more informative exception for CSV parsing.
+class CsvParseFormatException extends FormatException {
+  final int rowIndex;
+  final FormatException inner;
+  final StackTrace innerStackTrace;
+
+  CsvParseFormatException(
+    super.message,
+    super.source,
+    this.rowIndex,
+    this.inner,
+    this.innerStackTrace,
+  );
 }

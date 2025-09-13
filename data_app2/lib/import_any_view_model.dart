@@ -1,11 +1,9 @@
 import 'dart:io';
 
 import 'package:data_app2/app_state.dart';
-import 'package:data_app2/csv/csv_format.dart';
-import 'package:data_app2/csv/csv_schema.dart';
+import 'package:data_app2/csv/csv_simple.dart';
 import 'package:data_app2/io.dart';
 import 'package:data_app2/process_state.dart';
-import 'package:data_app2/user_events.dart';
 import 'package:flutter/material.dart';
 
 class ImportAnyViewModel extends ChangeNotifier {
@@ -13,8 +11,9 @@ class ImportAnyViewModel extends ChangeNotifier {
   ProcessState<ImportableSummary> state = Loading();
 
   final AppState _app;
+  final EvtSimpleCsvAdapter adapter = EvtSimpleCsvAdapter();
 
-  List<EvtRec>? records;
+  List<EvtDraft>? evtDrafts;
 
   ImportAnyViewModel(this.filePath, this._app) {
     load();
@@ -26,35 +25,25 @@ class ImportAnyViewModel extends ChangeNotifier {
     final file = File(filePath);
     final lines = await file.readAsLines();
     final header = lines[0];
-    // try detect schema
-    final match = SchemaRegistry.inferFromHeaderLine(header, RecordKind.event);
     // default error
-    if (match == null) {
+    if (header != adapter.header) {
       state = Error(
-          "Only event datasets supported for now. Expects header like:",
-          examples: SchemaRegistry.allForKinds(
-                  [RecordKind.event, RecordKind.eventType])
-              .map(
-                (li) => li.join(","),
-              )
-              .toList());
-    } else if (match.kind == RecordKind.event) {
-      // matches events header
-      await prepareImportEvents(match, lines);
-    } else if (match.kind == RecordKind.eventType) {
-      // matches event-type header
-      state = Error("only events implemented, no types now");
+        "Unsupported header:",
+        examples: [
+          "Expected: ${adapter.header}",
+          "Got     : $header",
+        ],
+      );
     } else {
-      state = Error("match error $match");
+      // matches events header
+      await prepareImportEvents(lines);
     }
 
     notifyListeners();
   }
 
   /// read file and inspect data before importing
-  prepareImportEvents(CsvSchemaFound match, Iterable<String> lines) async {
-    final adapter =
-        EventCsvAdapter(match.sep, match.schemaLevel, _app.evtTypeRepo);
+  Future<void> prepareImportEvents(Iterable<String> lines) async {
     try {
       final recs = adapter.parseRows(lines.skip(1));
       final dbIds = await _app.db.allEventIds();
@@ -62,17 +51,19 @@ class ImportAnyViewModel extends ChangeNotifier {
       final idOverlap = dbIds.intersection(fileIds);
 
       state = Ready(
-        ImportableSummary.fromEvtRecs(recs)..idOverlapCount = idOverlap.length,
+        ImportableSummary.fromEvtDrafts(recs)
+          ..idOverlapCount = idOverlap.length,
       );
 
-      records = recs;
+      evtDrafts = recs;
     } catch (e) {
       state = Error(e);
     }
+    notifyListeners();
   }
 
   Future<int> doImport() async {
-    final recs = records;
+    final recs = evtDrafts;
     if (recs == null) {
       state = Error("No records");
       notifyListeners();
@@ -82,11 +73,23 @@ class ImportAnyViewModel extends ChangeNotifier {
     notifyListeners();
 
     await Future.delayed(Duration(milliseconds: 300));
+    int c;
+    try {
+      // resolve all event types
+      final evts = await Future.wait(
+        recs.map(
+          (r) async => r.toIsar(
+            await _app.evtTypeRepo.resolveOrCreate(name: r.typeName),
+          ),
+        ),
+      );
+      c = await _app.db.importEventsDB(evts);
 
-    final c =
-        await _app.db.importEventsDB(recs.map((r) => r.toIsar()).toList());
-
-    state = Done();
+      state = Done();
+    } catch (e) {
+      c = -1;
+      state = Error(e);
+    }
     notifyListeners();
     return c;
   }

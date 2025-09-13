@@ -1,5 +1,3 @@
-// ignore_for_file: avoid_print
-
 import 'package:data_app2/app_state.dart' show AppState;
 import 'package:data_app2/enums.dart';
 import 'package:data_app2/extensions.dart';
@@ -15,11 +13,14 @@ class EventHistoryDisplay extends StatelessWidget {
   final bool isScrollable;
   final Function reloadAction;
 
+  final bool reverse;
+
   const EventHistoryDisplay(
     this.evts, {
     this.headingMode,
     required this.isScrollable,
     required this.reloadAction,
+    this.reverse = false,
     super.key,
   });
 
@@ -29,6 +30,7 @@ class EventHistoryDisplay extends StatelessWidget {
       padding: const EdgeInsets.all(4),
       child: ListView.builder(
         itemCount: evts.length,
+        reverse: reverse,
         itemBuilder: (context, i) {
           return EventListTile(
             evt: evts[i],
@@ -162,7 +164,6 @@ class EventListTile extends StatelessWidget {
     )
         .then(
       (value) {
-        print("popped detail: $value");
         if (value != null) {
           reloadAction();
         }

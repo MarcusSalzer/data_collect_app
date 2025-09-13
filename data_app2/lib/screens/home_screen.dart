@@ -55,20 +55,6 @@ class HomeScreen extends StatelessWidget {
                     icon: Icon(Icons.timelapse),
                   ),
                 ),
-                // Padding(
-                //   padding: const EdgeInsets.all(8.0),
-                //   child: TextButton.icon(
-                //     onPressed: () {
-                //       Navigator.of(context).push(
-                //         MaterialPageRoute(
-                //           builder: (context) => EventsStatsScreen(),
-                //         ),
-                //       );
-                //     },
-                //     label: Text("Stats"),
-                //     icon: Icon(Icons.stacked_bar_chart),
-                //   ),
-                // ),
                 Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: TextButton.icon(

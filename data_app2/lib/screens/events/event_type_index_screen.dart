@@ -104,38 +104,41 @@ class EvtTypeList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final vm = Provider.of<EventTypeIndexViewModel>(context, listen: false);
-    final evtTypes = vm.typesSorted;
-    return ListView.builder(
-      itemCount: evtTypes.length,
-      itemBuilder: (context, index) {
-        final typeRec = evtTypes[index];
-        final count = vm.evtFreqs?[typeRec.id] ?? 0;
+    return Consumer<EventTypeIndexViewModel>(
+      builder: (context, vm, child) {
+        final evtTypes = vm.typesSorted;
+        return ListView.builder(
+          itemCount: evtTypes.length,
+          itemBuilder: (context, index) {
+            final typeRec = evtTypes[index];
+            final count = vm.evtFreqs?[typeRec.id] ?? 0;
 
-        return ListTile(
-          title: Text(
-            typeRec.name,
-            style: TextStyle(color: typeRec.color.inContext(context)),
-          ),
-          subtitle: Text(
-            count.toString(),
-          ),
-          onTap: () {
-            final typeId = typeRec.id;
-            if (typeId != null) {
-              Navigator.of(context)
-                  .push(
-                MaterialPageRoute(
-                  builder: (context) => EventTypeOverviewScreen(typeId),
-                ),
-              )
-                  .then((_) {
-                // reload data
-                vm.load();
-              });
-            } else {
-              simpleSnack(context, "error: cannot find type $typeId");
-            }
+            return ListTile(
+              title: Text(
+                typeRec.name,
+                style: TextStyle(color: typeRec.color.inContext(context)),
+              ),
+              subtitle: Text(
+                count.toString(),
+              ),
+              onTap: () {
+                final typeId = typeRec.id;
+                if (typeId != null) {
+                  Navigator.of(context)
+                      .push(
+                    MaterialPageRoute(
+                      builder: (context) => EventTypeOverviewScreen(typeId),
+                    ),
+                  )
+                      .then((_) {
+                    // reload data
+                    vm.load();
+                  });
+                } else {
+                  simpleSnack(context, "error: cannot find type $typeId");
+                }
+              },
+            );
           },
         );
       },

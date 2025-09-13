@@ -47,10 +47,10 @@ class SchemaRegistry {
     (RecordKind.event, SchemaLevel.human): [
       "id",
       "type_name",
-      "start_utc_dt",
-      "start_local_dt",
-      "end_utc_dt",
-      "end_local_dt",
+      "start_utc",
+      "start_local",
+      "end_utc",
+      "end_local",
     ],
     (RecordKind.eventType, SchemaLevel.raw): [
       "id",

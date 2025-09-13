@@ -251,7 +251,6 @@ class TableManager extends ChangeNotifier {
   }
 
   newTable(String tableName, List<String> colNames, TableFreq freq) async {
-    // print("saving table: $tableName with columns ${colNames.join(",")}");
     await _db.saveUserTable(tableName, colNames, freq);
     init();
   }

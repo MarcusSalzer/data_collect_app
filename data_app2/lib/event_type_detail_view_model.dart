@@ -31,7 +31,7 @@ class EventTypeDetailViewModel extends ChangeNotifier {
   Future<String?> save() async {
     String? message;
     try {
-      await _app.evtTypeRepo.updateType(typeEdit);
+      await _app.evtTypeRepo.saveOrUpdate(typeEdit);
       original = typeEdit.copyWith();
     } on IsarError catch (e) {
       if (e.message.contains("Unique")) {

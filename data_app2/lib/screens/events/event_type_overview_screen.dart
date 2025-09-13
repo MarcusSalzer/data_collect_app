@@ -99,8 +99,6 @@ class EventTypeStatsDisplay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final (bins, hist) = model.getHistogram();
-
     return ListView(
       children: [
         Padding(
@@ -116,32 +114,44 @@ class EventTypeStatsDisplay extends StatelessWidget {
           ),
         ),
         Divider(),
-        Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: AspectRatio(
-            aspectRatio: 1,
-            child: LineChart(
-              LineChartData(
-                gridData: FlGridData(show: false),
-                borderData: FlBorderData(show: false),
-                titlesData: minimalTitlesData("Duration", "count"),
-                lineBarsData: [
-                  LineChartBarData(
-                      spots: List.generate(
-                        hist.length,
-                        (i) => FlSpot(
-                          bins[i],
-                          hist[i].toDouble(),
+        Builder(builder: (context) {
+          final histData = model.getHistogram();
+          if (histData == null) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 40),
+                child: Text("Histogram needs more data"),
+              ),
+            );
+          }
+
+          return Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: AspectRatio(
+              aspectRatio: 1,
+              child: LineChart(
+                LineChartData(
+                  gridData: FlGridData(show: false),
+                  borderData: FlBorderData(show: false),
+                  titlesData: minimalTitlesData("Duration", "count"),
+                  lineBarsData: [
+                    LineChartBarData(
+                        spots: List.generate(
+                          histData.x.length,
+                          (i) => FlSpot(
+                            histData.x[i],
+                            histData.y[i].toDouble(),
+                          ),
                         ),
-                      ),
-                      color: model.type.color.inContext(context),
-                      isCurved: true,
-                      dotData: FlDotData(show: false))
-                ],
+                        color: model.type.color.inContext(context),
+                        isCurved: true,
+                        dotData: FlDotData(show: false))
+                  ],
+                ),
               ),
             ),
-          ),
-        ),
+          );
+        }),
         SizedBox(
           height: 30,
         ),

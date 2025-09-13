@@ -1,30 +1,22 @@
 import 'dart:io';
 
 import 'package:data_app2/app_state.dart';
-import 'package:data_app2/csv/csv_schema.dart';
-import 'package:data_app2/csv/csv_format.dart';
+import 'package:data_app2/csv/csv_simple.dart';
 import 'package:data_app2/fmt.dart';
 import 'package:data_app2/io.dart';
 import 'package:data_app2/process_state.dart';
-import 'package:data_app2/user_events.dart';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
 
 class EventExportViewModel extends ChangeNotifier {
   final AppState _app;
-  SchemaLevel _schemaLevel = SchemaLevel.raw;
-
-  SchemaLevel get schema => _schemaLevel;
-
-  EventCsvAdapter eventAdapter() {
-    return EventCsvAdapter(",", schema, _app.evtTypeRepo);
-  }
+  final EvtSimpleCsvAdapter adapter = EvtSimpleCsvAdapter();
 
   ProcessState<
       ({
         int nEvt,
         int nType,
-        EvtRec example,
+        EvtDraft example,
       })> state = Loading();
 
   EventExportViewModel(this._app);
@@ -42,52 +34,42 @@ class EventExportViewModel extends ChangeNotifier {
       state = Ready((
         nEvt: ce,
         nType: ct,
-        example: EvtRec.fromIsar(ex),
+        example: EvtDraft.fromIsar(
+            ex, _app.evtTypeRepo.resolveById(ex.typeId)?.name ?? "unknown"),
       ));
+    } else {
+      state = Error("Has no events");
     }
     notifyListeners();
   }
 
-  setSchema(SchemaLevel schema) {
-    _schemaLevel = schema;
-    notifyListeners();
-  }
-
-  Future<File> saveEventTypes(Directory folder) async {
-    final adapter = EventTypeCsvAdapter(",", _schemaLevel);
-
-    // get all types
-    final types = await _app.db.getEventTypes();
-    final lines = <String>[
-      adapter.header,
-      ...types.map(
-        (e) => adapter.toRow(
-          EvtTypeRec.fromIsar(e),
-        ),
-      )
-    ];
-    final file = File(
-        p.join(folder.path, "event_types_${adapter.schemaLevel.name}.csv"));
-    await file.create();
-
-    await file.writeAsString(lines.join("\n"));
-    return file;
-  }
-
-  Future<File> saveAllEvents(Directory folder) async {
-    final adapter = EventCsvAdapter(",", _schemaLevel, _app.evtTypeRepo);
+  Future<File?> saveAllEvents(Directory folder) async {
     final evts = await _app.db.getAllEvents();
+    List<String> lines;
+    try {
+      lines = [
+        adapter.header,
+        ...await Future.wait(
+          evts.map(
+            (e) async {
+              var typeName = _app.evtTypeRepo.resolveById(e.typeId)?.name;
 
-    final lines = [
-      adapter.header,
-      ...evts.map(
-        (e) => adapter.toRow(
-          EvtRec.fromIsar(e),
-        ),
-      )
-    ];
-    final file =
-        File(p.join(folder.path, "events_${adapter.schemaLevel.name}_all.csv"));
+              return adapter.toRow(EvtDraft.fromIsar(e, typeName ?? "unknown"));
+            },
+          ),
+        )
+      ];
+    } catch (e) {
+      state = Error(e);
+      return null;
+    }
+
+    final ts = Fmt.dtSecondSimple(DateTime.now().toUtc());
+    final file = File(p.join(folder.path, "events_all_$ts.csv"));
+    if (await file.exists()) {
+      state = Error("Target already exists, wait and try again.");
+      return null;
+    }
     await file.create();
 
     await file.writeAsString(lines.join("\n"));
@@ -97,23 +79,21 @@ class EventExportViewModel extends ChangeNotifier {
   Future<void> doExport() async {
     final storePath = (await defaultStoreDir()).path;
 
-    final folderName = "export_${Fmt.dtSecondSimple(DateTime.now().toUtc())}";
-    final dir = Directory(p.join(storePath, folderName));
+    final dir = Directory(p.join(storePath, 'export'));
 
     if (state case Ready()) {
-      if (await dir.exists()) {
-        state = Error("Target already exists, wait and try again.");
-        notifyListeners();
-        return;
+      state = Loading();
+      notifyListeners();
+      // Work on export
+      await dir.create(recursive: true);
+      final savedEvtsFile = await saveAllEvents(dir);
+      await Future.delayed(Duration(milliseconds: 100));
+      if (savedEvtsFile != null) {
+        state = Done([savedEvtsFile.path]);
       }
-      await dir.create();
-      final savedTypes = await saveEventTypes(dir);
-      final savedEvts = await saveAllEvents(dir);
-      print("saved ${savedTypes.path}, ${savedEvts.path}");
     } else {
       state = Error("error, not ready");
-      notifyListeners();
-      return;
     }
+    notifyListeners();
   }
 }

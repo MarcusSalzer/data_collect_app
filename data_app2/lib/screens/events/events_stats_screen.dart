@@ -14,8 +14,8 @@ class EventsStatsScreen extends StatelessWidget {
       appBar: AppBar(
         title: Text("Stats"),
       ),
-      body: ChangeNotifierProvider<EventModel>(
-        create: (_) => EventModel(appState),
+      body: ChangeNotifierProvider<EventCreateViewModel>(
+        create: (_) => EventCreateViewModel(appState),
         child: EventsStatsView(),
       ),
     );
@@ -30,7 +30,7 @@ class EventsStatsView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // final app = Provider.of<AppState>(context);
-    return Consumer<EventModel>(builder: (context, evm, child) {
+    return Consumer<EventCreateViewModel>(builder: (context, evm, child) {
       if (evm.isLoading) {
         return Center(child: Text("Loading events..."));
       }

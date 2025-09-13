@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:data_app2/csv/csv_simple.dart';
 import 'package:data_app2/db_service.dart' show Event;
 import 'package:data_app2/enums.dart';
 import 'package:data_app2/extensions.dart';
@@ -111,6 +112,29 @@ class ImportableSummary {
   int? idOverlapCount;
 
   ImportableSummary.fromEvtRecs(Iterable<EvtRec> recs)
+      : mode = ImportMode.event {
+    for (final r in recs) {
+      final s = r.start?.asLocal;
+      final e = r.end?.asLocal;
+      if (s != null) {
+        if (earliest == null || s.isBefore(earliest!)) {
+          earliest = s;
+        }
+      } else {
+        nullCount++;
+      }
+      if (e != null) {
+        if (latest == null || e.isAfter(latest!)) {
+          latest = s;
+        }
+      } else {
+        nullCount++;
+      }
+      count++;
+    }
+  }
+
+  ImportableSummary.fromEvtDrafts(Iterable<EvtDraft> recs)
       : mode = ImportMode.event {
     for (final r in recs) {
       final s = r.start?.asLocal;

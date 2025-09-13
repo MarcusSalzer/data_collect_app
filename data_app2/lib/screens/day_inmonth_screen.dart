@@ -32,7 +32,7 @@ class DayInmonthViewModel extends ChangeNotifier {
   Future<void> load() async {
     await Future.delayed(Duration(seconds: 1));
     refresh();
-    print("todo reload month!");
+    // TODO reload month!?
   }
 }
 

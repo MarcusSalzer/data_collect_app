@@ -5,9 +5,8 @@ import 'package:data_app2/db_service.dart';
 import 'package:data_app2/event_stats_compute.dart';
 import 'package:data_app2/extensions.dart';
 import 'package:data_app2/fmt.dart';
-import 'package:data_app2/plots.dart';
+import 'package:data_app2/local_datetime.dart';
 import 'package:data_app2/screens/day_inmonth_screen.dart';
-import 'package:data_app2/stats.dart';
 import 'package:data_app2/user_events.dart';
 import 'package:data_app2/widgets/events_summary.dart';
 import 'package:flutter/material.dart';
@@ -18,6 +17,7 @@ import 'package:provider/provider.dart';
 /// Handle data for showing stats for a month
 class MonthViewModel extends ChangeNotifier {
   final DBService _db;
+  // TODO; will this work across TZs? testing...
   DateTime _current = DateTime.now().startOfMonth;
   List<MapEntry<int, Duration>> tpe = [];
 
@@ -37,9 +37,10 @@ class MonthViewModel extends ChangeNotifier {
   /// load events for current month
   Future<void> _loadEvents() async {
     _events.clear(); // remove old data
-    final evts = await _db.getEventsFiltered(
-        earliest: _current,
-        latest: DateUtils.addMonthsToMonthDate(_current, 1));
+    final evts = await _db.getEventsFilteredLocalTime(
+        earliest: LocalDateTime.fromDateTimeLocalTZ(_current),
+        latest: LocalDateTime.fromDateTimeLocalTZ(
+            DateUtils.addMonthsToMonthDate(_current, 1)));
     _events = evts.map((e) => EvtRec.fromIsar(e)).toList();
     tpe = timePerEvent(_events);
     // eventsPerDay();
@@ -221,18 +222,18 @@ class MonthSummaryDisplay extends StatelessWidget {
           colors: Colors.primaries,
           listHeight: 350,
         ),
-        Expanded(
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: EventPieChart(
-              timings: groupLastEntries(model.tpe, n: 16)
-                  .map((g) => MapEntry(g.key.toString(), g.value))
-                  .toList(),
-              colors: Colors.primaries,
-              nTitles: 5,
-            ),
-          ),
-        ),
+        // Expanded(
+        //   child: Padding(
+        //     padding: const EdgeInsets.all(8.0),
+        //     child: EventPieChart(
+        //       timings: groupLastEntries(model.tpe, n: 16)
+        //           .map((g) => MapEntry(g.key.toString(), g.value))
+        //           .toList(),
+        //       colors: Colors.primaries,
+        //       nTitles: 5,
+        //     ),
+        //   ),
+        // ),
       ],
     );
   }

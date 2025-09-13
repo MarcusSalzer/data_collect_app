@@ -7,7 +7,7 @@ class EventsTimeSummaryScreen extends StatelessWidget {
 
   final AppState appState;
   EventsTimeSummaryScreen({super.key, required this.appState}) {
-    filteredEventsFuture = appState.db.getEventsFiltered();
+    filteredEventsFuture = appState.db.getEventsFilteredLocalTime();
   }
 
   @override

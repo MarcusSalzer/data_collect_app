@@ -16,8 +16,8 @@ class EventsScreen extends StatelessWidget {
 
     return DefaultTabController(
       length: 2,
-      child: ChangeNotifierProvider<EventModel>(
-        create: (_) => EventModel(appState, nList: 100),
+      child: ChangeNotifierProvider<EventCreateViewModel>(
+        create: (_) => EventCreateViewModel(appState),
         child: Builder(builder: (context) {
           return Scaffold(
             appBar: AppBar(
@@ -25,10 +25,6 @@ class EventsScreen extends StatelessWidget {
               actions: [
                 TextButton(
                   onPressed: () async {
-                    // final nEvt = await evm.exportEvents();
-                    // if (context.mounted) {
-                    //   simpleSnack(context, "saved $nEvt events");
-                    // }
                     Navigator.of(context).push(
                       MaterialPageRoute(
                         builder: (context) => ExportScreen(),
@@ -51,9 +47,10 @@ class EventsScreen extends StatelessWidget {
             body: TabBarView(
               children: [
                 EventCreateMenu(),
-                Consumer<EventModel>(builder: (context, evtModel, child) {
+                Consumer<EventCreateViewModel>(
+                    builder: (context, evtModel, child) {
                   return EventHistoryDisplay(
-                    evtModel.events,
+                    evtModel.events.reversed.toList(),
                     isScrollable: true,
                     headingMode: GroupFreq.day,
                     reloadAction: evtModel.load,
@@ -123,7 +120,7 @@ class EventsScreenExtraMenu extends StatelessWidget {
 }
 
 class NormalizeDialog extends StatelessWidget {
-  final EventModel evm;
+  final EventCreateViewModel evm;
 
   const NormalizeDialog(
     this.evm, {

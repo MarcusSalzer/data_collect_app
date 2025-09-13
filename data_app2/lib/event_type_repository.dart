@@ -1,4 +1,3 @@
-import 'package:data_app2/app_state.dart';
 import 'package:data_app2/db_service.dart';
 import 'package:data_app2/user_events.dart';
 import 'package:flutter/material.dart';
@@ -10,7 +9,7 @@ class EvtTypeRepository extends ChangeNotifier {
   Map<int, EvtTypeRec> _byId = {};
 
   /// optionally fill with types
-  ///
+  ///_evtFreqs
   /// Note: only provided types with id included
   EvtTypeRepository({Iterable<EvtTypeRec>? types}) {
     if (types != null) {
@@ -27,7 +26,7 @@ class EvtTypeRepository extends ChangeNotifier {
   List<EvtTypeRec> get all => _byId.values.toList();
 
   /// Reset cache and fill
-  fillFromIsar(Iterable<EventType> evtTypes) {
+  void fillFromIsar(Iterable<EventType> evtTypes) {
     _byName = {};
     _byId = {};
     for (var et in evtTypes) {
@@ -39,7 +38,8 @@ class EvtTypeRepository extends ChangeNotifier {
   }
 
   /// add a single type
-  add(int id, EvtTypeRec rec) {
+  void add(int id, EvtTypeRec rec) {
+    rec.id = id;
     _byName[rec.name] = rec;
     _byId[id] = rec;
     notifyListeners();
@@ -47,6 +47,12 @@ class EvtTypeRepository extends ChangeNotifier {
 
   EvtTypeRec? resolveById(int id) => _byId[id];
   EvtTypeRec? resolveByName(String name) => _byName[name];
+
+  /// Clear all from cache
+  void clearCache() {
+    _byId = {};
+    _byName = {};
+  }
 }
 
 class EvtTypeRepositoryPersist extends EvtTypeRepository {
@@ -56,38 +62,23 @@ class EvtTypeRepositoryPersist extends EvtTypeRepository {
 
   /// Get a type id, trying in priority:
   /// 1. get type-id from cache
-  /// 2. get type-id from DB
-  /// 3. Create and save a new type, return its persisted id
-  Future<int> resolveOrCreate(AppState app, {required String name}) async {
+  /// 2. get from DB or create and persist new
+  Future<int> resolveOrCreate({required String name}) async {
     final cached = resolveByName(name)?.id;
     if (cached != null) {
       return cached;
     }
-    final fromDB = await _db.getEventType(name: name);
-    if (fromDB != null) {
-      add(fromDB.id, EvtTypeRec.fromIsar(fromDB));
-      return fromDB.id;
-    }
-
-    // create item
-    final etRec = EvtTypeRec(name: name);
-    // save to db
-    final newTypeId = await _db.newEventType(name);
-    // save to cache
-    _byName[name] = etRec;
-    _byId[newTypeId] = etRec;
+    final fromDB = await _db.getOrCreateEventType(name);
+    add(fromDB.id, EvtTypeRec.fromIsar(fromDB));
     // state has updated
     notifyListeners();
-    // just return id
-    return newTypeId;
+    return fromDB.id;
   }
 
   /// Save new or update event-type. returns id
-  Future<int> updateType(EvtTypeRec type) async {
-    final newId = await _db.putEventType(type);
-    type.id = newId;
-    _byId[newId] = type;
-    _byName[type.name] = type;
+  Future<int> saveOrUpdate(EvtTypeRec type) async {
+    final newId = await _db.saveOrUpdateEventTypeByName(type);
+    add(newId, type);
     // state has updated
     notifyListeners();
     return newId;
@@ -100,9 +91,6 @@ class EvtTypeRepositoryPersist extends EvtTypeRepository {
 
     final dangling = refs.difference(existing).toList();
     dangling.sort();
-    // print("refs  $refs");
-    // print("exist $existing");
-    // print("dangl $dangling");
     return dangling;
   }
 }

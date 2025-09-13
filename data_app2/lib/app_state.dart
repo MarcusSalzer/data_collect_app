@@ -3,6 +3,7 @@
 import 'package:data_app2/event_stats_compute.dart';
 import 'package:data_app2/event_type_repository.dart';
 import 'package:data_app2/extensions.dart';
+import 'package:data_app2/local_datetime.dart';
 import 'package:data_app2/user_events.dart';
 import 'package:flutter/material.dart';
 import 'package:data_app2/db_service.dart';
@@ -68,8 +69,8 @@ class AppState extends ChangeNotifier {
 
   /// For keeping summary after leaving events screen
   Future<void> refreshSummary() async {
-    final evts =
-        await db.getEventsFiltered(earliest: DateTime.now().startOfDay);
+    final evts = await db.getEventsFilteredLocalTime(
+        earliest: LocalDateTime.fromDateTimeLocalTZ(DateTime.now().startOfDay));
 
     final tpe = timePerEvent(evts.map((e) => EvtRec.fromIsar(e)), limit: 5);
     todaySummary = TodaySummaryData(tpe);

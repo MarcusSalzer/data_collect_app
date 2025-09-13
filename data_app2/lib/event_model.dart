@@ -5,7 +5,9 @@ import 'package:data_app2/stats.dart';
 import 'package:data_app2/user_events.dart';
 import 'package:flutter/material.dart';
 
-class EventModel extends ChangeNotifier {
+const nFreq = 400;
+
+class EventCreateViewModel extends ChangeNotifier {
   final AppState _app;
   final int? _nList; // default null -> all
 
@@ -16,9 +18,9 @@ class EventModel extends ChangeNotifier {
   List<EvtRec> get events => _events;
   Map<int, int> get evtFreqs => _evtFreqs;
 
-  EventModel(AppState appState, {int? nList})
+  EventCreateViewModel(AppState appState)
       : _app = appState,
-        _nList = nList {
+        _nList = 50 {
     load();
   }
 
@@ -30,20 +32,19 @@ class EventModel extends ChangeNotifier {
     });
   }
 
-  addEvent(String name, {DateTime? start, DateTime? end}) async {
-    // final typeId = _app.eventTypeId(name);
-    throw UnimplementedError("addevent not refactored");
+  Future<void> addEventByType(int typeId,
+      {DateTime? start, DateTime? end}) async {
+    final evtRec = EvtRec.inCurrentTZ(typeId: typeId, start: start, end: end);
+    final newId = await _app.db.putEvent(evtRec.toIsar());
+    evtRec.id = newId;
+    _events.add(evtRec);
+    notifyListeners();
+  }
 
-    // Event evt;
-    // if (typeId != null) {
-    //   evt = await putEvent(Event.fromDateTimes(typeId, start, end));
-    // } else {
-    //   print("UNKNONW NEW");
-    //   // create new event type
-    //   final newTypeId = await _app.newEventType(name);
-    //   evt = await putEvent(Event.fromDateTimes(newTypeId, start, end));
-    // }
-    // _events.insert(0, evt);
+  Future<void> addEventByName(String name,
+      {DateTime? start, DateTime? end}) async {
+    final typeId = await _app.evtTypeRepo.resolveOrCreate(name: name);
+    await addEventByType(typeId, start: start, end: end);
   }
 
   delete(EvtRec event) async {
@@ -57,11 +58,10 @@ class EventModel extends ChangeNotifier {
   }
 
   /// Save a new or updated event
-  Future<EvtRec> putEvent(EvtRec evt) async {
+  Future<EvtRec> updateEvent(EvtRec evt) async {
     final id = await _app.db.putEvent(evt.toIsar());
     // update id if new in DB
     evt.id = id;
-    // print("added event $id");
     notifyListeners();
     return evt;
   }
@@ -70,6 +70,8 @@ class EventModel extends ChangeNotifier {
   Future<void> getLatest() async {
     _events = (await _app.db.latestEvents(_nList))
         .map((evIsar) => EvtRec.fromIsar(evIsar))
+        .toList()
+        .reversed
         .toList();
     notifyListeners();
   }
@@ -77,7 +79,6 @@ class EventModel extends ChangeNotifier {
   List<int> eventSuggestions([int n = 20]) {
     var common = <int>[];
     for (var k in _evtFreqs.keys.take(n)) {
-      // print("$k: ${_evtFreqs[k]}");
       common.add(k);
     }
     return common;
@@ -85,7 +86,7 @@ class EventModel extends ChangeNotifier {
 
   /// Count each event type
   Future<void> refreshCounts() async {
-    final evts = await _app.db.getAllEvents();
+    final evts = await _app.db.latestEvents(nFreq);
 
     var counts = valueCounts(evts.map((e) => e.typeId));
 

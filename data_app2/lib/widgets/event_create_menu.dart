@@ -18,9 +18,10 @@ class _EventCreateMenuState extends State<EventCreateMenu> {
 
   @override
   Widget build(BuildContext context) {
-    final evtModelprov = Provider.of<EventModel>(context, listen: false);
+    final evtModelprov =
+        Provider.of<EventCreateViewModel>(context, listen: false);
     final app = Provider.of<AppState>(context, listen: false);
-    return Consumer<EventModel>(
+    return Consumer<EventCreateViewModel>(
       builder: (context, evm, child) {
         if (evm.isLoading) {
           return Center(child: Text("Loading events..."));
@@ -34,8 +35,8 @@ class _EventCreateMenuState extends State<EventCreateMenu> {
               children: [
                 Builder(builder: (context) {
                   // if there is a previous event: display it and allow stopping
-                  if (evm.events.isNotEmpty && evm.events.first.end == null) {
-                    final evt = evm.events.first;
+                  if (evm.events.isNotEmpty && evm.events.last.end == null) {
+                    final evt = evm.events.last;
                     final (startTxt, _) = Fmt.eventTimes(evt);
                     return Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -50,8 +51,8 @@ class _EventCreateMenuState extends State<EventCreateMenu> {
                                     "unknown")),
                         TextButton.icon(
                           onPressed: () {
-                            evt.start = LocalDateTime.now();
-                            evm.putEvent(evt);
+                            evt.end = LocalDateTime.now();
+                            evm.updateEvent(evt);
                           },
                           label: Text("stop"),
                           icon: Icon(Icons.stop),
@@ -84,7 +85,7 @@ class _EventCreateMenuState extends State<EventCreateMenu> {
                       onPressed: () {
                         if (_formKey.currentState!.validate()) {
                           // start event at picked time (or now)
-                          evtModelprov.addEvent(
+                          evtModelprov.addEventByName(
                             _nameTec.text,
                             start: DateTime.now(),
                           );
@@ -131,7 +132,7 @@ class CommonEventsSuggest extends StatelessWidget {
           ),
         ),
       ),
-      child: Consumer<EventModel>(
+      child: Consumer<EventCreateViewModel>(
         builder: (context, evm, child) {
           return Wrap(
             spacing: 6,
@@ -143,7 +144,7 @@ class CommonEventsSuggest extends StatelessWidget {
                   label: Text(name),
                   onPressed: () {
                     // add event
-                    evm.addEvent(name, start: DateTime.now());
+                    evm.addEventByName(name, start: DateTime.now());
                   },
                 );
               },
