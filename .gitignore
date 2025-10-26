@@ -1,3 +1,9 @@
+# data
+data/
+experiments/aux_data/
+experiments/tmp_data/
+data_config.toml
+
 # Generated folders
 ios/
 linux/
@@ -6,6 +12,8 @@ web/
 windows/
 android/
 
+# other compiled things
+*.so
 
 # Miscellaneous
 *.class
@@ -28,7 +36,7 @@ migrate_working_dir/
 # The .vscode folder contains launch configuration and tasks you configure in
 # VS Code which you may wish to be included in version control, so this line
 # is commented out by default.
-#.vscode/
+.vscode/
 
 # Flutter/Dart/Pub related
 **/doc/api/
