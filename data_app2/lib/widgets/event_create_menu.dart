@@ -1,6 +1,7 @@
 import 'package:data_app2/app_state.dart';
 import 'package:data_app2/event_model.dart';
 import 'package:data_app2/fmt.dart';
+import 'package:data_app2/local_datetime.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -17,9 +18,10 @@ class _EventCreateMenuState extends State<EventCreateMenu> {
 
   @override
   Widget build(BuildContext context) {
-    final evtModelprov = Provider.of<EventModel>(context, listen: false);
+    final evtModelprov =
+        Provider.of<EventCreateViewModel>(context, listen: false);
     final app = Provider.of<AppState>(context, listen: false);
-    return Consumer<EventModel>(
+    return Consumer<EventCreateViewModel>(
       builder: (context, evm, child) {
         if (evm.isLoading) {
           return Center(child: Text("Loading events..."));
@@ -33,8 +35,8 @@ class _EventCreateMenuState extends State<EventCreateMenu> {
               children: [
                 Builder(builder: (context) {
                   // if there is a previous event: display it and allow stopping
-                  if (evm.events.isNotEmpty && evm.events.first.end == null) {
-                    final evt = evm.events.first;
+                  if (evm.events.isNotEmpty && evm.events.last.end == null) {
+                    final evt = evm.events.last;
                     final (startTxt, _) = Fmt.eventTimes(evt);
                     return Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -44,12 +46,13 @@ class _EventCreateMenuState extends State<EventCreateMenu> {
                           child: Text(startTxt),
                         ),
                         Expanded(
-                            child:
-                                Text(app.eventName(evt.typeId) ?? "unknown")),
+                            child: Text(
+                                app.evtTypeRepo.resolveById(evt.typeId)?.name ??
+                                    "unknown")),
                         TextButton.icon(
                           onPressed: () {
-                            evt.end = DateTime.now();
-                            evm.putEvent(evt);
+                            evt.end = LocalDateTime.now();
+                            evm.updateEvent(evt);
                           },
                           label: Text("stop"),
                           icon: Icon(Icons.stop),
@@ -82,8 +85,9 @@ class _EventCreateMenuState extends State<EventCreateMenu> {
                       onPressed: () {
                         if (_formKey.currentState!.validate()) {
                           // start event at picked time (or now)
-                          evtModelprov.addEvent(
-                            _nameTec.text,
+                          evtModelprov.addEventByName(
+                            // trim input
+                            _nameTec.text.trim(),
                             start: DateTime.now(),
                           );
                           _nameTec.clear();
@@ -116,39 +120,36 @@ class CommonEventsSuggest extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final thm = Theme.of(context);
+    // final thm = Theme.of(context);
     final app = Provider.of<AppState>(context, listen: false);
 
-    return Container(
-      padding: EdgeInsets.all(4),
-      decoration: ShapeDecoration(
-        color: thm.colorScheme.secondaryContainer,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.all(
-            Radius.circular(10),
-          ),
-        ),
-      ),
-      child: Consumer<EventModel>(
-        builder: (context, evm, child) {
-          return Wrap(
-            spacing: 6,
-            runSpacing: 6,
-            children: evm.eventSuggestions().map(
-              (s) {
-                final name = app.eventName(s) ?? "unknown";
-                return ActionChip(
-                  label: Text(name),
-                  onPressed: () {
-                    // add event
-                    evm.addEvent(name, start: DateTime.now());
-                  },
-                );
-              },
-            ).toList(),
-          );
-        },
-      ),
+    return Consumer<EventCreateViewModel>(
+      builder: (context, evm, child) {
+        return Wrap(
+          spacing: 6,
+          runSpacing: 6,
+          children: evm.eventSuggestions().map(
+            (s) {
+              final et = app.evtTypeRepo.resolveById(s);
+              final name = et?.name ?? "unknown";
+              return ActionChip(
+                label: Text(name),
+                onPressed: () {
+                  // add event
+                  evm.addEventByName(name, start: DateTime.now());
+                },
+                shape: RoundedRectangleBorder(
+                  side: BorderSide(
+                      color: et?.color.inContext(context) ?? Colors.grey),
+                  borderRadius: BorderRadiusGeometry.all(
+                    Radius.circular(6),
+                  ),
+                ),
+              );
+            },
+          ).toList(),
+        );
+      },
     );
   }
 }

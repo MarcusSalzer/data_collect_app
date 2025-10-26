@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 
 class ImportSummaryDialog extends StatelessWidget {
   final ImportableSummary summary;
-  final void Function() callback;
-  const ImportSummaryDialog(this.summary, this.callback, {super.key});
+  final void Function()? callback;
+  const ImportSummaryDialog(this.summary, {this.callback, super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -34,7 +34,9 @@ class ImportSummaryDialog extends StatelessWidget {
           ElevatedButton(
               onPressed: () {
                 Navigator.pop(context);
-                callback();
+                if (callback != null) {
+                  callback!();
+                }
               },
               child: Text("Import"))
         ]);

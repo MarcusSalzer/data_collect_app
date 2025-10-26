@@ -36,10 +36,14 @@ List<double> linspace(num start, num end, int count) {
 /// ## returns
 /// - binCenters
 /// - hist
-(List<double>, List<int>) histogram<T extends num>(
+({List<double> x, List<int> y}) histogram<T extends num>(
   Iterable<T> arr, {
   int? nBins,
 }) {
+  if (arr.isEmpty) {
+    return (x: [], y: []);
+  }
+
   // auto bins
   nBins = math.sqrt(arr.length).toInt();
 
@@ -54,7 +58,7 @@ List<double> linspace(num start, num end, int count) {
     hist[binIdx]++;
   }
 
-  return (binCenters, hist);
+  return (x: binCenters, y: hist);
 }
 
 /// Count unique values

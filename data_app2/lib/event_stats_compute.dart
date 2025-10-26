@@ -1,21 +1,21 @@
-import 'package:data_app2/db_service.dart' show Event;
+import 'package:data_app2/user_events.dart';
 
 /// Get total time for each event type.
-List<MapEntry<int, Duration>> timePerEvent(Iterable<Event> events,
+List<MapEntry<int, Duration>> timePerEvent(Iterable<EvtRec> events,
     {int? limit}) {
-  final Map<int, Duration> result = {};
+  final Map<int, int> result = {};
   for (final evt in events) {
-    final start = evt.start;
-    final end = evt.end;
-    if (start != null && end != null) {
-      result[evt.typeId] =
-          (result[evt.typeId] ?? Duration.zero) + end.difference(start);
+    final eSeconds = evt.duration?.inSeconds;
+    if (eSeconds != null) {
+      result[evt.typeId] = (result[evt.typeId] ?? 0) + eSeconds;
     }
   }
-  final resList = result.entries.toList();
+  final resList = result.entries
+      .map((e) => MapEntry(e.key, Duration(seconds: e.value)))
+      .toList();
   resList.sort((a, b) => b.value.compareTo(a.value));
 
-  if (limit == null || limit > resList.length) {
+  if (limit == null || limit >= resList.length) {
     return resList;
   }
   final keepList = resList.sublist(0, limit);
@@ -33,13 +33,11 @@ List<MapEntry<int, Duration>> timePerEvent(Iterable<Event> events,
 }
 
 /// get sum of event durations, for all events with start and end defined
-Duration totalEventTime(List<Event> evts) {
+Duration totalEventTime(List<EvtRec> evts) {
   return evts.fold(Duration.zero, (p, e) {
-    final es = e.start;
-    final ee = e.end;
-    if (es != null && ee != null) {
-      final d = ee.difference(es);
-      return p + d;
+    final eDur = e.duration;
+    if (eDur != null) {
+      return p + eDur;
     }
     return p;
   });

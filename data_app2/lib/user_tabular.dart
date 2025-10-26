@@ -206,7 +206,7 @@ class TableProcessor extends ChangeNotifier {
   Future<void> exportCsv({bool withSchema = false}) async {
     final csvContent =
         tableRecordsToCsv(_data, csvHeader(withSchema: withSchema));
-    final fileName = "${name}_${Fmt.dateTimeSecond(DateTime.now())}";
+    final fileName = "${name}_${Fmt.dtSecond(DateTime.now())}";
     exportFile(fileName, csvContent);
   }
 }
@@ -251,7 +251,6 @@ class TableManager extends ChangeNotifier {
   }
 
   newTable(String tableName, List<String> colNames, TableFreq freq) async {
-    // print("saving table: $tableName with columns ${colNames.join(",")}");
     await _db.saveUserTable(tableName, colNames, freq);
     init();
   }

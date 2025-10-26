@@ -9,12 +9,11 @@ void main() {
 
   test('histogram simple', () {
     // one value close to border
-    final (binCenters, hist) =
-        histogram([0.0, .1, 0.2, 0.5000001, 0.12, 1.0], nBins: 2);
+    final hd = histogram([0.0, .1, 0.2, 0.5000001, 0.12, 1.0], nBins: 2);
     // Check bins
-    expect(binCenters, [0.25, 0.75]);
+    expect(hd.x, [0.25, 0.75]);
 
     // Check hist-values
-    expect(hist, [4, 2]);
+    expect(hd.y, [4, 2]);
   });
 }

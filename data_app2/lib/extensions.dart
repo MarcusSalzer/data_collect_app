@@ -11,7 +11,7 @@ extension DateOnly on DateTime {
   // DateTime get endOfDay => DateTime(year, month, day, 23, 59, 59, 999, 999);
 }
 
-extension Compare on DateTime {
+extension CompareDT on DateTime {
   bool equalsFreq(DateTime other, TableFreq freq) {
     if (year != other.year || month != other.month) {
       return false;

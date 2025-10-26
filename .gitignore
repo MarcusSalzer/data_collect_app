@@ -12,6 +12,7 @@ web/
 windows/
 android/
 
+__pycache__/
 # other compiled things
 *.so
 

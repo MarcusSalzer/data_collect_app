@@ -77,6 +77,12 @@ class _SettingsMenuState extends State<SettingsMenu> {
             ),
           ],
         ),
+        TextButton.icon(
+          onPressed: () {
+            showLicensePage(context: context);
+          },
+          label: Text("Licenses"),
+        ),
         Text("Dangerous", style: TextStyle(fontSize: 20)),
         TextButton.icon(
           onPressed: () {
@@ -102,9 +108,15 @@ class _SettingsMenuState extends State<SettingsMenu> {
                           ElevatedButton.icon(
                             onPressed: () async {
                               Navigator.pop(context);
-                              final c = await app.db.deleteAllEvents();
+                              // delete all from DB
+                              final cEvent = await app.db.deleteAllEvents();
+                              final cType = await app.db.deleteAllEventTypes();
+                              // clear cache in repo
+                              app.evtTypeRepo.clearCache();
+
                               if (context.mounted) {
-                                simpleSnack(context, "deleted $c events");
+                                simpleSnack(context,
+                                    "deleted: $cEvent events, $cType event-types");
                               }
                             },
                             label: Text(
@@ -136,7 +148,7 @@ class _SettingsMenuState extends State<SettingsMenu> {
                   title: "Generate dummy data",
                   action: () async {
                     final recs = await dummyEvents(app);
-                    app.db.importEventsDB(recs);
+                    app.db.importEventsDB(recs.map((r) => r.toIsar()).toList());
                     if (context.mounted) {
                       simpleSnack(context, "open events to refresh!");
                     }

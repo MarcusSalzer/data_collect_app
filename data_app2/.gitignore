@@ -38,6 +38,10 @@ migrate_working_dir/
 /build/
 /doc/
 
+# Generated dart
+*.g.dart
+libisar.so
+
 # Symbolication related
 app.*.symbols
 

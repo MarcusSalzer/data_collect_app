@@ -1,7 +1,10 @@
 // Keep current settings in memory, for convenient access
 
 import 'package:data_app2/event_stats_compute.dart';
+import 'package:data_app2/event_type_repository.dart';
 import 'package:data_app2/extensions.dart';
+import 'package:data_app2/local_datetime.dart';
+import 'package:data_app2/user_events.dart';
 import 'package:flutter/material.dart';
 import 'package:data_app2/db_service.dart';
 
@@ -11,23 +14,23 @@ class AppState extends ChangeNotifier {
   bool _normStrip = false;
   bool _normCase = false;
   final DBService _db;
-  Map<String, int> _evtNameToType = {};
-  Map<int, String> _evtTypeToName = {};
+  final EvtTypeRepositoryPersist _evtTypeRepo;
 
   // get preferences
   bool get isDarkMode => _darkMode;
   bool get normStrip => _normStrip;
   bool get normCase => _normCase;
 
-  // get db instance
+  // get db instance & event types
   DBService get db => _db;
-  Map<String, int> get evtNameToType => _evtNameToType;
-  Map<int, String> get evtTypeToName => _evtTypeToName;
+
+  /// Get the singleton type repository
+  EvtTypeRepositoryPersist get evtTypeRepo => _evtTypeRepo;
 
   // keep track of today summary
   TodaySummaryData? todaySummary;
 
-  AppState(this._db) {
+  AppState(this._db) : _evtTypeRepo = EvtTypeRepositoryPersist(db: _db) {
     _db.loadPrefs().then((prefs) {
       if (prefs != null) {
         _darkMode = prefs.darkMode;
@@ -36,38 +39,14 @@ class AppState extends ChangeNotifier {
         notifyListeners();
       }
     });
-    _db.loadEventTypes().then((types) {
-      _evtNameToType = {};
-      _evtTypeToName = {};
-      for (var e in types) {
-        _evtNameToType[e.name] = e.id;
-        _evtTypeToName[e.id] = e.name;
-      }
+    _db.getEventTypes().then((types) {
+      _evtTypeRepo.fillFromIsar(types);
     });
 
+    // check dangling types (move this?)
+    evtTypeRepo.danglingTypeRefs();
+
     refreshSummary();
-  }
-
-  // TODO, store whole object to get colors etc.
-  String? eventName(int typeId) {
-    final name = _evtTypeToName[typeId];
-
-    return name;
-  }
-
-  /// maybe only needed in a freeform text input?
-  int? eventTypeId(String name) {
-    final type = _evtNameToType[name];
-
-    return type;
-  }
-
-  Future<int> newEventType(String name) async {
-    final newTypeId = await _db.putEventType(name);
-    _evtNameToType[name] = newTypeId;
-    _evtTypeToName[newTypeId] = name;
-    notifyListeners();
-    return newTypeId;
   }
 
   setDarkMode(bool value) {
@@ -90,10 +69,10 @@ class AppState extends ChangeNotifier {
 
   /// For keeping summary after leaving events screen
   Future<void> refreshSummary() async {
-    final evts =
-        await db.getEventsFiltered(earliest: DateTime.now().startOfDay);
+    final evts = await db.getEventsFilteredLocalTime(
+        earliest: LocalDateTime.fromDateTimeLocalTZ(DateTime.now().startOfDay));
 
-    final tpe = timePerEvent(evts, limit: 5);
+    final tpe = timePerEvent(evts.map((e) => EvtRec.fromIsar(e)), limit: 5);
     todaySummary = TodaySummaryData(tpe);
     notifyListeners();
   }

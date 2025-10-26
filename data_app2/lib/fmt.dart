@@ -1,6 +1,7 @@
 // Text formatting
-import 'package:data_app2/db_service.dart';
 import 'package:data_app2/enums.dart';
+import 'package:data_app2/extensions.dart';
+import 'package:data_app2/user_events.dart';
 import 'package:intl/intl.dart';
 
 /// Formatting functions
@@ -11,16 +12,32 @@ class Fmt {
   }
 
   /// Day name
-  static String dayName(DateTime dt) {
+  static String dayName(DateTime? dt) {
+    if (dt == null) return "_";
     return DateFormat("EEEE").format(dt);
   }
 
-  /// Day name month and day
-  static String verboseDate(DateTime dt) {
-    return DateFormat("EEEE MMMM dd").format(dt);
+  static String dayAbbr(DateTime? dt) {
+    if (dt == null) return "___";
+    return DateFormat("E").format(dt);
   }
 
-  /// Date and time strings, or placeholder
+  /// Day name month and day
+  static String verboseDate(DateTime? dt, {GroupFreq? f}) {
+    if (dt == null) {
+      return "[unknown date]";
+    }
+    switch (f) {
+      case GroupFreq.day || null:
+        return DateFormat("EEEE MMMM dd").format(dt);
+      case GroupFreq.week:
+        return "Week of ${DateFormat("MMMM dd").format(dt.startOfweek)}";
+      case GroupFreq.month:
+        return DateFormat("MMMM").format(dt);
+    }
+  }
+
+  /// Date yyyy-MM-dd, or placeholder
   static String date(DateTime? dt) {
     if (dt == null) {
       return ("__-__-__");
@@ -28,12 +45,30 @@ class Fmt {
     return DateFormat("yyyy-MM-dd").format(dt);
   }
 
-  /// string with year, month,... second
-  static String dateTimeSecond(DateTime? dt) {
+  /// Time HH:mm, or placeholder
+  static String time(DateTime? dt) {
     if (dt == null) {
-      return "____";
+      return ("__-__-__");
+    }
+    return DateFormat("HH:mm").format(dt);
+  }
+
+  /// string with year, month,... second
+  static String dtSecond(DateTime? dt) {
+    if (dt == null) {
+      return "N/A";
     }
     return DateFormat("yyyy-MM-dd HH:mm:ss").format(dt);
+  }
+
+  /// string with year, month,... second
+  static String dtMinuteSimple(DateTime dt) {
+    return DateFormat("yyyy-MM-dd_HHmm").format(dt) + (dt.isUtc ? "Z" : "");
+  }
+
+  /// string with year, month,... second
+  static String dtSecondSimple(DateTime dt) {
+    return DateFormat("yyyy-MM-dd_HH-mm-ss").format(dt) + (dt.isUtc ? "Z" : "");
   }
 
   /// Date and time strings, or placeholder
@@ -45,16 +80,21 @@ class Fmt {
   }
 
   /// start and end of event, with placeholders
-  static (String, String) eventTimes(Event evt) {
-    final start = evt.start;
-    final end = evt.end;
+  static (String, String) eventTimes(EvtRec evt, {useUtc = false}) {
+    // get timestamps as UTC or local
+    final start = useUtc ? evt.start?.asUtc : evt.start?.asLocal;
+    final end = useUtc ? evt.end?.asUtc : evt.end?.asLocal;
+
     final startText =
         start != null ? DateFormat("HH:mm").format(start) : "__:__";
     final endText = end != null ? DateFormat("HH:mm").format(end) : "__:__";
     return (startText, endText);
   }
 
-  static String durationHM(Duration d) {
+  static String durationHM(Duration? d) {
+    if (d == null) {
+      return "";
+    }
     final mins = d.inMinutes;
     if (mins <= 60) return "$mins min";
     final minStr = (mins % 60).toString().padLeft(2);
