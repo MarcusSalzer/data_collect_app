@@ -1,0 +1,9 @@
+# personal configs
+data_config.toml
+
+# data
+*.json
+*.csv
+*.parquet
+*.bin
+*.npz

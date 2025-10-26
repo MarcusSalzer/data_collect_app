@@ -77,6 +77,12 @@ class _SettingsMenuState extends State<SettingsMenu> {
             ),
           ],
         ),
+        TextButton.icon(
+          onPressed: () {
+            showLicensePage(context: context);
+          },
+          label: Text("Licenses"),
+        ),
         Text("Dangerous", style: TextStyle(fontSize: 20)),
         TextButton.icon(
           onPressed: () {

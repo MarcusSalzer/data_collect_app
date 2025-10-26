@@ -53,6 +53,12 @@ class EvtTypeRepository extends ChangeNotifier {
     _byId = {};
     _byName = {};
   }
+
+  void delete(int id, String name) {
+    _byId.remove(id);
+    _byName.remove(name);
+    notifyListeners();
+  }
 }
 
 class EvtTypeRepositoryPersist extends EvtTypeRepository {
@@ -92,5 +98,26 @@ class EvtTypeRepositoryPersist extends EvtTypeRepository {
     final dangling = refs.difference(existing).toList();
     dangling.sort();
     return dangling;
+  }
+
+  @override
+  Future<bool> delete(int id, String name) async {
+    final didDelete = await _db.deleteEventType(id);
+    super.delete(id, name);
+    return didDelete;
+  }
+
+  // create new types at missing ids.
+  Future<List<int>> fillDangling() async {
+    final ids = await danglingTypeRefs();
+    final created = <int>[];
+    for (var i in ids) {
+      final newId = await _db.newEventTypeWithId(i, "_new_type_$i");
+      if (newId != null) {
+        created.add(newId);
+      }
+    }
+    notifyListeners();
+    return created;
   }
 }

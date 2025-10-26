@@ -86,7 +86,8 @@ class _EventCreateMenuState extends State<EventCreateMenu> {
                         if (_formKey.currentState!.validate()) {
                           // start event at picked time (or now)
                           evtModelprov.addEventByName(
-                            _nameTec.text,
+                            // trim input
+                            _nameTec.text.trim(),
                             start: DateTime.now(),
                           );
                           _nameTec.clear();
@@ -119,39 +120,36 @@ class CommonEventsSuggest extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final thm = Theme.of(context);
+    // final thm = Theme.of(context);
     final app = Provider.of<AppState>(context, listen: false);
 
-    return Container(
-      padding: EdgeInsets.all(4),
-      decoration: ShapeDecoration(
-        color: thm.colorScheme.secondaryContainer,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.all(
-            Radius.circular(10),
-          ),
-        ),
-      ),
-      child: Consumer<EventCreateViewModel>(
-        builder: (context, evm, child) {
-          return Wrap(
-            spacing: 6,
-            runSpacing: 6,
-            children: evm.eventSuggestions().map(
-              (s) {
-                final name = app.evtTypeRepo.resolveById(s)?.name ?? "unknown";
-                return ActionChip(
-                  label: Text(name),
-                  onPressed: () {
-                    // add event
-                    evm.addEventByName(name, start: DateTime.now());
-                  },
-                );
-              },
-            ).toList(),
-          );
-        },
-      ),
+    return Consumer<EventCreateViewModel>(
+      builder: (context, evm, child) {
+        return Wrap(
+          spacing: 6,
+          runSpacing: 6,
+          children: evm.eventSuggestions().map(
+            (s) {
+              final et = app.evtTypeRepo.resolveById(s);
+              final name = et?.name ?? "unknown";
+              return ActionChip(
+                label: Text(name),
+                onPressed: () {
+                  // add event
+                  evm.addEventByName(name, start: DateTime.now());
+                },
+                shape: RoundedRectangleBorder(
+                  side: BorderSide(
+                      color: et?.color.inContext(context) ?? Colors.grey),
+                  borderRadius: BorderRadiusGeometry.all(
+                    Radius.circular(6),
+                  ),
+                ),
+              );
+            },
+          ).toList(),
+        );
+      },
     );
   }
 }

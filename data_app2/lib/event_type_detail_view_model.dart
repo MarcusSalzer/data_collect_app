@@ -2,7 +2,7 @@ import 'package:data_app2/app_state.dart';
 import 'package:data_app2/colors.dart';
 import 'package:data_app2/user_events.dart';
 import 'package:flutter/material.dart';
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 
 class EventTypeDetailViewModel extends ChangeNotifier {
   EvtTypeRec original;
@@ -17,14 +17,20 @@ class EventTypeDetailViewModel extends ChangeNotifier {
             EvtTypeRec(name: "[new type]"), // temporary null object
         typeEdit = typeOriginal?.copyWith() ?? EvtTypeRec(name: "[new type]");
 
-  updateColor(ColorKey newColor) {
+  void updateColor(ColorKey newColor) {
     typeEdit.color = newColor;
     notifyListeners();
   }
 
-  updateName(String name) {
+  void updateName(String name) {
     typeEdit.name = name;
     notifyListeners();
+  }
+
+  Future<bool> delete() async {
+    final id = original.id;
+    if (id == null) return false;
+    return await _app.evtTypeRepo.delete(id, original.name);
   }
 
   // save event type to DB, returns error message or null if successful

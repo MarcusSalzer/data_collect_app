@@ -5,7 +5,6 @@ List<MapEntry<int, Duration>> timePerEvent(Iterable<EvtRec> events,
     {int? limit}) {
   final Map<int, int> result = {};
   for (final evt in events) {
-    // Compute durations from UTC TIMES. (in seconds)
     final eSeconds = evt.duration?.inSeconds;
     if (eSeconds != null) {
       result[evt.typeId] = (result[evt.typeId] ?? 0) + eSeconds;

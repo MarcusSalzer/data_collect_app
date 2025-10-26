@@ -13,22 +13,25 @@
 - ❓ ??/? in app benchmark, logging?
 - ❓ ??/? DB summary screen (count and storage sizes)
 - ❓ ??/? Event Filter
-- ❓ ??/? event aggregations. per-day-db?
 - ❓ ??/? user defined export directory, improved settings page
 - ❓ ??/? auto-backup (more compact file format?)
-- ❓ ??/? detect duplicates and overlapping events
+- ❓ ??/? Linting: duplicates, overlapping events
 - ❓ ??/? user defined "day starts at"
 - ❓ ??/? export screen? for example choose iso8601 or ms?
 - ❓ ??/? better calendar UI, horizontal page + vertical scroll?
 - ❓ ??/? computed color system
 - ❓ ??/? Safer import, exact duplicate detection etc?
 - ❓ ??/? tabular data, link to event
+- ❓ ??/? computed color system (color groups for categories?)
+- ❓ ??/? event type timeseries stats view
+- ❓ ??/? smarter suggestions
+- ❓ ??/? event aggregations. per-day-db?
+- ❓ ??/? bag of activity vector
+- ❓ ??/? flexible Preference DB
 
 ## TODO/bugs
 
-- incorrect total tracked time?
-- In old data, delete march!
-  - SE DST: Mar 30, 2025 – Oct 26, 2025
+- is calendar TZ safe?
 
 ## Overall architecture
 
@@ -63,8 +66,3 @@
 ## notes
 
 - When updating app with `flutter install`, the database is (partially?) cleared. So remember to save a backup, and load after.
-
-## ideas
-
-- day2vec
-- event details, what/for/where/how

@@ -1,7 +1,7 @@
 import 'package:data_app2/db_service.dart';
 import 'package:data_app2/local_datetime.dart';
 import 'package:data_app2/user_events.dart';
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 import 'dart:io';
 
 import 'package:test/test.dart';

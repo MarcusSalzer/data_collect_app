@@ -6,7 +6,7 @@ import 'package:data_app2/enums.dart';
 import 'package:data_app2/local_datetime.dart';
 import 'package:data_app2/user_events.dart';
 import 'package:flutter/material.dart';
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 // important: this file will contain Isar's generated code.
@@ -212,6 +212,17 @@ class DBService {
     });
   }
 
+  /// create and save new EventType, with name and defaults
+  Future<int?> newEventTypeWithId(int id, String name) async {
+    return await _isar.writeTxn(() async {
+      // skip if exists
+      if (await _isar.eventTypes.where().idEqualTo(id).isNotEmpty()) {
+        return null;
+      }
+      return await _isar.eventTypes.put(EventType(name)..id = id);
+    });
+  }
+
   Future<List<Event>> getAllEvents() async {
     return await _isar.txn(() async {
       return await _isar.events.where().findAll();
@@ -300,6 +311,12 @@ class DBService {
     });
 
     return c;
+  }
+
+  Future<bool> deleteEventType(int id) async {
+    return await _isar.writeTxn(() async {
+      return _isar.eventTypes.delete(id);
+    });
   }
 
   /// Get some events.

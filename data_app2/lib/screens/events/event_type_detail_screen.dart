@@ -5,6 +5,7 @@ import 'package:data_app2/extensions.dart';
 import 'package:data_app2/user_events.dart';
 import 'package:data_app2/util.dart';
 import 'package:data_app2/widgets/color_key_palette.dart';
+import 'package:data_app2/widgets/confirm_dialog.dart';
 import 'package:data_app2/widgets/two_columns.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -45,6 +46,33 @@ class EventTypeDetailScreen extends StatelessWidget {
           child: Scaffold(
             appBar: AppBar(
               title: Text("${vm.typeEdit.name}${vm.isDirty ? " *" : ""}"),
+              actions: [
+                IconButton(
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (context) => ConfirmDialog(
+                        title: "Delete event type?",
+                        action: () async {
+                          final didDelete = await vm.delete();
+                          if (context.mounted) {
+                            if (didDelete) {
+                              simpleSnack(
+                                  context, "Deleted type ${vm.typeEdit.id}");
+                            } else {
+                              simpleSnack(context, "Failed to delete type",
+                                  color: Colors.red);
+                            }
+                            Navigator.of(context).pop();
+                            Navigator.of(context).pop();
+                          }
+                        },
+                      ),
+                    );
+                  },
+                  icon: Icon(Icons.delete_forever),
+                )
+              ],
             ),
             body: SingleChildScrollView(
                 child: Padding(
@@ -55,8 +83,9 @@ class EventTypeDetailScreen extends StatelessWidget {
                     rows: [
                       (
                         Text("Name"),
-                        TextField(
-                          onChanged: (v) => vm.updateName(v),
+                        TextFormField(
+                          onChanged: (v) => vm.updateName(v.trim()),
+                          initialValue: vm.typeEdit.name,
                         ),
                       ),
                       (

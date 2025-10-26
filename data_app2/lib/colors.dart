@@ -36,3 +36,16 @@ enum ColorKey {
     return brightness == Brightness.dark ? dark : light;
   }
 }
+
+/// Allow nicely distributed groups of colors
+class ComputedColors {
+  static const nBaseHues = 9;
+
+  List<HSLColor> baseHues() {
+    const dStep = 360 / nBaseHues;
+    return List.generate(
+        nBaseHues, (i) => HSLColor.fromAHSL(1.0, i * dStep, 0.7, 0.5));
+  }
+
+  const ComputedColors();
+}

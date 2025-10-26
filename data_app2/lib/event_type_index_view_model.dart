@@ -66,6 +66,12 @@ class EventTypeIndexViewModel extends ChangeNotifier {
       ));
   }
 
+  Future<List<int>> recreateDanglingTypes() async {
+    final created = await _app.evtTypeRepo.fillDangling();
+    load();
+    return created;
+  }
+
   @override
   void dispose() {
     _app.evtTypeRepo.removeListener(_onRepoChanged);

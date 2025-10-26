@@ -18,51 +18,80 @@ class EventTypeIndexScreen extends StatelessWidget {
       },
       child: Builder(
         builder: (context) {
-          return Consumer<EventTypeIndexViewModel>(
-            builder: (context, vm, child) {
-              return Scaffold(
-                appBar: AppBar(
-                  title: const Text('Event types'),
-                ),
-                floatingActionButton: FloatingActionButton(
-                  child: Icon(Icons.add),
-                  onPressed: () {
-                    Navigator.of(context)
-                        .push(
-                      MaterialPageRoute(
-                        builder: (context) => EventTypeDetailScreen(null),
-                      ),
-                    )
-                        .then((_) {
-                      // reload data
-                      vm.load();
-                    });
-                  },
-                ),
-                body: Builder(
-                  builder: (context) {
-                    final evtFreqs = vm.evtFreqs?.entries.toList();
+          return DefaultTabController(
+            length: 2,
+            child: Consumer<EventTypeIndexViewModel>(
+              builder: (context, vm, child) {
+                return Scaffold(
+                  appBar: AppBar(
+                    title: const Text('Events'),
+                    bottom: TabBar(
+                      tabs: [
+                        const Tab(text: "Types"),
+                        const Tab(text: "Categories"),
+                      ],
+                    ),
+                  ),
+                  floatingActionButton: FloatingActionButton(
+                    child: Icon(Icons.add),
+                    onPressed: () {
+                      Navigator.of(context)
+                          .push(
+                        MaterialPageRoute(
+                          builder: (context) => EventTypeDetailScreen(null),
+                        ),
+                      )
+                          .then((_) {
+                        // reload data
+                        vm.load();
+                      });
+                    },
+                  ),
+                  body: TabBarView(
+                    children: [
+                      Builder(
+                        builder: (context) {
+                          final evtFreqs = vm.evtFreqs?.entries.toList();
 
-                    if (evtFreqs == null) {
-                      return Center(child: Text("Loading..."));
-                    }
-                    if (evtFreqs.isEmpty) {
-                      return Center(child: Text("No event types"));
-                    }
-                    final danglingTypeRefs = vm.danglingTypeRefs;
-                    if (danglingTypeRefs.isNotEmpty) {
-                      return Column(
-                        children: [
-                          DanglingTypeRefsWarningBox(danglingTypeRefs),
-                          Expanded(child: EvtTypeList()),
-                        ],
-                      );
-                    }
-                    return EvtTypeList();
-                  },
-                ),
-              );
-            },
+                          if (evtFreqs == null) {
+                            return Center(child: Text("Loading..."));
+                          }
+                          if (evtFreqs.isEmpty) {
+                            return Center(child: Text("No event types"));
+                          }
+                          final danglingTypeRefs = vm.danglingTypeRefs;
+                          if (danglingTypeRefs.isNotEmpty) {
+                            return Column(
+                              children: [
+                                DanglingTypeRefsWarningBox(danglingTypeRefs),
+                                TextButton(
+                                  onPressed: () async {
+                                    final created =
+                                        await vm.recreateDanglingTypes();
+                                    if (context.mounted) {
+                                      simpleSnack(context,
+                                          "created: ${created.join(', ')}");
+                                    }
+                                  },
+                                  child: Text("recreate missing types"),
+                                ),
+                                Expanded(child: EvtTypeList()),
+                              ],
+                            );
+                          }
+                          return EvtTypeList();
+                        },
+                      ),
+                      Builder(
+                        builder: (context) {
+                          return Center(child: Text("todo"));
+                        },
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
           );
         },
       ),

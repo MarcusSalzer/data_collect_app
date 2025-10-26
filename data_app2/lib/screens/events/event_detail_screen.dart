@@ -5,6 +5,7 @@ import 'package:data_app2/fmt.dart';
 import 'package:data_app2/local_datetime.dart';
 import 'package:data_app2/user_events.dart';
 import 'package:data_app2/util.dart';
+import 'package:data_app2/widgets/confirm_dialog.dart';
 import 'package:data_app2/widgets/two_columns.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -52,6 +53,31 @@ class EventDetailScreen extends StatelessWidget {
                   ),
                 ],
               ),
+              actions: [
+                IconButton(
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (context) => ConfirmDialog(
+                        title: "Delete event?",
+                        action: () async {
+                          final didDelete = await vm.delete();
+                          if (context.mounted) {
+                            if (didDelete) {
+                              simpleSnack(context, "Deleted event ${evt.id}");
+                            } else {
+                              simpleSnack(context, "Failed to delete event",
+                                  color: Colors.red);
+                            }
+                            Navigator.of(context).pop();
+                          }
+                        },
+                      ),
+                    );
+                  },
+                  icon: Icon(Icons.delete_forever),
+                )
+              ],
             ),
             body: SingleChildScrollView(
                 child: Padding(

@@ -155,7 +155,7 @@ class EventListTile extends StatelessWidget {
     );
   }
 
-  _openDetail(BuildContext context) {
+  void _openDetail(BuildContext context) {
     Navigator.of(context)
         .push(
       MaterialPageRoute(
@@ -163,11 +163,9 @@ class EventListTile extends StatelessWidget {
       ),
     )
         .then(
-      (value) {
-        if (value != null) {
-          reloadAction();
-        }
-        // reload item, or just take it from callback?
+      (_) {
+        // When the detail view is popped, data might have changed
+        reloadAction();
       },
     );
   }
