@@ -7,3 +7,6 @@ data_config.toml
 *.parquet
 *.bin
 *.npz
+
+# plots
+media/

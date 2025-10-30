@@ -4,6 +4,7 @@ import numpy as np
 import polars as pl
 from plotly import graph_objects as go
 from plotly import io as pio
+from plotly import subplots
 from sklearn.preprocessing import StandardScaler
 
 
@@ -99,7 +100,7 @@ def weeks_cal_grid(
         width=width,
         height=aspect_ratio * width + 20,
         plot_bgcolor="rgba(0,0,0,0)",
-        margin=dict(l=0, r=0, t=0, b=0),
+        margin=dict(l=0, r=0, t=40, b=0),
     )
 
     return fig
@@ -149,7 +150,7 @@ def scatter_embs(
     return fig
 
 
-def date_ts_agg_events(df_agg, event_colors, show_types):
+def date_ts_agg_events(df_agg, evt_colors: dict[str, str], show_types: list[str]):
     """Show aggregated values per date."""
     assert "date" in df_agg
 
@@ -160,11 +161,152 @@ def date_ts_agg_events(df_agg, event_colors, show_types):
                 y=df_agg[c] + 100,
                 name=c,
                 mode="lines",
-                line_color=event_colors[c],
+                line_color=evt_colors[c],
             )
             for c in show_types
         ],
         # dict(yaxis=go.layout.YAxis(type="log")),
+    )
+
+    return fig
+
+
+def heatmap(mat, logscale=False):
+    if logscale:
+        mat = np.log1p(mat)
+    return go.Figure(
+        go.Heatmap(
+            z=mat,
+        ),
+        go.Layout(yaxis_scaleanchor="x", width=400),
+    )
+
+
+def tmp(evt_colors: Sequence[tuple[str, str]]):
+    fig = go.Figure(
+        [
+            go.Scatter(
+                x=[k], y=[k], marker=dict(size=20, color=c), name=n, mode="markers"
+            )
+            for k, (n, c) in enumerate(evt_colors)
+        ]
+    )
+    for k, (n, _) in enumerate(evt_colors):
+        fig.add_annotation(text=n, x=k, y=k)
+
+    fig.update_layout(font=go.layout.Font(family="comic mono"))
+    return fig
+
+
+def cal_and_embs(
+    df_cal: pl.DataFrame,
+    evt_types: list[str],
+    evt_embs: np.ndarray,
+    filter_expr: pl.Expr | None = None,
+    width: int = 800,
+    mode: str | None = None,
+):
+    """Plot calendar and event embeddings for reference."""
+
+    assert len(evt_types) == len(evt_embs), "expects one emb per event type"
+
+    if filter_expr is not None:
+        df_cal = df_cal.filter(filter_expr)
+
+    assert len(df_cal["year"].unique()) == 1, "only works in a year now?"
+
+    fig = subplots.make_subplots(
+        1,
+        2,
+        subplot_titles=[
+            "Calendar",
+            f"Event embeddings {f'({mode})' if mode else ''}",
+        ],
+        column_widths=[2, 3],
+    )
+    df_cal = df_cal.with_columns(hovertext=(df_cal["wd_name"] + " " + df_cal["date"]))
+
+    #  --- Calendar cells ---
+    for r in df_cal.iter_rows(named=True):
+        fig.add_shape(
+            type="rect",
+            x0=r["wd"] - 0.5,
+            x1=r["wd"] + 0.5,
+            y0=(r["week"] - 0.5),
+            y1=(r["week"] + 0.5),
+            line=dict(color="black", width=2),
+            fillcolor=r["color"],
+        )
+
+    # makes it visible...
+    fig.add_trace(
+        go.Scatter(
+            x=df_cal["wd"],
+            y=df_cal["week"],
+            showlegend=False,
+        )
+    )
+
+    # --- Embeddings ---
+    fig.add_trace(
+        go.Scatter(
+            x=evt_embs[:, 0],
+            y=evt_embs[:, 1],
+            text=evt_types,
+            textposition="bottom center",
+            marker=dict(
+                size=[13 if e else 9 for e in evt_types], color=vecs2color(evt_embs)
+            ),
+            mode="markers+text",
+            showlegend=False,
+        ),
+        row=1,
+        col=2,
+    )
+
+    # annotate embeddings
+    # for name, emb in zip(evt_types, evt_embs):
+    #     fig.add_annotation(x=emb[0], y=emb[1], text=name, row=1, col=2)
+
+    weeks = sorted(df_cal["week"].unique())
+
+    rngpad = (evt_embs[:, 0].max() - evt_embs[:, 0].min()) * 0.1
+    # Layout
+    fig.update_xaxes(
+        visible=False,
+        showgrid=False,
+        row=1,
+        col=2,
+        range=[evt_embs[:, 0].min() - rngpad, evt_embs[:, 0].max() + rngpad],
+    )
+    fig.update_yaxes(
+        visible=False,
+        showgrid=False,
+        row=1,
+        col=2,
+    )
+    fig.update_yaxes(
+        autorange="reversed",
+        tickvals=weeks,
+        title="Week",
+        showgrid=False,
+        row=1,
+        col=1,
+    )
+    fig.update_xaxes(
+        tickvals=list(range(1, 8)),
+        ticktext=["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+        title="Weekday",
+        showgrid=False,
+        row=1,
+        col=1,
+    )
+    fig.update_layout(
+        width=width,
+        height=int(width * 0.6),
+        paper_bgcolor="rgba(0,0,0,1)",
+        margin=dict(l=30, r=20, t=40, b=10),
+        font=go.layout.Font(family="comic mono"),
     )
 
     return fig

@@ -1,5 +1,6 @@
-from datetime import datetime
 import sys
+from datetime import datetime
+
 import polars as pl
 
 sys.path.append(".")

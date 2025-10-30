@@ -1,8 +1,8 @@
 from collections.abc import Sequence
+
 import torch
 from torch import Tensor, nn
-from torch.utils.data import Dataset, DataLoader
-from tqdm import tqdm
+from torch.utils.data import DataLoader, Dataset
 
 
 class CBOWFFModel(nn.Module):

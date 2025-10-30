@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 import polars as pl
 import tomllib
@@ -16,20 +16,23 @@ class DataConfig(BaseModel):
 
 def load_config(path: Path = Path("data_config.toml")):
     d = tomllib.loads(path.read_text())
-    return DataConfig(**d)
+    conf = DataConfig(**d)
+
+    return conf
 
 
 def unique_counts(df: pl.DataFrame, col: str) -> dict[Any, int]:
     return dict(df.group_by(col).agg(pl.len()).sort("len", descending=True).iter_rows())
 
 
-def load_data(conf: DataConfig):
+def load_data(conf: DataConfig, verbosity: Literal[0, 1, 2] = 1):
     df = pl.read_csv(conf.source_path, try_parse_dates=True, n_rows=conf.max_evts)
 
     if conf.ignore_evts:
         count_pre = len(df)
         df = df.filter(pl.col("type_name").is_in(conf.ignore_evts).not_())
-        print(f"[ignore_types] removed {count_pre - len(df)} records")
+        if verbosity >= 1:
+            print(f"[ignore_types] removed {count_pre - len(df)} records")
 
     # add useful columns
     df = df.with_columns(
@@ -47,10 +50,13 @@ def load_data(conf: DataConfig):
         .then(pl.lit("other"))
         .otherwise(pl.col("type_name"))
     )
-    evt_types = df["type_name"].unique().sort().to_list()
+    evt_types: list[str] = df["type_name"].unique().sort().to_list()
 
-    print(f"loaded {len(df)} events")
-    print(f"{len(rare_types) = } | {rare_types = }")
-    print(f"{len(evt_types) = } | {evt_types = }")
+    if verbosity >= 1:
+        print(f"loaded {len(df)} events")
+        print(f"{len(evt_types) = } | {len(rare_types) = }")
+    if verbosity >= 2:
+        print(f"{rare_types = }")
+        print(f"{evt_types = }")
 
     return df, evt_types

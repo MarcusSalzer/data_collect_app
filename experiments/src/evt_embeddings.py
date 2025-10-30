@@ -1,11 +1,13 @@
 """Utilities for Embeddings (mostly sklearn)."""
 
+from collections.abc import Callable
 from typing import Any, Literal
 
 import numpy as np
 import polars as pl
 import umap
 from numpy.typing import NDArray
+from sklearn import manifold
 from sklearn.decomposition import PCA
 from sklearn.feature_extraction.text import TfidfTransformer
 from sklearn.pipeline import FunctionTransformer, Pipeline
@@ -13,8 +15,8 @@ from sklearn.preprocessing import StandardScaler
 
 
 def make_embedding_pipe(
-    input_transfrom: Literal["std", "tfidf", "tfidf+std"],
-    reduction: Literal["pca", "umap"],
+    input_transfrom: Literal["std", "tfidf", "tfidf+std"] | str,
+    reduction: str | None,
     transp_between: bool = False,
     norm_out: Literal["std"] | None = None,
     ncomp: int = 3,
@@ -43,11 +45,18 @@ def make_embedding_pipe(
         steps.append(("transpose", FunctionTransformer(lambda x: x.T)))
 
     # --- dimensionality reduction ---
+
     if reduction == "pca":
         steps.append(("pca", PCA(ncomp)))
     elif reduction == "umap":
         steps.append(("umap", umap.UMAP(n_neighbors=4, n_components=ncomp)))
-    else:
+    elif reduction == "isomap":
+        steps.append(("isomap", manifold.Isomap(n_components=ncomp)))
+    elif reduction == "tsne":
+        steps.append(("tsne", manifold.TSNE(n_components=ncomp)))
+    elif reduction == "lle":
+        steps.append(("tsne", manifold.LocallyLinearEmbedding(n_components=ncomp)))
+    elif reduction is not None:
         raise ValueError("unknown reduction")
 
     # --- optionally normalize output ---
@@ -57,7 +66,11 @@ def make_embedding_pipe(
     return Pipeline(steps)
 
 
-def compare_embs(a: NDArray, b: NDArray, metric: Literal["L2", "L1", "cosine"]):
+def compare_embs(
+    a: NDArray[np.floating],
+    b: NDArray[np.floating],
+    metric: Literal["L2", "L1", "cosine"],
+) -> NDArray[np.floating]:
     """Compare embeddings with some metric"""
     if a.ndim == 1:
         a = a.reshape(1, -1)
@@ -99,7 +112,7 @@ def find_all_closest(
         emb_q = all_embs[label2idx[q]]
 
         dist = compare_embs(all_embs, emb_q, metric)
-        sort_order = -1 if metric == "cosine" else 1  # maximize or minimize
+        sort_order = -1.0 if metric == "cosine" else 1.0  # maximize or minimize
         idxs = (sort_order * dist).argsort()[:top_count]
 
         results[q] = [(labels[i], dist[i].item()) for i in idxs]
@@ -139,8 +152,9 @@ def eval_triples(
     ).with_columns(correct=pl.col("dist_p") < pl.col("dist_n"))
 
     accuracy = triples["correct"].mean()
+    assert isinstance(accuracy, float)
 
-    return triples, accuracy
+    return accuracy
 
 
 def eval_subj(
@@ -148,12 +162,56 @@ def eval_subj(
     labels: list[str],
     triples: pl.DataFrame,
     metrics=("L1", "L2", "cosine"),
+    verbose=True,
+    n_bootstrap: int = 1,
 ):
-    """Evaluate embeddings on triples and format a string with accuracies."""
-    accs = {}
+    """Evaluate embeddings on triples."""
+    accs: dict[str, float | NDArray] = {}
     for metric in metrics:
-        _, a = eval_triples(embs, labels, triples, metric=metric)
+        if n_bootstrap > 1:
+            a = bootstrap_eval_df(
+                triples,
+                lambda df: eval_triples(embs, labels, df, metric),
+                n=n_bootstrap,
+            )
+        else:
+            a = eval_triples(embs, labels, triples, metric=metric)
         accs[metric] = a
 
     # avg_acc = sum(accs.values()) / len(accs)
-    return ",\t".join(f"{m}: {a:.0%}" for m, a in accs.items())
+    if verbose:
+
+        def fmt(a):
+            if isinstance(a, np.ndarray):
+                # return f"{a.mean():.0%}, s:{a.std():.0%}"
+                return f"{a.mean():.0%}"
+            else:
+                return f"{fmt(a):.0%}"
+
+        print(",\t".join(f"{m}: {fmt(a)}" for m, a in accs.items()))
+
+    return accs
+
+
+def bootstrap_eval_df(
+    df: pl.DataFrame,
+    function: Callable[[pl.DataFrame], float],
+    n: int = 10,
+):
+    """evaluate a function on samples from a dataframe."""
+    results = np.empty(n)
+    for i in range(n):
+        sub = df.sample(len(df), shuffle=True, with_replacement=True)
+        results[i] = function(sub)
+    return results
+
+
+def day_linear_comb(agg: NDArray, evt_embs: NDArray):
+    """Make day embeddings as linear combinations of event embeddings"""
+
+    assert agg.shape[1] == evt_embs.shape[0], "expects same number of events"
+
+    agg_n = agg / agg.sum(axis=1, keepdims=True)
+
+    combo = agg_n @ evt_embs
+    return combo
