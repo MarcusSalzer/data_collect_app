@@ -25,7 +25,7 @@
 - ❓ ??/? computed color system (color groups for categories?)
 - ❓ ??/? event type timeseries stats view
 - ❓ ??/? smarter suggestions
-- ❓ ??/? event aggregations. per-day-db?
+- ❓ ??/? event aggregations. per-day-db? or save to file?
 - ❓ ??/? bag of activity vector
 - ❓ ??/? flexible Preference DB
 
