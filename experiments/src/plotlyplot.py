@@ -182,22 +182,6 @@ def heatmap(mat, logscale=False):
     )
 
 
-def tmp(evt_colors: Sequence[tuple[str, str]]):
-    fig = go.Figure(
-        [
-            go.Scatter(
-                x=[k], y=[k], marker=dict(size=20, color=c), name=n, mode="markers"
-            )
-            for k, (n, c) in enumerate(evt_colors)
-        ]
-    )
-    for k, (n, _) in enumerate(evt_colors):
-        fig.add_annotation(text=n, x=k, y=k)
-
-    fig.update_layout(font=go.layout.Font(family="comic mono"))
-    return fig
-
-
 def cal_and_embs(
     df_cal: pl.DataFrame,
     evt_types: list[str],

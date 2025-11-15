@@ -60,3 +60,21 @@ def load_data(conf: DataConfig, verbosity: Literal[0, 1, 2] = 1):
         print(f"{evt_types = }")
 
     return df, evt_types
+
+
+def load_subj_triples(
+    path: str = "aux_data/subjective_triples.csv",
+    ignore: list[str] | None = None,
+):
+    """Load annotated data. Can remove all triples that contain an ignored type."""
+    df = pl.read_csv(
+        path,
+        has_header=False,
+        new_columns=["anchor", "p", "n"],
+    )
+    if ignore is not None:
+        df = df.filter(
+            pl.any_horizontal(pl.col(["anchor", "p", "n"]).is_in(ignore)).not_()
+        )
+
+    return df
