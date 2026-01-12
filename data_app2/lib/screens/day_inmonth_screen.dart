@@ -1,7 +1,7 @@
 import 'package:data_app2/app_state.dart';
-import 'package:data_app2/event_stats_compute.dart';
-import 'package:data_app2/extensions.dart';
-import 'package:data_app2/fmt.dart';
+import 'package:data_app2/util/event_stats_compute.dart';
+import 'package:data_app2/util/extensions.dart';
+import 'package:data_app2/util/fmt.dart';
 import 'package:data_app2/plots.dart';
 import 'package:data_app2/screens/month_calendar_screen.dart';
 import 'package:data_app2/user_events.dart';
@@ -60,24 +60,25 @@ class DayInmonthScreen extends StatelessWidget {
               child: Column(
                 children: [
                   EventPieChart(
-                      timings: vm.tpe
-                          .map((e) => MapEntry(
-                              app.evtTypeRepo.resolveById(e.key)?.name ?? "?",
-                              e.value))
-                          .toList(),
-                      colors: vm.tpe
-                          .map((e) => app.evtTypeRepo
+                    timings: vm.tpe
+                        .map(
+                          (e) => MapEntry(
+                            app.evtTypeManager.resolveById(e.key)?.name ?? "?",
+                            e.value,
+                          ),
+                        )
+                        .toList(),
+                    colors: vm.tpe
+                        .map(
+                          (e) => app.evtTypeManager
                               .resolveById(e.key)
                               ?.color
-                              .inContext(context))
-                          .toList()),
-                  SizedBox(
-                    height: 30,
+                              .inContext(context),
+                        )
+                        .toList(),
                   ),
-                  Text(
-                    "Events",
-                    style: TextStyle(fontSize: 20),
-                  ),
+                  SizedBox(height: 30),
+                  Text("Events", style: TextStyle(fontSize: 20)),
                   EventHistoryDisplay(
                     vm.todayEvts,
                     headingMode: null,

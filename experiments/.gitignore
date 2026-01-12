@@ -10,3 +10,7 @@ data_config.toml
 
 # plots
 media/
+
+
+# random cache 
+.ruff_cache

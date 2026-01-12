@@ -1,7 +1,8 @@
 import 'package:data_app2/app_state.dart';
-import 'package:data_app2/csv/csv_simple.dart';
-import 'package:data_app2/event_export_view_model.dart';
-import 'package:data_app2/process_state.dart';
+import 'package:data_app2/csv/csv_util.dart';
+import 'package:data_app2/data/evt_draft.dart';
+import 'package:data_app2/view_models/event_export_view_model.dart';
+import 'package:data_app2/util/process_state.dart';
 import 'package:data_app2/widgets/two_columns.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -12,9 +13,7 @@ class ExportScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text("Export"),
-      ),
+      appBar: AppBar(title: Text("Export")),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(12.0),
@@ -29,9 +28,7 @@ class ExportScreen extends StatelessWidget {
 
                 switch (ps) {
                   case Loading():
-                    return Center(
-                      child: Text("Loading..."),
-                    );
+                    return Center(child: Text("Loading..."));
                   case Ready(:final data):
                     final adapter = vm.adapter;
 
@@ -50,7 +47,7 @@ class ExportScreen extends StatelessWidget {
                           },
                           label: Text("Export"),
                           icon: Icon(Icons.upload),
-                        )
+                        ),
                       ],
                     );
                   case Done(:final log):
@@ -66,19 +63,13 @@ class ExportScreen extends StatelessWidget {
                             child: Column(
                               spacing: 12,
                               crossAxisAlignment: CrossAxisAlignment.start,
-                              children: log
-                                  .map(
-                                    (e) => Text(e),
-                                  )
-                                  .toList(),
+                              children: log.map((e) => Text(e)).toList(),
                             ),
                           ),
                       ],
                     );
                   case Error(:final error):
-                    return Center(
-                      child: Text(error.toString()),
-                    );
+                    return Center(child: Text(error.toString()));
                 }
               },
             ),
@@ -91,7 +82,7 @@ class ExportScreen extends StatelessWidget {
 
 class ExampleRowDisplay<T> extends StatelessWidget {
   final T example;
-  final SimpleCsvAdapter<T> adapter;
+  final CsvAdapter<T> adapter;
   const ExampleRowDisplay(this.adapter, this.example, {super.key});
 
   @override
@@ -111,10 +102,7 @@ class ExampleRowDisplay<T> extends StatelessWidget {
           .map(
             (e) => (
               Text(e.$2),
-              Text(
-                values[e.$1],
-                style: TextStyle(fontFamily: "monospace"),
-              ),
+              Text(values[e.$1], style: TextStyle(fontFamily: "monospace")),
             ),
           )
           .toList(),

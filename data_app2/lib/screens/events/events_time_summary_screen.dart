@@ -1,5 +1,5 @@
 import 'package:data_app2/app_state.dart' show AppState;
-import 'package:data_app2/db_service.dart';
+import 'package:data_app2/isar_models.dart';
 import 'package:flutter/material.dart';
 
 class EventsTimeSummaryScreen extends StatelessWidget {
@@ -7,7 +7,7 @@ class EventsTimeSummaryScreen extends StatelessWidget {
 
   final AppState appState;
   EventsTimeSummaryScreen({super.key, required this.appState}) {
-    filteredEventsFuture = appState.db.getEventsFilteredLocalTime();
+    filteredEventsFuture = appState.db.events.filteredLocalTime();
   }
 
   @override
@@ -16,17 +16,11 @@ class EventsTimeSummaryScreen extends StatelessWidget {
       appBar: AppBar(title: Text("Events Time Sumary")),
       body: Column(
         children: [
-          Center(
-            child: Text("This is the events time sumary screen"),
-          ),
+          Center(child: Text("This is the events time sumary screen")),
           SizedBox(height: 20),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              Text("Here"),
-              Text("Goes"),
-              Text("something"),
-            ],
+            children: [Text("Here"), Text("Goes"), Text("something")],
           ),
           FutureBuilder(
             future: filteredEventsFuture,
@@ -40,7 +34,7 @@ class EventsTimeSummaryScreen extends StatelessWidget {
               }
               return Text("No data available");
             },
-          )
+          ),
         ],
       ),
     );

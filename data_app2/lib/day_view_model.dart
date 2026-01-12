@@ -1,4 +1,4 @@
-import 'package:data_app2/db_service.dart';
+import 'package:data_app2/isar_models.dart';
 import 'package:flutter/material.dart';
 
 class DayViewModel extends ChangeNotifier {

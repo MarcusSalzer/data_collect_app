@@ -1,7 +1,7 @@
 import 'package:data_app2/app_state.dart';
-import 'package:data_app2/enums.dart';
-import 'package:data_app2/event_type_view_model.dart';
-import 'package:data_app2/fmt.dart';
+import 'package:data_app2/util/enums.dart';
+import 'package:data_app2/view_models/event_type_view_model.dart';
+import 'package:data_app2/util/fmt.dart';
 import 'package:data_app2/plots.dart';
 import 'package:data_app2/screens/events/event_type_detail_screen.dart';
 import 'package:data_app2/widgets/event_history_display.dart';
@@ -28,32 +28,22 @@ class EventTypeOverviewScreen extends StatelessWidget {
               builder: (context, vm, child) {
                 return Scaffold(
                   appBar: AppBar(
-                    title: Text(
-                      vm.type.name,
-                      style: TextStyle(color: vm.type.color.inContext(context)),
-                    ),
+                    title: Text(vm.type.name, style: TextStyle(color: vm.type.color.inContext(context))),
                     actions: [
                       TextButton.icon(
                         onPressed: () {
-                          Navigator.of(context)
-                              .push(
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  EventTypeDetailScreen(vm.type),
-                            ),
-                          )
-                              .then(
-                            (value) {
-                              vm.load();
-                              if (value != null) {
-                                // reload if anything changed
-                              }
-                            },
-                          );
+                          Navigator.of(
+                            context,
+                          ).push(MaterialPageRoute(builder: (context) => EventTypeDetailScreen(vm.type))).then((value) {
+                            vm.load();
+                            if (value != null) {
+                              // reload if anything changed
+                            }
+                          });
                         },
                         label: Text("edit"),
                         icon: Icon(Icons.edit),
-                      )
+                      ),
                     ],
                     bottom: TabBar(
                       tabs: [
@@ -62,27 +52,27 @@ class EventTypeOverviewScreen extends StatelessWidget {
                       ],
                     ),
                   ),
-                  body: Builder(builder: (context) {
-                    if (vm.isLoading) {
-                      return Center(child: Text("Loading..."));
-                    }
-                    if (vm.evts.isEmpty) {
-                      return Center(
-                        child: Text("No instances"),
+                  body: Builder(
+                    builder: (context) {
+                      if (vm.isLoading) {
+                        return Center(child: Text("Loading..."));
+                      }
+                      if (vm.evts.isEmpty) {
+                        return Center(child: Text("No instances"));
+                      }
+                      return TabBarView(
+                        children: [
+                          EventTypeStatsDisplay(model: vm),
+                          EventHistoryDisplay(
+                            vm.evts,
+                            headingMode: GroupFreq.week,
+                            isScrollable: true,
+                            reloadAction: vm.load,
+                          ),
+                        ],
                       );
-                    }
-                    return TabBarView(
-                      children: [
-                        EventTypeStatsDisplay(model: vm),
-                        EventHistoryDisplay(
-                          vm.evts,
-                          headingMode: GroupFreq.week,
-                          isScrollable: true,
-                          reloadAction: vm.load,
-                        ),
-                      ],
-                    );
-                  }),
+                    },
+                  ),
                 );
               },
             ),
@@ -107,57 +97,54 @@ class EventTypeStatsDisplay extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               Text("has ${model.evts.length} instances"),
-              Text(
-                "total time: ${Fmt.durationHM(model.totTime)}",
-              ),
+              Text("total time: ${Fmt.durationHmVerbose(model.totTime)}"),
             ],
           ),
         ),
         Divider(),
-        Builder(builder: (context) {
-          final histData = model.getHistogram();
-          if (histData == null) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 40),
-                child: Text("Histogram needs more data"),
-              ),
-            );
-          }
+        Builder(
+          builder: (context) {
+            final histData = model.getHistogram();
+            if (histData == null) {
+              return Center(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 40),
+                  child: Text("Histogram needs more data"),
+                ),
+              );
+            }
 
-          return Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: AspectRatio(
-              aspectRatio: 1,
-              child: LineChart(
-                LineChartData(
-                  gridData: FlGridData(show: false),
-                  borderData: FlBorderData(show: false),
-                  titlesData: minimalTitlesData("Duration", "count"),
-                  lineBarsData: [
-                    LineChartBarData(
+            return Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: AspectRatio(
+                aspectRatio: 1,
+                child: LineChart(
+                  LineChartData(
+                    gridData: FlGridData(show: false),
+                    borderData: FlBorderData(show: false),
+                    titlesData: minimalTitlesData("Duration", "count"),
+                    lineBarsData: [
+                      LineChartBarData(
                         spots: List.generate(
                           histData.x.length,
                           (i) => FlSpot(
-                            histData.x[i],
+                            histData.x[i] / 60, // SECONDS -> MINUTES
                             histData.y[i].toDouble(),
                           ),
                         ),
                         color: model.type.color.inContext(context),
                         isCurved: true,
-                        dotData: FlDotData(show: false))
-                  ],
+                        dotData: FlDotData(show: false),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          );
-        }),
-        SizedBox(
-          height: 30,
+            );
+          },
         ),
-        Center(
-          child: Text("Weekdays"),
-        ),
+        SizedBox(height: 30),
+        Center(child: Text("Weekdays")),
         Padding(
           padding: const EdgeInsets.all(16.0),
           child: AspectRatio(
@@ -171,19 +158,14 @@ class EventTypeStatsDisplay extends StatelessWidget {
                     .map(
                       (e) => BarChartGroupData(
                         x: e.key,
-                        barRods: [
-                          BarChartRodData(
-                            toY: e.value.toDouble(),
-                            color: model.type.color.inContext(context),
-                          )
-                        ],
+                        barRods: [BarChartRodData(toY: e.value.toDouble(), color: model.type.color.inContext(context))],
                       ),
                     )
                     .toList(),
               ),
             ),
           ),
-        )
+        ),
       ],
     );
   }

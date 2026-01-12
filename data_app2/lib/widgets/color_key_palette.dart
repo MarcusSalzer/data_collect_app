@@ -1,4 +1,4 @@
-import 'package:data_app2/colors.dart';
+import 'package:data_app2/util/colors.dart';
 import 'package:flutter/material.dart';
 
 class ColorKeyPalette extends StatelessWidget {

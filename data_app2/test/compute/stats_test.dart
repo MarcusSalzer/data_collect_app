@@ -1,4 +1,4 @@
-import 'package:data_app2/stats.dart';
+import 'package:data_app2/util/stats.dart';
 import 'package:test/test.dart';
 
 void main() {

@@ -1,5 +1,5 @@
-import 'package:data_app2/enums.dart';
-import 'package:data_app2/extensions.dart';
+import 'package:data_app2/util/enums.dart';
+import 'package:data_app2/util/extensions.dart';
 import 'package:data_app2/user_tabular.dart';
 import 'package:flutter/material.dart';
 
@@ -10,9 +10,7 @@ class CreateTabularScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text("Create dataset"),
-      ),
+      appBar: AppBar(title: Text("Create dataset")),
       body: Padding(
         padding: const EdgeInsets.all(12.0),
         child: CreateTabularForm(model),
@@ -38,38 +36,38 @@ class _CreateTabularFormState extends State<CreateTabularForm> {
   TableFreq _chosenFreq = TableFreq.free;
   @override
   Widget build(BuildContext context) {
-    final fieldElements = _fieldTecList.indexed.map(
-      (e) {
-        final idx = e.$1;
-        final tec = e.$2;
-        return Row(
-          children: [
-            Expanded(
-              child: TextFormField(
-                  decoration: InputDecoration(hintText: "field"),
-                  controller: tec,
-                  validator: (value) {
-                    final v = value?.trim();
-                    if (v == null || v.isEmpty) {
-                      return 'Please enter a field name';
-                    } else {
-                      if (_candidateNames.contains(v)) {
-                        return "Please provide a unique name";
-                      }
-                    }
-                    _candidateNames.add(v);
-                    return null;
-                  }),
+    final fieldElements = _fieldTecList.indexed.map((e) {
+      final idx = e.$1;
+      final tec = e.$2;
+      return Row(
+        children: [
+          Expanded(
+            child: TextFormField(
+              decoration: InputDecoration(hintText: "field"),
+              controller: tec,
+              validator: (value) {
+                final v = value?.trim();
+                if (v == null || v.isEmpty) {
+                  return 'Please enter a field name';
+                } else {
+                  if (_candidateNames.contains(v)) {
+                    return "Please provide a unique name";
+                  }
+                }
+                _candidateNames.add(v);
+                return null;
+              },
             ),
-            IconButton(
-                onPressed: () {
-                  removeField(idx);
-                },
-                icon: Icon(Icons.playlist_remove))
-          ],
-        );
-      },
-    ).toList();
+          ),
+          IconButton(
+            onPressed: () {
+              removeField(idx);
+            },
+            icon: Icon(Icons.playlist_remove),
+          ),
+        ],
+      );
+    }).toList();
 
     return Form(
       key: _formKey,
@@ -94,13 +92,8 @@ class _CreateTabularFormState extends State<CreateTabularForm> {
           SizedBox(height: 20),
           Column(
             children: [
-              Text(
-                "Fields",
-                style: TextStyle(fontSize: 20),
-              ),
-              Column(
-                children: fieldElements,
-              ),
+              Text("Fields", style: TextStyle(fontSize: 20)),
+              Column(children: fieldElements),
               TextButton(onPressed: addField, child: Text("add field")),
             ],
           ),
@@ -111,15 +104,15 @@ class _CreateTabularFormState extends State<CreateTabularForm> {
                 .map(
                   (tf) => Padding(
                     padding: const EdgeInsets.all(8.0),
-                    child: Row(
-                      children: [
-                        Radio<TableFreq>(
-                          value: tf,
-                          groupValue: _chosenFreq,
-                          onChanged: updateFreq,
-                        ),
-                        Text(tf.name.capitalized),
-                      ],
+                    child: RadioGroup<TableFreq>(
+                      groupValue: _chosenFreq,
+                      onChanged: updateFreq,
+                      child: Row(
+                        children: [
+                          Radio<TableFreq>(value: tf),
+                          Text(tf.name.capitalized),
+                        ],
+                      ),
                     ),
                   ),
                 )

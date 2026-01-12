@@ -1,4 +1,4 @@
-import 'package:data_app2/fmt.dart';
+import 'package:data_app2/util/fmt.dart';
 import 'package:data_app2/screens/table_record_edit_screen.dart';
 import 'package:data_app2/user_tabular.dart';
 import 'package:data_app2/util.dart';
@@ -19,125 +19,120 @@ class TableEditScreen extends StatelessWidget {
     // for deleting table
     final tableManager = Provider.of<TableManager>(context, listen: false);
     return FutureBuilder(
-        future: _initF,
-        builder: (context, snap) {
-          if (snap.connectionState == ConnectionState.waiting) {
-            return Center(child: Text("Loading records..."));
-          }
-          if (snap.hasError) {
-            return Center(child: Text("Error loading records"));
-          }
+      future: _initF,
+      builder: (context, snap) {
+        if (snap.connectionState == ConnectionState.waiting) {
+          return Center(child: Text("Loading records..."));
+        }
+        if (snap.hasError) {
+          return Center(child: Text("Error loading records"));
+        }
 
-          return Scaffold(
-            appBar: AppBar(
-              title: Text(table.name),
-              actions: [
-                MenuAnchor(
-                  builder: (context, controller, child) => IconButton(
-                    onPressed: () {
-                      if (controller.isOpen) {
-                        controller.close();
-                      } else {
-                        controller.open();
-                      }
-                    },
-                    icon: Icon(Icons.more_vert),
-                  ),
-                  menuChildren: [
-                    MenuItemButton(
-                      onPressed: () {
-                        showDialog(
-                          context: context,
-                          builder: (context) => ConfirmDialog(
-                            title:
-                                "Export ${table.data.length} records as CSV?",
-                            action: () async {
-                              await table.exportCsv();
-                              if (context.mounted) {
-                                simpleSnack(context, "Export OK!");
-                              }
-                            },
-                          ),
-                        );
-                      },
-                      style: ButtonStyle(
-                        padding: WidgetStatePropertyAll(EdgeInsets.all(8)),
-                      ),
-                      child: Text("Export CSV"),
-                    ),
-                    MenuItemButton(
-                      onPressed: () {
-                        showDialog(
-                          context: context,
-                          builder: (context) => ConfirmDialog(
-                            title: "Clear all records?",
-                            action: table.truncate,
-                          ),
-                        );
-                      },
-                      style: ButtonStyle(
-                        padding: WidgetStatePropertyAll(EdgeInsets.all(8)),
-                      ),
-                      child: Text("Clear table"),
-                    ),
-                    MenuItemButton(
-                      onPressed: () {
-                        showDialog(
-                          context: context,
-                          builder: (context) => ConfirmDialog(
-                            title: "Permanently delete table?",
-                            action: () async {
-                              await tableManager.deleteTable(table);
-                              if (context.mounted) {
-                                // leave edit page
-                                Navigator.pop(context);
-                              }
-                            },
-                          ),
-                        );
-                      },
-                      style: ButtonStyle(
-                        padding: WidgetStatePropertyAll(EdgeInsets.all(8)),
-                      ),
-                      child: Text("Delete table"),
-                    ),
-                  ],
+        return Scaffold(
+          appBar: AppBar(
+            title: Text(table.name),
+            actions: [
+              MenuAnchor(
+                builder: (context, controller, child) => IconButton(
+                  onPressed: () {
+                    if (controller.isOpen) {
+                      controller.close();
+                    } else {
+                      controller.open();
+                    }
+                  },
+                  icon: Icon(Icons.more_vert),
                 ),
-              ],
-            ),
-            body: Column(
-              children: [
-                Expanded(
-                  child: TableRecordsList(table),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: TextButton(
+                menuChildren: [
+                  MenuItemButton(
                     onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => TableRecordEditScreen(table),
+                      showDialog(
+                        context: context,
+                        builder: (context) => ConfirmDialog(
+                          title: "Export ${table.data.length} records as CSV?",
+                          action: () async {
+                            await table.exportCsv();
+                            if (context.mounted) {
+                              simpleSnack(context, "Export OK!");
+                            }
+                          },
                         ),
                       );
                     },
-                    child: Text("New"),
+                    style: ButtonStyle(
+                      padding: WidgetStatePropertyAll(EdgeInsets.all(8)),
+                    ),
+                    child: Text("Export CSV"),
                   ),
-                )
-              ],
-            ),
-          );
-        });
+                  MenuItemButton(
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        builder: (context) => ConfirmDialog(
+                          title: "Clear all records?",
+                          action: table.truncate,
+                        ),
+                      );
+                    },
+                    style: ButtonStyle(
+                      padding: WidgetStatePropertyAll(EdgeInsets.all(8)),
+                    ),
+                    child: Text("Clear table"),
+                  ),
+                  MenuItemButton(
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        builder: (context) => ConfirmDialog(
+                          title: "Permanently delete table?",
+                          action: () async {
+                            await tableManager.deleteTable(table);
+                            if (context.mounted) {
+                              // leave edit page
+                              Navigator.pop(context);
+                            }
+                          },
+                        ),
+                      );
+                    },
+                    style: ButtonStyle(
+                      padding: WidgetStatePropertyAll(EdgeInsets.all(8)),
+                    ),
+                    child: Text("Delete table"),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          body: Column(
+            children: [
+              Expanded(child: TableRecordsList(table)),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: TextButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => TableRecordEditScreen(table),
+                      ),
+                    );
+                  },
+                  child: Text("New"),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 }
 
 class TableRecordsList extends StatelessWidget {
   final TableProcessor table;
 
-  const TableRecordsList(
-    this.table, {
-    super.key,
-  });
+  const TableRecordsList(this.table, {super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -179,10 +174,7 @@ class TableRecordListTile extends StatelessWidget {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => TableRecordEditScreen(
-              table,
-              record: rec,
-            ),
+            builder: (context) => TableRecordEditScreen(table, record: rec),
           ),
         );
       },

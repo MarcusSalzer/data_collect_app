@@ -1,5 +1,5 @@
 # data
-data/
+/data/
 experiments/aux_data/
 experiments/tmp_data/
 data_config.toml

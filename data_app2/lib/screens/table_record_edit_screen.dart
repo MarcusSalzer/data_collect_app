@@ -1,5 +1,5 @@
-import 'package:data_app2/enums.dart';
-import 'package:data_app2/fmt.dart';
+import 'package:data_app2/util/enums.dart';
+import 'package:data_app2/util/fmt.dart';
 import 'package:data_app2/user_tabular.dart';
 import 'package:data_app2/util.dart';
 import 'package:data_app2/widgets/confirm_dialog.dart';
@@ -57,11 +57,7 @@ class _TableRecordEditScreenState extends State<TableRecordEditScreen> {
     final rec = record;
 
     if (rec == null) {
-      return Scaffold(
-        appBar: AppBar(
-          title: Text("Loading"),
-        ),
-      );
+      return Scaffold(appBar: AppBar(title: Text("Loading")));
     }
 
     // Make all fields
@@ -70,9 +66,7 @@ class _TableRecordEditScreenState extends State<TableRecordEditScreen> {
 
       return Row(
         children: [
-          Expanded(
-            child: Text(c.name),
-          ),
+          Expanded(child: Text(c.name)),
           Expanded(
             flex: 2,
             child: TextFormField(
@@ -94,30 +88,33 @@ class _TableRecordEditScreenState extends State<TableRecordEditScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        leading: BackButton(onPressed: () {
-          save();
-        }),
+        leading: BackButton(
+          onPressed: () {
+            save();
+          },
+        ),
         title: Text("${isNew ? "New" : "Record"} in '${widget.table.name}'"),
         actions: [
           IconButton(
-              onPressed: () {
-                showDialog(
-                  context: context,
-                  builder: (context) => ConfirmDialog(
-                    title: "delete",
-                    action: () async {
-                      final didDelete = await table.delete(rec);
-                      if (context.mounted) {
-                        if (didDelete) {
-                          simpleSnack(context, "deleted $record");
-                        }
-                        Navigator.pop(context);
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (context) => ConfirmDialog(
+                  title: "delete",
+                  action: () async {
+                    final didDelete = await table.delete(rec);
+                    if (context.mounted) {
+                      if (didDelete) {
+                        simpleSnack(context, "deleted $record");
                       }
-                    },
-                  ),
-                );
-              },
-              icon: Icon(Icons.delete_forever))
+                      Navigator.pop(context);
+                    }
+                  },
+                ),
+              );
+            },
+            icon: Icon(Icons.delete_forever),
+          ),
         ],
       ),
       body: Column(
@@ -126,18 +123,13 @@ class _TableRecordEditScreenState extends State<TableRecordEditScreen> {
             key: _formKey,
             child: Column(
               children: [
-                TableRecTimestampDisplay(
-                  freq: table.freq,
-                  rec: rec,
-                ),
+                TableRecTimestampDisplay(freq: table.freq, rec: rec),
                 Divider(),
-                Column(
-                  children: fieldInputs,
-                ),
+                Column(children: fieldInputs),
               ],
             ),
           ),
-          if (!isNew) Text("id: ${rec.id}")
+          if (!isNew) Text("id: ${rec.id}"),
         ],
       ),
     );
@@ -177,15 +169,15 @@ class TableRecTimestampDisplay extends StatelessWidget {
   final TableFreq freq;
   final TableRecord rec;
 
-  const TableRecTimestampDisplay(
-      {super.key, required this.freq, required this.rec});
+  const TableRecTimestampDisplay({
+    super.key,
+    required this.freq,
+    required this.rec,
+  });
   @override
   Widget build(BuildContext context) {
     final txt = dtFreqFmt(rec.timestamp, freq);
 
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Text(txt),
-    );
+    return Padding(padding: const EdgeInsets.all(8.0), child: Text(txt));
   }
 }

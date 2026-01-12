@@ -1,8 +1,10 @@
 import 'package:data_app2/util.dart';
 import 'package:flutter/material.dart';
 
-Future<T?> showConfirmSaveBackDialog<T>(BuildContext context,
-    {required Future<T> Function() saveAction}) {
+Future<T?> showConfirmSaveBackDialog<T>(
+  BuildContext context, {
+  required Future<T> Function() saveAction,
+}) {
   return showDialog<T?>(
     context: context,
     builder: (BuildContext context) {
@@ -12,7 +14,8 @@ Future<T?> showConfirmSaveBackDialog<T>(BuildContext context,
         actions: [
           TextButton(
             style: TextButton.styleFrom(
-                textStyle: Theme.of(context).textTheme.labelLarge),
+              textStyle: Theme.of(context).textTheme.labelLarge,
+            ),
             child: const Text('Discard'),
             onPressed: () {
               simpleSnack(context, "Discarded changes");
@@ -22,7 +25,8 @@ Future<T?> showConfirmSaveBackDialog<T>(BuildContext context,
           ),
           TextButton(
             style: TextButton.styleFrom(
-                textStyle: Theme.of(context).textTheme.labelLarge),
+              textStyle: Theme.of(context).textTheme.labelLarge,
+            ),
             child: const Text('Save'),
             onPressed: () async {
               final edited = await saveAction();

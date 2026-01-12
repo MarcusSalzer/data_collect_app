@@ -1,7 +1,7 @@
 import 'package:data_app2/app_state.dart';
 import 'package:data_app2/dialogs/show_confirm_save_back_dialog.dart';
-import 'package:data_app2/event_type_detail_view_model.dart';
-import 'package:data_app2/extensions.dart';
+import 'package:data_app2/view_models/event_type_detail_view_model.dart';
+import 'package:data_app2/util/extensions.dart';
 import 'package:data_app2/user_events.dart';
 import 'package:data_app2/util.dart';
 import 'package:data_app2/widgets/color_key_palette.dart';
@@ -28,19 +28,21 @@ class EventTypeDetailScreen extends StatelessWidget {
           canPop: !vm.isDirty,
           onPopInvokedWithResult: (didPop, Object? res) async {
             if (!didPop) {
-              showConfirmSaveBackDialog<EvtTypeRec?>(context,
-                  saveAction: () async {
-                final errMsg = await vm.save();
-                if (context.mounted) {
-                  if (errMsg != null) {
-                    simpleSnack(context, errMsg, color: Colors.red);
-                    return null;
-                  } else {
-                    simpleSnack(context, "Saved!");
+              showConfirmSaveBackDialog<EvtTypeRec?>(
+                context,
+                saveAction: () async {
+                  final errMsg = await vm.save();
+                  if (context.mounted) {
+                    if (errMsg != null) {
+                      simpleSnack(context, errMsg, color: Colors.red);
+                      return null;
+                    } else {
+                      simpleSnack(context, "Saved!");
+                    }
                   }
-                }
-                return vm.typeEdit;
-              });
+                  return vm.typeEdit;
+                },
+              );
             }
           },
           child: Scaffold(
@@ -58,10 +60,15 @@ class EventTypeDetailScreen extends StatelessWidget {
                           if (context.mounted) {
                             if (didDelete) {
                               simpleSnack(
-                                  context, "Deleted type ${vm.typeEdit.id}");
+                                context,
+                                "Deleted type ${vm.typeEdit.id}",
+                              );
                             } else {
-                              simpleSnack(context, "Failed to delete type",
-                                  color: Colors.red);
+                              simpleSnack(
+                                context,
+                                "Failed to delete type",
+                                color: Colors.red,
+                              );
                             }
                             Navigator.of(context).pop();
                             Navigator.of(context).pop();
@@ -71,51 +78,52 @@ class EventTypeDetailScreen extends StatelessWidget {
                     );
                   },
                   icon: Icon(Icons.delete_forever),
-                )
+                ),
               ],
             ),
             body: SingleChildScrollView(
-                child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                children: [
-                  TwoColumns(
-                    rows: [
-                      (
-                        Text("Name"),
-                        TextFormField(
-                          onChanged: (v) => vm.updateName(v.trim()),
-                          initialValue: vm.typeEdit.name,
-                        ),
-                      ),
-                      (
-                        Text("Color"),
-                        ElevatedButton(
-                          onPressed: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (context) => ColorKeyPalette(
-                                  selectedColorKey: vm.color,
-                                  onColorSelected: (newCol) {
-                                    vm.updateColor(newCol);
-                                  },
-                                ),
-                              ),
-                            );
-                          },
-                          child: Text(
-                            vm.color.name.capitalized,
-                            style: TextStyle(
-                                color: vm.color.inContext(context),
-                                fontWeight: FontWeight.bold),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  children: [
+                    TwoColumns(
+                      rows: [
+                        (
+                          Text("Name"),
+                          TextFormField(
+                            onChanged: (v) => vm.updateName(v.trim()),
+                            initialValue: vm.typeEdit.name,
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 32),
-                  if (vm.isDirty)
-                    TextButton(
+                        (
+                          Text("Color"),
+                          ElevatedButton(
+                            onPressed: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) => ColorKeyPalette(
+                                    selectedColorKey: vm.color,
+                                    onColorSelected: (newCol) {
+                                      vm.updateColor(newCol);
+                                    },
+                                  ),
+                                ),
+                              );
+                            },
+                            child: Text(
+                              vm.color.name.capitalized,
+                              style: TextStyle(
+                                color: vm.color.inContext(context),
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 32),
+                    if (vm.isDirty)
+                      TextButton(
                         onPressed: () async {
                           final errMsg = await vm.save();
                           if (context.mounted) {
@@ -127,12 +135,14 @@ class EventTypeDetailScreen extends StatelessWidget {
                             }
                           }
                         },
-                        child: Text("Save & exit")),
-                  SizedBox(height: 32),
-                  EventTypeDetailDisplay(vm.typeEdit),
-                ],
+                        child: Text("Save & exit"),
+                      ),
+                    SizedBox(height: 32),
+                    EventTypeDetailDisplay(vm.typeEdit),
+                  ],
+                ),
               ),
-            )),
+            ),
           ),
         ),
       ),
@@ -152,12 +162,7 @@ class EventTypeDetailDisplay extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            flex: 2,
-            child: Text(
-              title,
-            ),
-          ),
+          Expanded(flex: 2, child: Text(title)),
           Expanded(
             flex: 3,
             child: Text(
@@ -173,10 +178,7 @@ class EventTypeDetailDisplay extends StatelessWidget {
   Widget _subtitle(String t) {
     return Padding(
       padding: const EdgeInsets.only(top: 16),
-      child: Text(
-        t,
-        style: TextStyle(fontWeight: FontWeight.bold),
-      ),
+      child: Text(t, style: TextStyle(fontWeight: FontWeight.bold)),
     );
   }
 
@@ -188,8 +190,11 @@ class EventTypeDetailDisplay extends StatelessWidget {
         _subtitle("Details"),
         _buildInfoRow('Id', type.id.toString()),
         _buildInfoRow('Name', type.name),
-        _buildInfoRow('Color', type.color.toString(),
-            color: type.color.inContext(context)),
+        _buildInfoRow(
+          'Color',
+          type.color.toString(),
+          color: type.color.inContext(context),
+        ),
       ],
     );
   }

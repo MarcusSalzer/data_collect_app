@@ -2,9 +2,9 @@ import 'dart:math';
 
 import 'package:data_app2/app_state.dart';
 import 'package:data_app2/db_service.dart';
-import 'package:data_app2/event_stats_compute.dart';
-import 'package:data_app2/extensions.dart';
-import 'package:data_app2/fmt.dart';
+import 'package:data_app2/util/event_stats_compute.dart';
+import 'package:data_app2/util/extensions.dart';
+import 'package:data_app2/util/fmt.dart';
 import 'package:data_app2/local_datetime.dart';
 import 'package:data_app2/screens/day_inmonth_screen.dart';
 import 'package:data_app2/user_events.dart';
@@ -37,10 +37,12 @@ class MonthViewModel extends ChangeNotifier {
   /// load events for current month
   Future<void> _loadEvents() async {
     _events.clear(); // remove old data
-    final evts = await _db.getEventsFilteredLocalTime(
-        earliest: LocalDateTime.fromDateTimeLocalTZ(_current),
-        latest: LocalDateTime.fromDateTimeLocalTZ(
-            DateUtils.addMonthsToMonthDate(_current, 1)));
+    final evts = await _db.events.filteredLocalTime(
+      earliest: LocalDateTime.fromDateTimeLocalTZ(_current),
+      latest: LocalDateTime.fromDateTimeLocalTZ(
+        DateUtils.addMonthsToMonthDate(_current, 1),
+      ),
+    );
     _events = evts.map((e) => EvtRec.fromIsar(e)).toList();
     tpe = timePerEvent(_events);
     // eventsPerDay();
@@ -51,8 +53,10 @@ class MonthViewModel extends ChangeNotifier {
   void _makeDayGrid() {
     final offset = _current.monthFirstWeekday;
 
-    _days = List.generate(42,
-        (i) => DateUtils.addDaysToDate(_current.startOfMonth, i - offset + 1));
+    _days = List.generate(
+      42,
+      (i) => DateUtils.addDaysToDate(_current.startOfMonth, i - offset + 1),
+    );
   }
 
   /// Move to a new month and reload data
@@ -125,7 +129,8 @@ class _MonthCalendarScreenState extends State<MonthCalendarScreen> {
                       Expanded(
                         child: Center(
                           child: Text(
-                              DateFormat("MMMM yyyy").format(model._current)),
+                            DateFormat("MMMM yyyy").format(model._current),
+                          ),
                         ),
                       ),
                       IconButton(
@@ -157,12 +162,13 @@ class _MonthCalendarScreenState extends State<MonthCalendarScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     IconButton(
-                        onPressed: () {
-                          if (_pageIndex > 0) {
-                            _updatePage(_pageIndex - 1);
-                          }
-                        },
-                        icon: Icon(Icons.arrow_left)),
+                      onPressed: () {
+                        if (_pageIndex > 0) {
+                          _updatePage(_pageIndex - 1);
+                        }
+                      },
+                      icon: Icon(Icons.arrow_left),
+                    ),
                     Text("page $_pageIndex"),
                     IconButton(
                       onPressed: () {
@@ -173,7 +179,7 @@ class _MonthCalendarScreenState extends State<MonthCalendarScreen> {
                       icon: Icon(Icons.arrow_right),
                     ),
                   ],
-                )
+                ),
               ],
             ),
           );
@@ -195,10 +201,7 @@ class _MonthCalendarScreenState extends State<MonthCalendarScreen> {
 class MonthSummaryDisplay extends StatelessWidget {
   final MonthViewModel model;
 
-  const MonthSummaryDisplay(
-    this.model, {
-    super.key,
-  });
+  const MonthSummaryDisplay(this.model, {super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -215,11 +218,12 @@ class MonthSummaryDisplay extends StatelessWidget {
           tpe: model.tpe
               .map(
                 (e) => MapEntry(
-                    app.evtTypeRepo.resolveById(e.key)?.name ?? "unknown",
-                    e.value),
+                  app.evtTypeManager.resolveById(e.key) ??
+                      EvtTypeRec(name: "unknown"),
+                  e.value,
+                ),
               )
               .toList(),
-          colors: Colors.primaries,
           listHeight: 350,
         ),
         // Expanded(
@@ -242,10 +246,7 @@ class MonthSummaryDisplay extends StatelessWidget {
 class CalendarMonthDisplay extends StatelessWidget {
   final MonthViewModel model;
 
-  const CalendarMonthDisplay(
-    this.model, {
-    super.key,
-  });
+  const CalendarMonthDisplay(this.model, {super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -279,18 +280,16 @@ class CalendarMonthDisplay extends StatelessWidget {
 
 class CalendarGrid extends StatelessWidget {
   final MonthViewModel model;
-  const CalendarGrid(
-    this.model, {
-    super.key,
-  });
+  const CalendarGrid(this.model, {super.key});
 
   @override
   Widget build(BuildContext context) {
     final evtCounts = model.eventsPerDay();
     final maxCount = evtCounts.fold(1, (p, c) => max(p, c));
     return GridView.builder(
-      gridDelegate:
-          const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 7),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 7,
+      ),
       physics: NeverScrollableScrollPhysics(),
       itemCount: model.days.length,
       itemBuilder: (context, index) {
@@ -330,7 +329,9 @@ class CalDayTile extends StatelessWidget {
     }
     if (dt.isToday()) {
       tStyle = tStyle.copyWith(
-          decoration: TextDecoration.underline, decorationThickness: 2);
+        decoration: TextDecoration.underline,
+        decorationThickness: 2,
+      );
     }
 
     return InkWell(
@@ -345,11 +346,7 @@ class CalDayTile extends StatelessWidget {
           : null,
       child: Container(
         color: color,
-        child: Center(
-            child: Text(
-          "${dt.day}",
-          style: tStyle,
-        )),
+        child: Center(child: Text("${dt.day}", style: tStyle)),
       ),
     );
   }

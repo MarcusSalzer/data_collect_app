@@ -1,85 +1,130 @@
 // Keep current settings in memory, for convenient access
 
-import 'package:data_app2/event_stats_compute.dart';
-import 'package:data_app2/event_type_repository.dart';
-import 'package:data_app2/extensions.dart';
+import 'dart:io';
+
+import 'package:data_app2/data/app_prefs.dart';
+import 'package:data_app2/data/today_summary_data.dart';
+import 'package:data_app2/style.dart';
+import 'package:data_app2/util/enums.dart';
+import 'package:data_app2/util/event_stats_compute.dart';
+import 'package:data_app2/event_type_manager.dart';
+import 'package:data_app2/util/extensions.dart';
 import 'package:data_app2/local_datetime.dart';
 import 'package:data_app2/user_events.dart';
 import 'package:flutter/material.dart';
 import 'package:data_app2/db_service.dart';
+import 'package:logging/logging.dart';
+import 'package:path/path.dart' as p;
 
 class AppState extends ChangeNotifier {
-  bool _darkMode = true;
-  // input normalization
-  bool _normStrip = false;
-  bool _normCase = false;
-  final DBService _db;
-  final EvtTypeRepositoryPersist _evtTypeRepo;
+  // remember preferences
+  AppPrefs _prefs;
 
-  // get preferences
-  bool get isDarkMode => _darkMode;
-  bool get normStrip => _normStrip;
-  bool get normCase => _normCase;
+  final Directory _userStoreDir;
+  final DBService _db;
+  final EvtTypeManagerPersist _evtTypeManager;
+
+  /// A user accessible directory for data
+  Directory get userStoreDir => _userStoreDir;
+
+  /// All preferences
+  AppPrefs get prefs => _prefs;
+  // deprecated individual getters?
+  bool get isDarkMode => _prefs.colorSchemeMode == ColorSchemeMode.dark;
+  bool get autoLowerCase => _prefs.autoLowerCase;
+  LogLevel get logLevel => _prefs.logLevel;
+  TextSearchMode get textSearchMode => _prefs.textSearchMode;
 
   // get db instance & event types
   DBService get db => _db;
 
   /// Get the singleton type repository
-  EvtTypeRepositoryPersist get evtTypeRepo => _evtTypeRepo;
+  EvtTypeManagerPersist get evtTypeManager => _evtTypeManager;
 
   // keep track of today summary
   TodaySummaryData? todaySummary;
 
-  AppState(this._db) : _evtTypeRepo = EvtTypeRepositoryPersist(db: _db) {
-    _db.loadPrefs().then((prefs) {
-      if (prefs != null) {
-        _darkMode = prefs.darkMode;
-        _normStrip = prefs.normalizeStrip;
-        _normCase = prefs.normalizeCase;
-        notifyListeners();
-      }
-    });
-    _db.getEventTypes().then((types) {
-      _evtTypeRepo.fillFromIsar(types);
+  /// Initialize appstate.
+  ///
+  /// Will also get a [EvtTypeManagerPersist] and fill evt-type-cache
+  AppState(this._db, this._prefs, this._userStoreDir)
+    : _evtTypeManager = EvtTypeManagerPersist(db: _db) {
+    _db.eventTypes.all().then((types) {
+      _evtTypeManager.reloadFromIsar(types);
     });
 
     // check dangling types (move this?)
-    evtTypeRepo.danglingTypeRefs();
+    evtTypeManager.danglingTypeRefs().then((d) {
+      final count = d.length;
+      final msg = "has $count dangling type-refs";
+      if (count > 0) {
+        Logger.root.warning(msg);
+      }
+      Logger.root.info(msg);
+    });
 
     refreshSummary();
   }
 
-  setDarkMode(bool value) {
-    _darkMode = value;
-    _db.updatePrefs(this);
-    notifyListeners();
+  // --- Preference updating methods ---
+
+  Future<void> setColorScheme(ColorSchemeMode value) async {
+    await _updatePrefs(_prefs.copyWith(colorSchemeMode: value));
+    Logger.root.info("updated prefs: colorSchemeMode=$value");
   }
 
-  setNormStrip(bool value) {
-    _normStrip = value;
-    _db.updatePrefs(this);
-    notifyListeners();
+  Future<void> setAutoLowerCase(bool value) async {
+    await _updatePrefs(_prefs.copyWith(autoLowerCase: value));
+    Logger.root.info("updated prefs: autoLowercase=$value");
   }
 
-  setNormCase(bool value) {
-    _normCase = value;
-    _db.updatePrefs(this);
+  Future<void> setLogLevel(LogLevel value) async {
+    await _updatePrefs(_prefs.copyWith(logLevel: value));
+    Logger.root.warning("updated prefs: logLevel=$value");
+  }
+
+  Future<void> setSearchMode(TextSearchMode value) async {
+    await _updatePrefs(_prefs.copyWith(textSearchMode: value));
+    Logger.root.info("updated prefs: textSearchMode=$value");
+  }
+
+  Future<void> _updatePrefs(AppPrefs newPrefs) async {
+    // remember new data
+    _prefs = newPrefs;
+    // update logger
+    Logger.root.level = newPrefs.logLevel.toLogging();
     notifyListeners();
+
+    // persist new preferences
+    await db.prefs.store(_prefs.toIsar());
   }
 
   /// For keeping summary after leaving events screen
   Future<void> refreshSummary() async {
-    final evts = await db.getEventsFilteredLocalTime(
-        earliest: LocalDateTime.fromDateTimeLocalTZ(DateTime.now().startOfDay));
+    final evts = await db.events.filteredLocalTime(
+      earliest: LocalDateTime.fromDateTimeLocalTZ(DateTime.now().startOfDay),
+    );
 
     final tpe = timePerEvent(evts.map((e) => EvtRec.fromIsar(e)), limit: 5);
-    todaySummary = TodaySummaryData(tpe);
+    todaySummary = TodaySummaryData(
+      tpe
+          .map(
+            (e) => MapEntry(
+              evtTypeManager.resolveById(e.key) ?? EvtTypeRec(name: "unknown"),
+              e.value,
+            ),
+          )
+          .toList(),
+    );
     notifyListeners();
   }
-}
 
-class TodaySummaryData {
-  final List<MapEntry<int, Duration>> tpe;
-  Duration get trackedTime => tpe.fold(Duration.zero, (p, c) => p + c.value);
-  TodaySummaryData(this.tpe);
+  /// Get directory inside configured storage dir
+  Future<Directory> storeSubdir([String subfolder = "export"]) async {
+    final dir = Directory(p.join(_userStoreDir.path, subfolder));
+    // ensure exists
+    await dir.create(recursive: true);
+
+    return dir;
+  }
 }

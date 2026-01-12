@@ -27,9 +27,9 @@ class LocalDateTime {
   }
 
   LocalDateTime.fromDateTimeLocalTZ(DateTime dt)
-      : utcMillis = dt.millisecondsSinceEpoch,
-        localMillis =
-            dt.millisecondsSinceEpoch + dt.timeZoneOffset.inMilliseconds;
+    : utcMillis = dt.millisecondsSinceEpoch,
+      localMillis =
+          dt.millisecondsSinceEpoch + dt.timeZoneOffset.inMilliseconds;
 
   factory LocalDateTime.fromUtcISOAndffset({
     required String utcIso,
@@ -67,8 +67,10 @@ class LocalDateTime {
 
   /// Formats an ISO-8601 string, without any timezone suffix.
   String toNaiveIso8601String({bool includeMs = false}) {
-    final dt =
-        asLocal.copyWith(millisecond: includeMs ? null : 0, microsecond: 0);
+    final dt = asLocal.copyWith(
+      millisecond: includeMs ? null : 0,
+      microsecond: 0,
+    );
     final s = dt.toIso8601String();
 
     if (includeMs) {

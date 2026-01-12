@@ -1,26 +1,19 @@
 import 'package:data_app2/db_service.dart';
+import 'package:data_app2/isar_models.dart';
 import 'package:data_app2/local_datetime.dart';
 import 'package:data_app2/user_events.dart';
 import 'package:isar_community/isar.dart';
-import 'dart:io';
 
 import 'package:test/test.dart';
+
+import 'test_util/dummy_app.dart';
 
 void main() {
   late final Isar isar;
   late final DBService db;
 
   setUpAll(() async {
-    await Isar.initializeIsarCore(download: true);
-
-    // Use a temporary directory for the test DB
-    final dir = await Directory.systemTemp.createTemp();
-    isar = await Isar.open(
-      [EventSchema],
-      directory: dir.path,
-      name: 'test_db',
-    );
-
+    isar = await getTmpIsar();
     db = DBService(isar);
   });
 
@@ -84,7 +77,9 @@ void main() {
       final tzoMs = 7_200_000; // two hours
 
       final midnight = LocalDateTime.fromUtcISOAndffset(
-          utcIso: '2025-05-01T22:00:00Z', offsetMillis: tzoMs);
+        utcIso: '2025-05-01T22:00:00Z',
+        offsetMillis: tzoMs,
+      );
 
       // should be in first day
       final lastNight = EvtRec(
@@ -136,8 +131,8 @@ void main() {
       });
 
       // get all events for each day
-      final firstDay = await db.getEventsFilteredLocalTime(latest: midnight);
-      final secondDay = await db.getEventsFilteredLocalTime(earliest: midnight);
+      final firstDay = await db.events.filteredLocalTime(latest: midnight);
+      final secondDay = await db.events.filteredLocalTime(earliest: midnight);
 
       expect(firstDay.length, 1, reason: "Should be 1 event first day");
       expect(EvtRec.fromIsar(firstDay[0]), lastNight);

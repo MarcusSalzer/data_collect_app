@@ -2,9 +2,10 @@
 // initially, only integers
 
 import 'package:data_app2/db_service.dart';
-import 'package:data_app2/enums.dart';
-import 'package:data_app2/extensions.dart';
-import 'package:data_app2/fmt.dart';
+import 'package:data_app2/isar_models.dart';
+import 'package:data_app2/util/enums.dart';
+import 'package:data_app2/util/extensions.dart';
+import 'package:data_app2/util/fmt.dart';
 import 'package:data_app2/io.dart';
 import 'package:flutter/material.dart';
 
@@ -14,7 +15,7 @@ class ColumnDef {
 
   ColumnDef(this.name, this.dtype);
 
-  decode(int? n) {
+  dynamic decode(int? n) {
     if (n == null) {
       return null;
     }
@@ -26,7 +27,7 @@ class ColumnDef {
     }
   }
 
-  encode(dynamic value) {
+  int? encode(dynamic value) {
     if (value == null) {
       return null;
     }
@@ -104,7 +105,7 @@ class TableProcessor extends ChangeNotifier {
 
   Future<void> _initializeData() async {
     _data.clear();
-    final records = await _db.getAllRecords(tableId);
+    final records = await _db.tabular.getAllRecords(tableId);
     _data.addAll(records.map((r) => decodeRow(r)));
   }
 
@@ -139,8 +140,10 @@ class TableProcessor extends ChangeNotifier {
   Future<TableRecord> findByTimeOrNew() async {
     final nowLocal = now();
     if (freq != TableFreq.free) {
-      final existing =
-          await _db.getTableRecordsTime(table: tableId, dt: nowLocal);
+      final existing = await _db.tabular.getTableRecordsTime(
+        table: tableId,
+        dt: nowLocal,
+      );
       if (existing.isNotEmpty) {
         final rec = decodeRow(existing.first);
         return rec;
@@ -156,8 +159,12 @@ class TableProcessor extends ChangeNotifier {
     for (var (i, col) in columns.indexed) {
       values[i] = col.encode(rec.data[col.name]);
     }
-    final newId =
-        await _db.saveTableRecord(tableId, rec.timestamp, values, rec.id);
+    final newId = await _db.tabular.saveTableRecord(
+      tableId,
+      rec.timestamp,
+      values,
+      rec.id,
+    );
     if (isNew) {
       rec.id = newId;
       _data.add(rec);
@@ -172,7 +179,7 @@ class TableProcessor extends ChangeNotifier {
       return false;
     }
 
-    final deleted = await _db.deleteTableRecord(tableId, recId);
+    final deleted = await _db.tabular.deleteTableRecord(tableId, recId);
     if (deleted) {
       _data.remove(rec);
       notifyListeners();
@@ -182,7 +189,7 @@ class TableProcessor extends ChangeNotifier {
 
   /// delete all data of the table
   Future<int> truncate() async {
-    final count = await _db.truncateTable(tableId);
+    final count = await _db.tabular.truncateTable(tableId);
     // clear in-memory list
     _data.clear();
 
@@ -204,8 +211,10 @@ class TableProcessor extends ChangeNotifier {
   }
 
   Future<void> exportCsv({bool withSchema = false}) async {
-    final csvContent =
-        tableRecordsToCsv(_data, csvHeader(withSchema: withSchema));
+    final csvContent = tableRecordsToCsv(
+      _data,
+      csvHeader(withSchema: withSchema),
+    );
     final fileName = "${name}_${Fmt.dtSecond(DateTime.now())}";
     exportFile(fileName, csvContent);
   }
@@ -235,23 +244,25 @@ class TableManager extends ChangeNotifier {
 
   Future<void> _initializeData() async {
     _tables.clear();
-    final tableDefs = await _db.loadUserTables();
+    final tableDefs = await _db.tabular.loadUserTables();
 
     /// create a TabularProcessor from each loaded table definition
-    _tables.addAll(tableDefs.map((t) {
-      final cols = List.generate(
-        t.colNames.length,
-        (i) {
+    _tables.addAll(
+      tableDefs.map((t) {
+        final cols = List.generate(t.colNames.length, (i) {
           return ColumnDef(t.colNames[i], t.schema[i]);
-        },
-        growable: false,
-      );
-      return TableProcessor(_db, t.id, t.name, cols, t.frequency);
-    }));
+        }, growable: false);
+        return TableProcessor(_db, t.id, t.name, cols, t.frequency);
+      }),
+    );
   }
 
-  newTable(String tableName, List<String> colNames, TableFreq freq) async {
-    await _db.saveUserTable(tableName, colNames, freq);
+  Future<void> newTable(
+    String tableName,
+    List<String> colNames,
+    TableFreq freq,
+  ) async {
+    await _db.tabular.saveUserTable(tableName, colNames, freq);
     init();
   }
 
@@ -261,7 +272,7 @@ class TableManager extends ChangeNotifier {
     // dispose ChangeNotifier
     table.dispose();
     // delete from DB
-    final didDelete = await _db.deleteUserTable(table.tableId);
+    final didDelete = await _db.tabular.deleteUserTable(table.tableId);
     if (!didDelete) return false;
     // remove from tables-list
     final didRemove = _tables.remove(table);

@@ -1,5 +1,5 @@
-import 'package:data_app2/colors.dart';
-import 'package:data_app2/db_service.dart' show Event, EventType;
+import 'package:data_app2/isar_models.dart';
+import 'package:data_app2/util/colors.dart';
 import 'package:data_app2/local_datetime.dart';
 
 /// Record class to hold an event
@@ -10,12 +10,7 @@ class EvtRec {
   LocalDateTime? start;
   LocalDateTime? end;
 
-  EvtRec({
-    required this.id,
-    required this.typeId,
-    this.start,
-    this.end,
-  });
+  EvtRec({required this.id, required this.typeId, this.start, this.end});
 
   /// Create a record in the current local timezone
   EvtRec.inCurrentTZ({
@@ -148,6 +143,9 @@ class EvtTypeRec {
 
   EvtTypeRec copyWith({int? id, String? name, ColorKey? color}) {
     return EvtTypeRec(
-        id: id ?? this.id, name: name ?? this.name, color: color ?? this.color);
+      id: id ?? this.id,
+      name: name ?? this.name,
+      color: color ?? this.color,
+    );
   }
 }

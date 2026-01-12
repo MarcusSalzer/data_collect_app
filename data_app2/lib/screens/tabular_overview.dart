@@ -1,5 +1,5 @@
 import 'package:data_app2/app_state.dart';
-import 'package:data_app2/extensions.dart';
+import 'package:data_app2/util/extensions.dart';
 import 'package:data_app2/screens/create_tabular_screen.dart';
 import 'package:data_app2/screens/table_edit_screen.dart';
 import 'package:data_app2/user_tabular.dart';
@@ -25,10 +25,11 @@ class TabularScreen extends StatelessWidget {
                 TextButton.icon(
                   onPressed: () {
                     Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => CreateTabularScreen(model),
-                        ));
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => CreateTabularScreen(model),
+                      ),
+                    );
                   },
                   label: Text("add"),
                   icon: Icon(Icons.add),

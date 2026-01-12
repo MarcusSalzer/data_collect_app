@@ -1,7 +1,7 @@
 import 'package:data_app2/app_state.dart' show AppState;
-import 'package:data_app2/enums.dart';
-import 'package:data_app2/extensions.dart';
-import 'package:data_app2/fmt.dart';
+import 'package:data_app2/util/enums.dart';
+import 'package:data_app2/util/extensions.dart';
+import 'package:data_app2/util/fmt.dart';
 import 'package:data_app2/screens/events/event_detail_screen.dart';
 import 'package:data_app2/user_events.dart';
 import 'package:flutter/material.dart';
@@ -59,10 +59,13 @@ class EventHistoryDisplay extends StatelessWidget {
       switch (headingMode) {
         case GroupFreq.day:
           doHeading = cur?.day != pre?.day;
+          break;
         case GroupFreq.week:
           doHeading = cur?.startOfweek != pre?.startOfweek;
+          break;
         case GroupFreq.month:
           doHeading = cur?.startOfMonth != pre?.startOfMonth;
+          break;
         case null:
           return null;
       }
@@ -96,8 +99,8 @@ class EventListTile extends StatelessWidget {
         : null;
 
     final dur = evt.duration;
-    final durTxt = " (${Fmt.durationHM(dur)})";
-    final typeRec = app.evtTypeRepo.resolveById(evt.typeId);
+    final durTxt = " (${Fmt.durationHmVerbose(dur)})";
+    final typeRec = app.evtTypeManager.resolveById(evt.typeId);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -108,7 +111,8 @@ class EventListTile extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(vertical: 12),
               decoration: BoxDecoration(
-                  border: Border(top: BorderSide(color: Colors.blueGrey))),
+                border: Border(top: BorderSide(color: Colors.blueGrey)),
+              ),
               child: Center(
                 child: Text(
                   heading ?? "---",
@@ -128,22 +132,12 @@ class EventListTile extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.start,
               spacing: 4,
               children: [
-                Text(
-                  wdStart,
-                  style: TextStyle(color: Colors.blueGrey),
-                ),
-                Text(
-                  startText,
-                ),
+                Text(wdStart, style: TextStyle(color: Colors.blueGrey)),
+                Text(startText),
                 Text(" - "),
                 if (wdEnd != null)
-                  Text(
-                    wdEnd,
-                    style: TextStyle(color: Colors.blueGrey),
-                  ),
-                Text(
-                  endText,
-                )
+                  Text(wdEnd, style: TextStyle(color: Colors.blueGrey)),
+                Text(endText),
               ],
             ),
           ),
@@ -157,16 +151,10 @@ class EventListTile extends StatelessWidget {
 
   void _openDetail(BuildContext context) {
     Navigator.of(context)
-        .push(
-      MaterialPageRoute(
-        builder: (context) => EventDetailScreen(evt),
-      ),
-    )
-        .then(
-      (_) {
-        // When the detail view is popped, data might have changed
-        reloadAction();
-      },
-    );
+        .push(MaterialPageRoute(builder: (context) => EventDetailScreen(evt)))
+        .then((_) {
+          // When the detail view is popped, data might have changed
+          reloadAction();
+        });
   }
 }
