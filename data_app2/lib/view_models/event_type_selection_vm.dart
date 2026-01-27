@@ -1,11 +1,12 @@
 import 'package:data_app2/app_state.dart';
+import 'package:data_app2/data/evt_type_rec.dart';
 import 'package:data_app2/util/text_search.dart';
 import 'package:data_app2/view_models/event_type_index_view_model.dart';
-import 'package:data_app2/user_events.dart';
 import 'package:data_app2/util/stats.dart';
 import 'package:flutter/material.dart';
 
 /// Manages selection/filtering of event types based on name
+@Deprecated("Use generic version")
 class EventTypeSelectionVM extends ChangeNotifier {
   EventTypeSelectionVM(this.source, this._app);
 
@@ -50,14 +51,9 @@ class EventTypeSelectionVM extends ChangeNotifier {
 
   /// Get a filtered subset of the items in the index viewmodel
   List<EvtTypeRec> get filtered {
-    final all = source.typesSorted;
+    final all = source.itemsSorted;
     if (_query.isEmpty) return all;
     // return all.where((t) => t.name.toLowerCase().contains(_query)).toList();
-    return textSearchFilter<EvtTypeRec>(
-      _query,
-      all,
-      _app.textSearchMode,
-      (r) => r.name,
-    ).toList();
+    return textSearchFilter<EvtTypeRec>(_query, all, _app.textSearchMode, (r) => r.name).toList();
   }
 }

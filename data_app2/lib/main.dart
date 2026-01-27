@@ -6,6 +6,7 @@ import 'package:data_app2/io.dart';
 import 'package:data_app2/isar_models.dart';
 import 'package:data_app2/screens/home_screen.dart';
 import 'package:data_app2/app_state.dart';
+import 'package:data_app2/screens/welcome_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:logging/logging.dart';
@@ -38,18 +39,23 @@ void main() async {
     final db = DBService(await initIsar());
 
     // stored preferences or defaults
-
+    final loadedPrefs = await db.prefs.load();
+    final prefs = AppPrefs.fromIsar(loadedPrefs);
+    if (loadedPrefs == null) {
+      // first startup, store default prefs
+      await db.prefs.store(prefs.toIsar());
+    }
     runApp(
       MyApp(
         db: db,
-        prefs: AppPrefs.fromIsar(await db.prefs.load()),
+        prefs: prefs,
         userStoreDir: await defaultStoreDir(),
+        // No prefs -> first startup
+        showWelcome: loadedPrefs == null,
       ),
     );
   } on MissingPlatformDirectoryException catch (e) {
-    runApp(
-      StartupErrorApp("Could not find the expected storage directory. $e"),
-    );
+    runApp(StartupErrorApp("Could not find the expected storage directory. $e"));
   } catch (e) {
     runApp(StartupErrorApp("Unexpected error. $e"));
   }
@@ -76,11 +82,14 @@ class MyApp extends StatelessWidget {
 
   final Directory userStoreDir;
 
+  final bool showWelcome;
+
   const MyApp({
     super.key,
     required this.db,
     required this.prefs,
     required this.userStoreDir,
+    required this.showWelcome,
   });
 
   @override
@@ -91,7 +100,8 @@ class MyApp extends StatelessWidget {
         builder: (context, app, child) => MaterialApp(
           title: 'data collect',
           theme: app.prefs.colorSchemeMode.theme,
-          home: const HomeScreen(),
+          // Start at "welcome" or "home"
+          home: showWelcome ? const WelcomeScreen() : const HomeScreen(),
         ),
       ),
     );

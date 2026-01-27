@@ -1,6 +1,7 @@
 import 'package:data_app2/app_state.dart';
+import 'package:data_app2/data/evt_rec.dart';
+import 'package:data_app2/data/evt_type_rec.dart';
 import 'package:data_app2/data/summary_with_period_aggs.dart';
-import 'package:data_app2/user_events.dart';
 import 'package:data_app2/util/enums.dart';
 import 'package:data_app2/util/process_state.dart';
 import 'package:data_app2/util/summary_period_aggs.dart';
@@ -21,11 +22,7 @@ class MultiEvtSummaryVM extends ChangeNotifier {
 
   MultiEvtSummaryVM(this._typeIds, this._app)
     : _typeRecs = _typeIds
-          .map(
-            (i) =>
-                _app.evtTypeManager.resolveById(i) ??
-                EvtTypeRec(name: "Unknown"),
-          )
+          .map((i) => _app.evtTypeManager.resolveById(i) ?? EvtTypeRec(name: "Unknown"))
           .toList() // resolve type ids and set to unknown if missing
           ;
   void setFreq(GroupFreq? f) {
@@ -40,19 +37,12 @@ class MultiEvtSummaryVM extends ChangeNotifier {
   }
 
   SummaryWithPeriodAggs computeSummary(List<EvtRec> evts) {
-    return SummaryWithPeriodAggs(
-      computeAggs(evts, _typeRecs, _freq),
-      _typeRecs,
-      _freq,
-      evts.length,
-    );
+    return SummaryWithPeriodAggs(computeAggs(evts, _typeRecs, _freq), _typeRecs, _freq, evts.length);
   }
 
   /// Load events and compute summary
   Future<void> load() async {
-    final evts = (await _app.db.events.filteredLocalTime(
-      typeIds: _typeIds,
-    )).map((e) => EvtRec.fromIsar(e)).toList();
+    final evts = (await _app.db.events.filteredLocalTime(typeIds: _typeIds)).map((e) => EvtRec.fromIsar(e)).toList();
 
     _evts = evts;
 

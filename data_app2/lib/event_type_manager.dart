@@ -1,6 +1,6 @@
+import 'package:data_app2/data/evt_type_rec.dart';
 import 'package:data_app2/db_service.dart';
 import 'package:data_app2/isar_models.dart';
-import 'package:data_app2/user_events.dart';
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 
@@ -11,7 +11,6 @@ class EvtTypeManager extends ChangeNotifier {
   Map<int, EvtTypeRec> _byId = {};
 
   /// optionally fill with types
-  ///_evtFreqs
   /// Note: only provided types with id will be included
   EvtTypeManager({Iterable<EvtTypeRec>? types}) {
     if (types != null) {
@@ -98,10 +97,7 @@ class EvtTypeManagerPersist extends EvtTypeManager {
 
   /// Check DB for dangling EvtType references
   Future<List<int>> danglingTypeRefs() async {
-    final [refs, existing] = await Future.wait([
-      _db.events.allReferencedTypeIds(),
-      _db.eventTypes.allIds(),
-    ]);
+    final [refs, existing] = await Future.wait([_db.events.allReferencedTypeIds(), _db.eventTypes.allIds()]);
 
     final dangling = refs.difference(existing).toList();
     dangling.sort();

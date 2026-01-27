@@ -1,6 +1,6 @@
 import 'package:data_app2/app_state.dart';
+import 'package:data_app2/data/evt_type_rec.dart';
 import 'package:data_app2/util/colors.dart';
-import 'package:data_app2/user_events.dart';
 import 'package:flutter/material.dart';
 import 'package:isar_community/isar.dart';
 
@@ -13,9 +13,7 @@ class EventTypeDetailViewModel extends ChangeNotifier {
   bool get isDirty => typeEdit != original;
 
   EventTypeDetailViewModel(EvtTypeRec? typeOriginal, this._app)
-    : original =
-          typeOriginal ??
-          EvtTypeRec(name: "[new type]"), // temporary null object
+    : original = typeOriginal ?? EvtTypeRec(name: "[new type]"), // temporary null object
       typeEdit = typeOriginal?.copyWith() ?? EvtTypeRec(name: "[new type]");
 
   void updateColor(ColorKey newColor) {

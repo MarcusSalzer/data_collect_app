@@ -1,9 +1,9 @@
 import 'package:data_app2/app_state.dart' show AppState;
+import 'package:data_app2/data/evt_rec.dart';
 import 'package:data_app2/util/enums.dart';
 import 'package:data_app2/util/extensions.dart';
 import 'package:data_app2/util/fmt.dart';
 import 'package:data_app2/screens/events/event_detail_screen.dart';
-import 'package:data_app2/user_events.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -32,11 +32,7 @@ class EventHistoryDisplay extends StatelessWidget {
         itemCount: evts.length,
         reverse: reverse,
         itemBuilder: (context, i) {
-          return EventListTile(
-            evt: evts[i],
-            heading: _getHeading(i),
-            reloadAction: reloadAction,
-          );
+          return EventListTile(evt: evts[i], heading: _getHeading(i), reloadAction: reloadAction);
         },
         shrinkWrap: !isScrollable,
         physics: isScrollable
@@ -71,19 +67,12 @@ class EventHistoryDisplay extends StatelessWidget {
       }
     }
 
-    return doHeading
-        ? Fmt.verboseDate(evts[i].start?.asLocal, f: headingMode)
-        : null;
+    return doHeading ? Fmt.verboseDate(evts[i].start?.asLocal, f: headingMode) : null;
   }
 }
 
 class EventListTile extends StatelessWidget {
-  const EventListTile({
-    super.key,
-    required this.evt,
-    this.heading,
-    required this.reloadAction,
-  });
+  const EventListTile({super.key, required this.evt, this.heading, required this.reloadAction});
 
   final EvtRec evt;
   final String? heading;
@@ -94,9 +83,7 @@ class EventListTile extends StatelessWidget {
     final app = Provider.of<AppState>(context, listen: false);
     final (startText, endText) = Fmt.eventTimes(evt);
     final wdStart = Fmt.dayAbbr(evt.start?.asLocal);
-    final wdEnd = (evt.end?.asLocal.day != evt.start?.asLocal.day)
-        ? Fmt.dayAbbr(evt.end?.asLocal)
-        : null;
+    final wdEnd = (evt.end?.asLocal.day != evt.start?.asLocal.day) ? Fmt.dayAbbr(evt.end?.asLocal) : null;
 
     final dur = evt.duration;
     final durTxt = " (${Fmt.durationHmVerbose(dur)})";
@@ -114,18 +101,12 @@ class EventListTile extends StatelessWidget {
                 border: Border(top: BorderSide(color: Colors.blueGrey)),
               ),
               child: Center(
-                child: Text(
-                  heading ?? "---",
-                  style: TextStyle(color: Colors.grey),
-                ),
+                child: Text(heading ?? "---", style: TextStyle(color: Colors.grey)),
               ),
             ),
           ),
         ListTile(
-          title: Text(
-            "${typeRec?.name}$durTxt",
-            style: TextStyle(color: typeRec?.color.inContext(context)),
-          ),
+          title: Text("${typeRec?.name}$durTxt", style: TextStyle(color: typeRec?.color.inContext(context))),
           subtitle: Padding(
             padding: const EdgeInsets.only(top: 8),
             child: Row(
@@ -135,8 +116,7 @@ class EventListTile extends StatelessWidget {
                 Text(wdStart, style: TextStyle(color: Colors.blueGrey)),
                 Text(startText),
                 Text(" - "),
-                if (wdEnd != null)
-                  Text(wdEnd, style: TextStyle(color: Colors.blueGrey)),
+                if (wdEnd != null) Text(wdEnd, style: TextStyle(color: Colors.blueGrey)),
                 Text(endText),
               ],
             ),
@@ -150,11 +130,9 @@ class EventListTile extends StatelessWidget {
   }
 
   void _openDetail(BuildContext context) {
-    Navigator.of(context)
-        .push(MaterialPageRoute(builder: (context) => EventDetailScreen(evt)))
-        .then((_) {
-          // When the detail view is popped, data might have changed
-          reloadAction();
-        });
+    Navigator.of(context).push(MaterialPageRoute(builder: (context) => EventDetailScreen(evt))).then((_) {
+      // When the detail view is popped, data might have changed
+      reloadAction();
+    });
   }
 }

@@ -1,11 +1,12 @@
 import 'package:data_app2/app_state.dart';
+import 'package:data_app2/data/evt_rec.dart';
+import 'package:data_app2/data/evt_type_rec.dart';
 import 'package:data_app2/dialogs/show_confirm_save_back_dialog.dart';
 import 'package:data_app2/util/enums.dart';
 import 'package:data_app2/util/text_search.dart';
 import 'package:data_app2/view_models/event_detail_view_model.dart';
 import 'package:data_app2/util/fmt.dart';
 import 'package:data_app2/local_datetime.dart';
-import 'package:data_app2/user_events.dart';
 import 'package:data_app2/util.dart';
 import 'package:data_app2/widgets/two_columns.dart';
 import 'package:flutter/material.dart';

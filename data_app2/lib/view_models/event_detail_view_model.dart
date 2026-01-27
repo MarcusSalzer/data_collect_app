@@ -1,6 +1,7 @@
 import 'package:data_app2/app_state.dart';
+import 'package:data_app2/data/evt_rec.dart';
+import 'package:data_app2/data/evt_type_rec.dart';
 import 'package:data_app2/local_datetime.dart';
-import 'package:data_app2/user_events.dart';
 import 'package:flutter/material.dart';
 
 /// Handle details and editing of a single event
@@ -19,9 +20,7 @@ class EventDetailViewModel extends ChangeNotifier {
 
   List<EvtTypeRec> get allTypes => _app.evtTypeManager.all;
 
-  EventDetailViewModel(EvtRec evt, this._app)
-    : _evt = evt.copyWith(),
-      _original = evt;
+  EventDetailViewModel(EvtRec evt, this._app) : _evt = evt.copyWith(), _original = evt;
 
   /// Update the type of the event
   void changeType(int newType) {

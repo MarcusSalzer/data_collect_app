@@ -28,10 +28,7 @@ class EventExportViewModel extends ChangeNotifier {
       state = Ready((
         nEvt: ce,
         nType: ct,
-        example: EvtDraft.fromIsar(
-          ex,
-          _app.evtTypeManager.resolveById(ex.typeId)?.name ?? "unknown",
-        ),
+        example: EvtDraft.fromIsar(ex, _app.evtTypeManager.resolveById(ex.typeId)?.name ?? "unknown"),
       ));
     } else {
       state = Error("Has no events");
@@ -48,7 +45,7 @@ class EventExportViewModel extends ChangeNotifier {
       final evts = await _app.db.events.all();
       final types = _app.evtTypeManager.all;
       // resolve all typenames before export
-      final evtDrafts = await Future.wait(
+      final evtDrafts = await Future.wait<EvtDraft>(
         evts.map((e) async {
           final tp = _app.evtTypeManager.resolveById(e.typeId);
           // There shouldn't be events with unknown types.
@@ -66,10 +63,7 @@ class EventExportViewModel extends ChangeNotifier {
         DateTime.now(),
       ).doExport(evtDrafts, types);
 
-      state = Done([
-        "events: ${counts.nEvt} lines",
-        "types: ${counts.nType} lines",
-      ]);
+      state = Done(["events: ${counts.nEvt} lines", "types: ${counts.nType} lines"]);
     } else {
       state = Error("error, not ready");
     }

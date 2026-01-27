@@ -1,13 +1,14 @@
 import 'package:data_app2/app_state.dart';
 import 'package:data_app2/dialogs/import_something_dialog.dart';
 import 'package:data_app2/permission_manager.dart';
-import 'package:data_app2/screens/color_demo_page.dart';
+import 'package:data_app2/screens/events/evt_cat_index_screen.dart';
 import 'package:data_app2/screens/month_calendar_screen.dart';
 import 'package:data_app2/screens/events/event_type_index_screen.dart';
 import 'package:data_app2/screens/events/events_screen.dart';
 import 'package:data_app2/screens/settings_screen.dart';
 import 'package:data_app2/util.dart';
-import 'package:data_app2/widgets/events_summary.dart';
+import 'package:data_app2/view_models/today_summary_vm.dart';
+import 'package:data_app2/widgets/today_summary_display.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -16,7 +17,7 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final appState = Provider.of<AppState>(context, listen: false);
+    final app = Provider.of<AppState>(context, listen: false);
 
     return Scaffold(
       appBar: AppBar(
@@ -32,52 +33,66 @@ class HomeScreen extends StatelessWidget {
         title: Text("Data app"),
       ),
       body: SingleChildScrollView(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            EventsTodaySummaryFromAppState(),
-            SizedBox(height: 20),
-            Column(
-              spacing: 20,
-              mainAxisAlignment: MainAxisAlignment.start,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                HomeNavLink(
-                  "Events",
-                  Icons.timelapse,
-                  builder: (context) => EventsScreen(),
-                  returnCallback: (completion) {
-                    // after visiting this route, todays data might have updated
-                    appState.refreshSummary();
-                  },
-                ),
-                HomeNavLink(
-                  "Event types",
-                  Icons.category,
-                  builder: (context) => EventTypeIndexScreen(),
-                  returnCallback: (completion) {
-                    // after visiting this route, todays data might have updated
-                    appState.refreshSummary();
-                  },
-                ),
-                HomeNavLink("Calendar", Icons.calendar_month, builder: (context) => MonthCalendarScreen(appState)),
+        child: ChangeNotifierProvider<TodaySummaryVm>(
+          create: (_) => TodaySummaryVm(app)..refresh(),
+          builder: (context, _) => Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              // EventsTodaySummaryFromAppState(),
+              TodaySummaryDisplay(), // listens to its own provider
+              SizedBox(height: 20),
+              Column(
+                spacing: 20,
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  HomeNavLink(
+                    "Events",
+                    Icons.timelapse,
+                    builder: (context) => EventsScreen(),
+                    returnCallback: (completion) {
+                      // after visiting this route, todays data might have updated
+                      Provider.of<TodaySummaryVm>(context, listen: false).refresh();
+                    },
+                  ),
+                  HomeNavLink(
+                    "My events",
+                    Icons.abc,
+                    builder: (context) => EventTypeIndexScreen(),
+                    returnCallback: (completion) {
+                      // after visiting this route, todays data might have updated
+                      Provider.of<TodaySummaryVm>(context, listen: false).refresh();
+                    },
+                  ),
+                  HomeNavLink(
+                    "Categories",
+                    Icons.category,
+                    builder: (context) => EvtCatIndexScreen(),
+                    returnCallback: (completion) {
+                      // after visiting this route, todays data might have updated
+                      Provider.of<TodaySummaryVm>(context, listen: false).refresh();
+                    },
+                  ),
+                  HomeNavLink("Calendar", Icons.calendar_month, builder: (context) => MonthCalendarScreen(app)),
+                  // button for dialog -> import screen
+                  TextButton.icon(
+                    onPressed: () async {
+                      if (await PermissionManager.requestStorage() && context.mounted) {
+                        // TODO include refresh today callback, to pass to the new route?
+                        await showImportSomethingDialog(context);
+                      } else if (context.mounted) {
+                        simpleSnack(context, "needs storage permission");
+                      }
+                    },
+                    label: Text("Import data"),
+                    icon: Icon(Icons.download),
+                  ),
 
-                TextButton.icon(
-                  onPressed: () async {
-                    if (await PermissionManager.requestStorage() && context.mounted) {
-                      await showImportSomethingDialog(context);
-                    } else if (context.mounted) {
-                      simpleSnack(context, "needs storage permission");
-                    }
-                  },
-                  label: Text("Import data"),
-                  icon: Icon(Icons.download),
-                ),
-
-                HomeNavLink("Color demo", Icons.palette, builder: (context) => ColorDemoPage()),
-              ],
-            ),
-          ],
+                  // HomeNavLink("Color demo", Icons.palette, builder: (context) => ColorDemoPage()),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -87,7 +102,7 @@ class HomeScreen extends StatelessWidget {
 /// For navigating to a new screen
 class HomeNavLink extends StatelessWidget {
   final String _name;
-  final IconData _icon;
+  final IconData? _icon;
   final Widget Function(BuildContext) builder;
   final Function(dynamic completion)? returnCallback;
 
@@ -95,12 +110,14 @@ class HomeNavLink extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return TextButton.icon(
-      onPressed: () {
-        Navigator.of(context).push(MaterialPageRoute(builder: builder)).then(returnCallback ?? (_) => {});
-      },
-      label: Text(_name),
-      icon: Icon(_icon),
-    );
+    void action() {
+      Navigator.of(context).push(MaterialPageRoute(builder: builder)).then(returnCallback ?? (_) => {});
+    }
+
+    if (_icon != null) {
+      return TextButton.icon(onPressed: action, label: Text(_name), icon: Icon(_icon));
+    } else {
+      return TextButton(onPressed: action, child: Text(_name));
+    }
   }
 }

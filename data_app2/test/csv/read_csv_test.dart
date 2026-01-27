@@ -1,10 +1,11 @@
 import 'package:data_app2/csv/evt_csv_adapter.dart';
 import 'package:data_app2/csv/evt_type_csv_adapter.dart';
 import 'package:data_app2/data/evt_draft.dart';
+import 'package:data_app2/data/evt_rec.dart';
+import 'package:data_app2/data/evt_type_rec.dart';
 import 'package:data_app2/util/colors.dart';
 import 'package:data_app2/event_type_manager.dart';
 import 'package:data_app2/local_datetime.dart';
-import 'package:data_app2/user_events.dart';
 
 import 'package:test/test.dart';
 
@@ -31,22 +32,12 @@ void main() {
 
     final loaded = adapter.fromRow("33,$typeId,123,10123,456,10456");
 
-    expect(
-      loaded,
-      EvtRec(
-        id: 33,
-        typeId: typeId,
-        start: LocalDateTime(123, 10123),
-        end: LocalDateTime(456, 10456),
-      ),
-    );
+    expect(loaded, EvtRec(id: 33, typeId: typeId, start: LocalDateTime(123, 10123), end: LocalDateTime(456, 10456)));
   });
   test('read single Event, human', () {
     final adapter = EvtCsvAdapter();
 
-    final loaded = adapter.fromRow(
-      "33,$typeName,1970-01-01T05:00:00Z,18000,1970-01-01T05:00:10Z,18000",
-    );
+    final loaded = adapter.fromRow("33,$typeName,1970-01-01T05:00:00Z,18000,1970-01-01T05:00:10Z,18000");
 
     expect(
       loaded,

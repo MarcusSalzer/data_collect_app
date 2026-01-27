@@ -1,7 +1,7 @@
 import 'package:data_app2/app_state.dart';
+import 'package:data_app2/data/evt_type_rec.dart';
 import 'package:data_app2/data/summary_with_period_aggs.dart';
 import 'package:data_app2/screens/events/multi_summary_export_screen.dart';
-import 'package:data_app2/user_events.dart';
 import 'package:data_app2/util/enums.dart';
 import 'package:data_app2/util/fmt.dart';
 import 'package:data_app2/util/process_state.dart';
@@ -27,10 +27,7 @@ class _SummaryTableVerticalOnly extends StatelessWidget {
             ...data.typeRecs.map(
               (t) => SizedBox(
                 width: colWidth,
-                child: Text(
-                  t.name,
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
+                child: Text(t.name, style: TextStyle(fontWeight: FontWeight.bold)),
               ),
             ),
           ],
@@ -45,12 +42,7 @@ class _SummaryTableVerticalOnly extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   SizedBox(width: colWidth + 20, child: Text(tTxt)),
-                  ...a.agg.map(
-                    (d) => SizedBox(
-                      width: colWidth,
-                      child: Text(d.inMinutes.toString()),
-                    ),
-                  ),
+                  ...a.agg.map((d) => SizedBox(width: colWidth, child: Text(d.inMinutes.toString()))),
                 ],
               );
             },
@@ -66,12 +58,7 @@ class _Grid extends TwoDimensionalScrollView {
   const _Grid({required super.delegate});
 
   @override
-  Widget buildViewport(
-    BuildContext context,
-    ViewportOffset verticalOffset,
-    ViewportOffset horizontalOffset,
-  ) {
-    // TODO: implement buildViewport
+  Widget buildViewport(BuildContext context, ViewportOffset verticalOffset, ViewportOffset horizontalOffset) {
     throw UnimplementedError();
   }
 }
@@ -94,10 +81,7 @@ class _SummaryTableTotals extends StatelessWidget {
             children: [
               SizedBox(
                 width: colWidth,
-                child: Text(
-                  data.f.name,
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
+                child: Text(data.f.name, style: TextStyle(fontWeight: FontWeight.bold)),
               ),
               SizedBox(
                 width: colWidth,
@@ -123,10 +107,7 @@ class _SummaryTableTotals extends StatelessWidget {
                       SizedBox(width: colWidth, child: Text(tTxt)),
                       SizedBox(
                         width: colWidth,
-                        child: Text(
-                          Fmt.durationHmVerbose(a.total()),
-                          textAlign: TextAlign.right,
-                        ),
+                        child: Text(Fmt.durationHmVerbose(a.total()), textAlign: TextAlign.right),
                       ),
                     ],
                   ),
@@ -166,11 +147,9 @@ class MultiEvtTypeSummaryScreen extends StatelessWidget {
                 actions: [
                   TextButton(
                     onPressed: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => MultiSummaryExportScreen(data),
-                        ),
-                      );
+                      Navigator.of(
+                        context,
+                      ).push(MaterialPageRoute(builder: (context) => MultiSummaryExportScreen(data)));
                     },
                     child: Text("Export"),
                   ),
@@ -188,9 +167,7 @@ class MultiEvtTypeSummaryScreen extends StatelessWidget {
                     ConstrainedBox(
                       // prevent filling screen with this, leaving room for data table
                       constraints: BoxConstraints.loose(Size.fromHeight(200)),
-                      child: SingleChildScrollView(
-                        child: TypeRecShortList(typeRecs: data.typeRecs),
-                      ),
+                      child: SingleChildScrollView(child: TypeRecShortList(typeRecs: data.typeRecs)),
                     ),
                     Divider(),
                     RadioGroup<GroupFreq>(
@@ -245,10 +222,7 @@ class TypeRecShortList extends StatelessWidget {
             (t) => Row(
               spacing: 8,
               children: [
-                CircleAvatar(
-                  backgroundColor: t.color.inContext(context),
-                  radius: 5,
-                ),
+                CircleAvatar(backgroundColor: t.color.inContext(context), radius: 5),
                 Text(t.name),
               ],
             ),

@@ -1,4 +1,5 @@
-import 'package:data_app2/user_events.dart';
+import 'package:data_app2/data/evt_rec.dart';
+import 'package:data_app2/data/evt_type_rec.dart';
 import 'package:data_app2/util/enums.dart';
 import 'package:data_app2/util/extensions.dart';
 
@@ -22,11 +23,7 @@ class PeriodAgg {
   }
 }
 
-List<PeriodAgg> computeAggs(
-  Iterable<EvtRec> evts,
-  List<EvtTypeRec> typeRecs,
-  GroupFreq f,
-) {
+List<PeriodAgg> computeAggs(Iterable<EvtRec> evts, List<EvtTypeRec> typeRecs, GroupFreq f) {
   if (evts.isEmpty) {
     return List.empty();
   }
@@ -35,9 +32,7 @@ List<PeriodAgg> computeAggs(
   var first = DateTime.now();
   var last = DateTime.now();
 
-  final Map<int?, int> typeIdToIdx = Map.fromEntries(
-    Iterable.generate(nTypes).map((i) => MapEntry(typeRecs[i].id, i)),
-  );
+  final Map<int?, int> typeIdToIdx = Map.fromEntries(Iterable.generate(nTypes).map((i) => MapEntry(typeRecs[i].id, i)));
 
   for (var e in evts) {
     // assume belongs to end time (local)
@@ -66,8 +61,5 @@ List<PeriodAgg> computeAggs(
   }
 
   // fill in gaps with empty, uses ascending range
-  return f
-      .genRange(first, last)
-      .map((dt) => (aggs[dt] ?? PeriodAgg(dt, nTypes)))
-      .toList();
+  return f.genRange(first, last).map((dt) => (aggs[dt] ?? PeriodAgg(dt, nTypes))).toList();
 }

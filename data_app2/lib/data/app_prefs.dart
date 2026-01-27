@@ -49,3 +49,31 @@ class AppPrefs {
     return Preferences(colorSchemeMode, autoLowerCase, logLevel, textSearchMode);
   }
 }
+
+// @JsonSerializable()
+// class AppPrefsJson {
+//   @JsonKey(defaultValue: ColorSchemeMode.system)
+//   final ColorSchemeMode colorSchemeMode;
+
+//   @JsonKey(defaultValue: LogLevel.info)
+//   final LogLevel logLevel;
+
+//   @JsonKey(defaultValue: false)
+//   final bool autoLowerCase;
+
+//   @JsonKey(defaultValue: TextSearchMode.smart)
+//   final TextSearchMode textSearchMode;
+
+//   const AppPrefs({
+//     this.colorSchemeMode = ColorSchemeMode.system,
+//     this.logLevel = LogLevel.info,
+//     this.autoLowerCase = false,
+//     this.textSearchMode = TextSearchMode.smart,
+//   });
+
+//   factory AppPrefs.fromJson(Map<String, dynamic> json)
+//     => _$AppPrefsFromJson(json);
+
+//   Map<String, dynamic> toJson()
+//     => _$AppPrefsToJson(this);
+// }

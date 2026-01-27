@@ -1,3 +1,4 @@
+import 'package:data_app2/repos/category_repo.dart';
 import 'package:data_app2/repos/event_repo.dart';
 import 'package:data_app2/repos/event_type_repo.dart';
 import 'package:data_app2/repos/prefs_repo.dart';
@@ -10,6 +11,7 @@ class DBService {
   final EventRepo events;
   final EventTypeRepo eventTypes;
   final TabularRepo tabular;
+  final CategoryRepo categories;
 
   final Isar _isar;
 
@@ -19,5 +21,6 @@ class DBService {
     : prefs = PrefsRepo(_isar),
       events = EventRepo(_isar),
       eventTypes = EventTypeRepo(_isar),
-      tabular = TabularRepo(_isar);
+      tabular = TabularRepo(_isar),
+      categories = CategoryRepo(_isar);
 }

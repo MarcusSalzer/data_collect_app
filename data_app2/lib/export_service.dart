@@ -4,7 +4,7 @@ import 'package:data_app2/csv/csv_util.dart';
 import 'package:data_app2/csv/evt_csv_adapter.dart';
 import 'package:data_app2/csv/evt_type_csv_adapter.dart';
 import 'package:data_app2/data/evt_draft.dart';
-import 'package:data_app2/user_events.dart';
+import 'package:data_app2/data/evt_type_rec.dart';
 import 'package:data_app2/util/fmt.dart';
 import 'package:path/path.dart' as p;
 
@@ -25,10 +25,7 @@ class CsvExportService {
   CsvExportService(this.parent, DateTime now) : name = _genName(now);
 
   /// Export all data
-  Future<({int nEvt, int nType})> doExport(
-    Iterable<EvtDraft>? evts,
-    Iterable<EvtTypeRec>? evtTypes,
-  ) async {
+  Future<({int nEvt, int nType})> doExport(Iterable<EvtDraft>? evts, Iterable<EvtTypeRec>? evtTypes) async {
     // Count exported records
     var nEvt = 0;
     var nType = 0;
@@ -37,21 +34,13 @@ class CsvExportService {
       nEvt = await _save<EvtDraft>(evts, EvtCsvAdapter(), "events_all.csv");
     }
     if (evtTypes != null) {
-      nType = await _save<EvtTypeRec>(
-        evtTypes,
-        EvtTypeCsvAdapter(),
-        "event_types.csv",
-      );
+      nType = await _save<EvtTypeRec>(evtTypes, EvtTypeCsvAdapter(), "event_types.csv");
     }
     return (nEvt: nEvt, nType: nType);
   }
 
   /// Save some data with a compatible adapter
-  Future<int> _save<T>(
-    Iterable<T> records,
-    CsvAdapter<T> adapter,
-    String filename,
-  ) async {
+  Future<int> _save<T>(Iterable<T> records, CsvAdapter<T> adapter, String filename) async {
     // prepare file
     final file = File(p.join(folderPath, filename));
     if (await file.exists()) {

@@ -1,8 +1,8 @@
 import 'dart:io';
 
 import 'package:data_app2/data/evt_draft.dart';
+import 'package:data_app2/data/evt_rec.dart';
 import 'package:data_app2/util/enums.dart';
-import 'package:data_app2/user_events.dart';
 import 'package:data_app2/user_tabular.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/services.dart';
@@ -75,9 +75,7 @@ Future<void> exportFile(String name, String content) async {
 
 /// Let user pick a single file
 Future<String?> pickSingleFile() async {
-  final fpRes = await FilePicker.platform.pickFiles(
-    initialDirectory: (await defaultStoreDir()).path,
-  );
+  final fpRes = await FilePicker.platform.pickFiles(initialDirectory: (await defaultStoreDir()).path);
   if (fpRes == null) {
     return null; // canceled
   }
@@ -86,9 +84,7 @@ Future<String?> pickSingleFile() async {
 
 /// Let user pick a single directory
 Future<Directory?> pickSingleFolder() async {
-  final path = await FilePicker.platform.getDirectoryPath(
-    initialDirectory: (await defaultStoreDir()).path,
-  );
+  final path = await FilePicker.platform.getDirectoryPath(initialDirectory: (await defaultStoreDir()).path);
   return path != null ? Directory(path) : null;
 }
 
@@ -102,8 +98,7 @@ class EvtImportSummary {
   ImportMode mode;
   int? idOverlapCount;
 
-  EvtImportSummary.fromEvtRecs(Iterable<EvtRec> recs)
-    : mode = ImportMode.event {
+  EvtImportSummary.fromEvtRecs(Iterable<EvtRec> recs) : mode = ImportMode.event {
     for (final r in recs) {
       final s = r.start?.asLocal;
       final e = r.end?.asLocal;
@@ -125,8 +120,7 @@ class EvtImportSummary {
     }
   }
 
-  EvtImportSummary.fromEvtDrafts(Iterable<EvtDraft> recs)
-    : mode = ImportMode.event {
+  EvtImportSummary.fromEvtDrafts(Iterable<EvtDraft> recs) : mode = ImportMode.event {
     for (final r in recs) {
       final s = r.start?.asLocal;
       final e = r.end?.asLocal;

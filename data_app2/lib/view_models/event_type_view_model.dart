@@ -1,7 +1,8 @@
 import 'package:data_app2/app_state.dart';
+import 'package:data_app2/data/evt_rec.dart';
+import 'package:data_app2/data/evt_type_rec.dart';
 import 'package:data_app2/util/event_stats_compute.dart';
 import 'package:data_app2/util/stats.dart';
-import 'package:data_app2/user_events.dart';
 import 'package:flutter/material.dart';
 
 class EventTypeViewModel extends ChangeNotifier {
@@ -14,9 +15,7 @@ class EventTypeViewModel extends ChangeNotifier {
   Map<int, int> _perWeekDay = {};
 
   /// Get the [EvtTypeRec] or a temporary "error message"-type
-  EvtTypeRec get type =>
-      _app.evtTypeManager.resolveById(typeId) ??
-      EvtTypeRec(name: "[ERROR: not found]");
+  EvtTypeRec get type => _app.evtTypeManager.resolveById(typeId) ?? EvtTypeRec(name: "[ERROR: not found]");
   List<EvtRec> get evts => _evts;
   bool get isLoading => _isLoading;
   Duration get totTime => _totTime;

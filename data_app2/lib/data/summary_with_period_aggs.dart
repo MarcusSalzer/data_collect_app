@@ -1,4 +1,4 @@
-import 'package:data_app2/user_events.dart';
+import 'package:data_app2/data/evt_type_rec.dart';
 import 'package:data_app2/util/enums.dart';
 import 'package:data_app2/util/summary_period_aggs.dart';
 

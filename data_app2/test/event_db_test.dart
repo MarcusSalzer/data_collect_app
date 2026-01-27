@@ -1,7 +1,7 @@
+import 'package:data_app2/data/evt_rec.dart';
 import 'package:data_app2/db_service.dart';
 import 'package:data_app2/isar_models.dart';
 import 'package:data_app2/local_datetime.dart';
-import 'package:data_app2/user_events.dart';
 import 'package:isar_community/isar.dart';
 
 import 'package:test/test.dart';
@@ -35,19 +35,12 @@ void main() {
     final localOffset = start.timeZoneOffset;
 
     // create a new event
-    final evtRec = EvtRec.inCurrentTZ(
-      id: null,
-      typeId: 42,
-      start: start,
-      end: end,
-    );
+    final evtRec = EvtRec.inCurrentTZ(id: null, typeId: 42, start: start, end: end);
 
     // Convert to Isar object
     final evtIsar = evtRec.toIsar();
 
-    final evtOffset = Duration(
-      milliseconds: evtIsar.startLocalMillis! - evtIsar.startUtcMillis!,
-    );
+    final evtOffset = Duration(milliseconds: evtIsar.startLocalMillis! - evtIsar.startUtcMillis!);
 
     expect(evtOffset, localOffset);
     expect(evtRec.start?.offsetMillis, localOffset.inMilliseconds);
@@ -76,51 +69,30 @@ void main() {
     test('Get events in local-time range', () async {
       final tzoMs = 7_200_000; // two hours
 
-      final midnight = LocalDateTime.fromUtcISOAndffset(
-        utcIso: '2025-05-01T22:00:00Z',
-        offsetMillis: tzoMs,
-      );
+      final midnight = LocalDateTime.fromUtcISOAndffset(utcIso: '2025-05-01T22:00:00Z', offsetMillis: tzoMs);
 
       // should be in first day
       final lastNight = EvtRec(
         id: 787843,
         typeId: 1,
-        start: LocalDateTime.fromUtcISOAndffset(
-          utcIso: '2025-05-01T21:30:00Z',
-          offsetMillis: tzoMs,
-        ),
-        end: LocalDateTime.fromUtcISOAndffset(
-          utcIso: '2025-05-01T21:55:00Z',
-          offsetMillis: tzoMs,
-        ),
+        start: LocalDateTime.fromUtcISOAndffset(utcIso: '2025-05-01T21:30:00Z', offsetMillis: tzoMs),
+        end: LocalDateTime.fromUtcISOAndffset(utcIso: '2025-05-01T21:55:00Z', offsetMillis: tzoMs),
       );
 
       // accross midnight, shouldnt count to either day
       final across = EvtRec(
         id: 787844,
         typeId: 3,
-        start: LocalDateTime.fromUtcISOAndffset(
-          utcIso: '2025-05-01T21:30:00Z',
-          offsetMillis: tzoMs,
-        ),
-        end: LocalDateTime.fromUtcISOAndffset(
-          utcIso: '2025-05-01T22:01:00Z',
-          offsetMillis: tzoMs,
-        ),
+        start: LocalDateTime.fromUtcISOAndffset(utcIso: '2025-05-01T21:30:00Z', offsetMillis: tzoMs),
+        end: LocalDateTime.fromUtcISOAndffset(utcIso: '2025-05-01T22:01:00Z', offsetMillis: tzoMs),
       );
 
       // should be in second day
       final earlyMorning = EvtRec(
         id: 3389,
         typeId: 2,
-        start: LocalDateTime.fromUtcISOAndffset(
-          utcIso: '2025-05-01T22:30:00Z',
-          offsetMillis: tzoMs,
-        ),
-        end: LocalDateTime.fromUtcISOAndffset(
-          utcIso: '2025-05-01T22:55:00Z',
-          offsetMillis: tzoMs,
-        ),
+        start: LocalDateTime.fromUtcISOAndffset(utcIso: '2025-05-01T22:30:00Z', offsetMillis: tzoMs),
+        end: LocalDateTime.fromUtcISOAndffset(utcIso: '2025-05-01T22:55:00Z', offsetMillis: tzoMs),
       );
 
       // Save to DB

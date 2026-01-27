@@ -19,4 +19,11 @@ class PrefsRepo {
     final prefs = await _isar.preferences.get(0);
     return prefs;
   }
+
+  /// Clear preferences
+  Future<bool> clear() async {
+    return await _isar.writeTxn(() async {
+      return await _isar.preferences.delete(0);
+    });
+  }
 }

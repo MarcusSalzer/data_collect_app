@@ -13,6 +13,17 @@ enum ImportMode { event, tabular }
 /// What are we importing
 enum ImportFileRole { events, eventTypes, unknown }
 
+/// What to summarize
+enum SummaryMode {
+  evtType,
+  category;
+
+  String get description => switch (this) {
+    evtType => "Summarize each type separately.",
+    category => "Group summary by category.",
+  };
+}
+
 /// For storing/loading the loglevel in DB
 enum LogLevel {
   off,

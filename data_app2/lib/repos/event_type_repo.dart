@@ -1,5 +1,5 @@
+import 'package:data_app2/data/evt_type_rec.dart';
 import 'package:data_app2/isar_models.dart';
-import 'package:data_app2/user_events.dart';
 import 'package:isar_community/isar.dart';
 
 /// For accessing Event type data
@@ -39,9 +39,7 @@ class EventTypeRepo {
   /// create and save new EventTypes
   Future<List<int>> putAll(Iterable<EvtTypeRec> recs) async {
     return await _isar.writeTxn(() async {
-      return await _isar.eventTypes.putAll(
-        recs.map((r) => r.toIsar()).toList(),
-      );
+      return await _isar.eventTypes.putAll(recs.map((r) => r.toIsar()).toList());
     });
   }
 
@@ -65,8 +63,7 @@ class EventTypeRepo {
       for (var r in recs) {
         // skip if exists
         final thisId = r.id;
-        if (thisId != null &&
-            await _isar.eventTypes.where().idEqualTo(thisId).isNotEmpty()) {
+        if (thisId != null && await _isar.eventTypes.where().idEqualTo(thisId).isNotEmpty()) {
           continue;
         }
         // add
@@ -92,10 +89,7 @@ class EventTypeRepo {
   /// Get if exists, otherwise make a new
   Future<EventType> getOrCreate(String name) async {
     return await _isar.writeTxn(() async {
-      final existing = await _isar.eventTypes
-          .filter()
-          .nameEqualTo(name)
-          .findFirst();
+      final existing = await _isar.eventTypes.filter().nameEqualTo(name).findFirst();
       if (existing != null) {
         return existing;
       } else {
@@ -126,10 +120,7 @@ class EventTypeRepo {
   /// save or update EventType, returns id.
   Future<int> saveOrUpdateByName(EvtTypeRec rec) async {
     return await _isar.writeTxn(() async {
-      final existing = await _isar.eventTypes
-          .where()
-          .nameEqualTo(rec.name)
-          .findFirst();
+      final existing = await _isar.eventTypes.where().nameEqualTo(rec.name).findFirst();
       if (existing != null) {
         // give id to update instead of create
         rec.id = existing.id;

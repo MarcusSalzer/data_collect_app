@@ -1,13 +1,14 @@
 import 'dart:math';
 
 import 'package:data_app2/app_state.dart';
-import 'package:data_app2/db_service.dart';
+import 'package:data_app2/data/evt_rec.dart';
+import 'package:data_app2/data/evt_type_rec.dart';
+import 'package:data_app2/data/today_summary_data.dart';
 import 'package:data_app2/util/event_stats_compute.dart';
 import 'package:data_app2/util/extensions.dart';
 import 'package:data_app2/util/fmt.dart';
 import 'package:data_app2/local_datetime.dart';
 import 'package:data_app2/screens/day_inmonth_screen.dart';
-import 'package:data_app2/user_events.dart';
 import 'package:data_app2/widgets/events_summary.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -16,16 +17,16 @@ import 'package:provider/provider.dart';
 
 /// Handle data for showing stats for a month
 class MonthViewModel extends ChangeNotifier {
-  final DBService _db;
+  final AppState _app;
   // TODO; will this work across TZs? testing...
   DateTime _current = DateTime.now().startOfMonth;
-  List<MapEntry<int, Duration>> tpe = [];
+  SummaryDataList? summary;
 
   List<DateTime> _days = [];
   List<EvtRec> _events = [];
   late Future<void> loadFuture;
 
-  MonthViewModel(this._db) {
+  MonthViewModel(this._app) {
     loadFuture = _loadEvents();
     _makeDayGrid();
   }
@@ -37,14 +38,17 @@ class MonthViewModel extends ChangeNotifier {
   /// load events for current month
   Future<void> _loadEvents() async {
     _events.clear(); // remove old data
-    final evts = await _db.events.filteredLocalTime(
+    final evts = await _app.db.events.filteredLocalTime(
       earliest: LocalDateTime.fromDateTimeLocalTZ(_current),
-      latest: LocalDateTime.fromDateTimeLocalTZ(
-        DateUtils.addMonthsToMonthDate(_current, 1),
-      ),
+      latest: LocalDateTime.fromDateTimeLocalTZ(DateUtils.addMonthsToMonthDate(_current, 1)),
     );
     _events = evts.map((e) => EvtRec.fromIsar(e)).toList();
-    tpe = timePerEvent(_events);
+    summary = SummaryDataList(
+      timePerEvent(_events).map((e) {
+        final et = _app.evtTypeManager.resolveById(e.key) ?? EvtTypeRec(name: "unknown");
+        return SummaryItem(et.name, et.color, e.value);
+      }).toList(),
+    );
     // eventsPerDay();
     notifyListeners();
   }
@@ -53,10 +57,7 @@ class MonthViewModel extends ChangeNotifier {
   void _makeDayGrid() {
     final offset = _current.monthFirstWeekday;
 
-    _days = List.generate(
-      42,
-      (i) => DateUtils.addDaysToDate(_current.startOfMonth, i - offset + 1),
-    );
+    _days = List.generate(42, (i) => DateUtils.addDaysToDate(_current.startOfMonth, i - offset + 1));
   }
 
   /// Move to a new month and reload data
@@ -103,13 +104,10 @@ class _MonthCalendarScreenState extends State<MonthCalendarScreen> {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider<MonthViewModel>(
-      create: (context) => MonthViewModel(widget.appstate.db),
+      create: (context) => MonthViewModel(widget.appstate),
       child: Consumer<MonthViewModel>(
         builder: (context, model, child) {
-          final pages = [
-            CalendarMonthDisplay(model),
-            MonthSummaryDisplay(model),
-          ];
+          final pages = [CalendarMonthDisplay(model), MonthSummaryDisplay(model)];
           return Scaffold(
             appBar: AppBar(
               title: Text("Calendar"),
@@ -126,13 +124,7 @@ class _MonthCalendarScreenState extends State<MonthCalendarScreen> {
                         },
                         icon: Icon(Icons.keyboard_double_arrow_left),
                       ),
-                      Expanded(
-                        child: Center(
-                          child: Text(
-                            DateFormat("MMMM yyyy").format(model._current),
-                          ),
-                        ),
-                      ),
+                      Expanded(child: Center(child: Text(DateFormat("MMMM yyyy").format(model._current)))),
                       IconButton(
                         onPressed: () {
                           model.stepMonth(1);
@@ -189,11 +181,7 @@ class _MonthCalendarScreenState extends State<MonthCalendarScreen> {
   }
 
   void _updatePage(int index) {
-    _pageViewController.animateToPage(
-      index,
-      duration: const Duration(milliseconds: 100),
-      curve: Curves.easeInOut,
-    );
+    _pageViewController.animateToPage(index, duration: const Duration(milliseconds: 100), curve: Curves.easeInOut);
   }
 }
 
@@ -205,27 +193,16 @@ class MonthSummaryDisplay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final app = Provider.of<AppState>(context, listen: false);
     if (model.events.isEmpty) {
-      return Center(
-        child: Text("No events in ${Fmt.monthName(model.currentMonth)}"),
-      );
+      return Center(child: Text("No events in ${Fmt.monthName(model.currentMonth)}"));
+    }
+    final summary = model.summary;
+    if (summary == null) {
+      return Center(child: Text("loading..."));
     }
     return Column(
       children: [
-        EventsSummary(
-          title: Fmt.monthName(model.currentMonth),
-          tpe: model.tpe
-              .map(
-                (e) => MapEntry(
-                  app.evtTypeManager.resolveById(e.key) ??
-                      EvtTypeRec(name: "unknown"),
-                  e.value,
-                ),
-              )
-              .toList(),
-          listHeight: 350,
-        ),
+        EventsSummary(title: Fmt.monthName(model.currentMonth), summary: summary, listHeight: 350),
         // Expanded(
         //   child: Padding(
         //     padding: const EdgeInsets.all(8.0),
@@ -287,9 +264,7 @@ class CalendarGrid extends StatelessWidget {
     final evtCounts = model.eventsPerDay();
     final maxCount = evtCounts.fold(1, (p, c) => max(p, c));
     return GridView.builder(
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 7,
-      ),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 7),
       physics: NeverScrollableScrollPhysics(),
       itemCount: model.days.length,
       itemBuilder: (context, index) {
@@ -307,12 +282,7 @@ class CalendarGrid extends StatelessWidget {
 }
 
 class CalDayTile extends StatelessWidget {
-  const CalDayTile({
-    super.key,
-    required this.dt,
-    required this.active,
-    required this.weight,
-  });
+  const CalDayTile({super.key, required this.dt, required this.active, required this.weight});
 
   final DateTime dt;
   final bool active;
@@ -328,20 +298,13 @@ class CalDayTile extends StatelessWidget {
       tStyle = tStyle.copyWith(color: Colors.grey);
     }
     if (dt.isToday()) {
-      tStyle = tStyle.copyWith(
-        decoration: TextDecoration.underline,
-        decorationThickness: 2,
-      );
+      tStyle = tStyle.copyWith(decoration: TextDecoration.underline, decorationThickness: 2);
     }
 
     return InkWell(
       onTap: active
           ? () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => DayInmonthScreen(dt, monthModel),
-                ),
-              );
+              Navigator.of(context).push(MaterialPageRoute(builder: (context) => DayInmonthScreen(dt, monthModel)));
             }
           : null,
       child: Container(

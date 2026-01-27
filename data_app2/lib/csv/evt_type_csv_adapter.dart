@@ -1,5 +1,5 @@
 import 'package:data_app2/csv/csv_util.dart';
-import 'package:data_app2/user_events.dart';
+import 'package:data_app2/data/evt_type_rec.dart';
 import 'package:data_app2/util/colors.dart';
 
 class EvtTypeCsvAdapter extends CsvAdapter<EvtTypeRec> {
@@ -21,9 +21,7 @@ class EvtTypeCsvAdapter extends CsvAdapter<EvtTypeRec> {
   EvtTypeRec fromRow(String row) {
     final items = row.split(sep);
     if (items.length != cols.length) {
-      throw FormatException(
-        "got ${items.length} values (expected ${cols.length})",
-      );
+      throw FormatException("got ${items.length} values (expected ${cols.length})");
     }
     final colorname = items[2];
     return EvtTypeRec(

@@ -1,40 +1,31 @@
 import 'dart:collection';
 
 import 'package:data_app2/app_state.dart';
-import 'package:data_app2/data/evt_type_rec.dart';
+import 'package:data_app2/data/evt_cat_rec.dart';
 import 'package:data_app2/util/stats.dart';
 import 'package:flutter/material.dart';
 
-class EventTypeIndexViewModel extends ChangeNotifier {
+class EventCatIndexViewModel extends ChangeNotifier {
   final AppState _app;
-
+  // State
   LinkedHashMap<int, int>? _idToCount;
-  LinkedHashMap<int, int>? get idToCount => _idToCount;
+  final List<EvtCatRec> allItems = [];
 
-  Iterable<int> danglingTypeRefs = {};
-
-  EvtTypeRec? eventType(int id) {
-    return _app.evtTypeManager.resolveById(id);
-  }
-
-  List<EvtTypeRec> get itemsSorted {
+  List<EvtCatRec> get itemsSorted {
     final freqs = _idToCount;
     if (freqs == null) {
       return [];
     }
 
-    // Copy list of all types
-    final types = [..._app.evtTypeManager.all];
-
     // Sort by descending (zeros at end)
-    types.sort((a, b) {
-      final af = freqs[a.id ?? -1] ?? 0;
-      final bf = freqs[b.id ?? -1] ?? 0;
+    allItems.sort((a, b) {
+      final af = freqs[a.id] ?? 0;
+      final bf = freqs[b.id] ?? 0;
       // Higher freq first
       return bf.compareTo(af);
     });
 
-    return types;
+    return allItems;
   }
 
   void _onRepoChanged() async {
@@ -42,31 +33,26 @@ class EventTypeIndexViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  EventTypeIndexViewModel(this._app) {
+  EventCatIndexViewModel(this._app) {
     // propagate updates from eventType repo
     _app.evtTypeManager.addListener(_onRepoChanged);
   }
 
   Future<void> load() async {
-    // Check for dangling type references
-    danglingTypeRefs = await _app.evtTypeManager.danglingTypeRefs();
+    allItems.clear();
+    allItems.addAll(await _app.db.categories.all());
     await refreshCounts();
     notifyListeners();
   }
 
   /// Count each event type
   Future<void> refreshCounts() async {
-    final evts = await _app.db.events.all();
+    final evtTypes = await _app.db.eventTypes.all();
 
-    var counts = valueCounts<int>(evts.map((e) => e.typeId));
+    // value-count all types with a category
+    var counts = valueCounts<int>(evtTypes.map((e) => e.categoryId).removeNulls);
 
     _idToCount = LinkedHashMap.fromEntries(counts.entries.toList()..sort((a, b) => b.value.compareTo(a.value)));
-  }
-
-  Future<List<int>> recreateDanglingTypes() async {
-    final created = await _app.evtTypeManager.fillDangling();
-    load();
-    return created;
   }
 
   @override

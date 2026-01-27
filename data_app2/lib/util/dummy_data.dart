@@ -3,7 +3,7 @@
 import 'dart:math';
 
 import 'package:data_app2/app_state.dart';
-import 'package:data_app2/user_events.dart';
+import 'package:data_app2/data/evt_rec.dart';
 
 const evtSamples = [
   (name: "work", time: Duration(minutes: 75)),

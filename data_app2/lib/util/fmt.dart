@@ -1,7 +1,7 @@
 // Text formatting
+import 'package:data_app2/data/evt_rec.dart';
 import 'package:data_app2/util/enums.dart';
 import 'package:data_app2/util/extensions.dart';
-import 'package:data_app2/user_events.dart';
 import 'package:intl/intl.dart';
 
 /// Formatting functions
@@ -91,9 +91,7 @@ class Fmt {
     final start = useUtc ? evt.start?.asUtc : evt.start?.asLocal;
     final end = useUtc ? evt.end?.asUtc : evt.end?.asLocal;
 
-    final startText = start != null
-        ? DateFormat("HH:mm").format(start)
-        : "__:__";
+    final startText = start != null ? DateFormat("HH:mm").format(start) : "__:__";
     final endText = end != null ? DateFormat("HH:mm").format(end) : "__:__";
     return (startText, endText);
   }

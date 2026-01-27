@@ -25,12 +25,7 @@ class Preferences {
   @Enumerated(EnumType.ordinal)
   TextSearchMode textSearchMode;
 
-  Preferences(
-    this.colorSchemeMode,
-    this.autoLowerCase,
-    this.logLevel,
-    this.textSearchMode,
-  );
+  Preferences(this.colorSchemeMode, this.autoLowerCase, this.logLevel, this.textSearchMode);
 }
 
 /// A timed event
@@ -48,13 +43,7 @@ class Event {
   int? endLocalMillis;
   int? endUtcMillis;
 
-  Event({
-    required this.typeId,
-    this.startLocalMillis,
-    this.startUtcMillis,
-    this.endLocalMillis,
-    this.endUtcMillis,
-  });
+  Event({required this.typeId, this.startLocalMillis, this.startUtcMillis, this.endLocalMillis, this.endUtcMillis});
 }
 
 /// A type of event
@@ -70,7 +59,7 @@ class EventType {
   EventType(this.name, [this.color = ColorKey.base, this.categoryId]);
 }
 
-/// A type of event
+/// A category of event types
 @collection
 class EventCategory {
   Id id = Isar.autoIncrement;
@@ -94,12 +83,7 @@ class UserTable {
   @Enumerated(EnumType.ordinal)
   TableFreq frequency = TableFreq.free;
 
-  UserTable(
-    this.name,
-    this.colNames,
-    this.schema, {
-    this.frequency = TableFreq.free,
-  });
+  UserTable(this.name, this.colNames, this.schema, {this.frequency = TableFreq.free});
 }
 
 @collection
@@ -121,14 +105,7 @@ Future<Isar> initIsar() async {
   final dir = await getApplicationDocumentsDirectory();
 
   final isar = await Isar.open(
-    [
-      PreferencesSchema,
-      EventSchema,
-      UserTableSchema,
-      UserRowSchema,
-      EventTypeSchema,
-      EventCategorySchema,
-    ],
+    [PreferencesSchema, EventSchema, UserTableSchema, UserRowSchema, EventTypeSchema, EventCategorySchema],
     name: "data_app_db",
     directory: dir.path,
   );

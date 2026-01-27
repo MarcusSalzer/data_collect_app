@@ -1,8 +1,8 @@
 import 'package:data_app2/app_state.dart';
+import 'package:data_app2/data/evt_type_rec.dart';
 import 'package:data_app2/dialogs/show_confirm_save_back_dialog.dart';
 import 'package:data_app2/view_models/event_type_detail_view_model.dart';
 import 'package:data_app2/util/extensions.dart';
-import 'package:data_app2/user_events.dart';
 import 'package:data_app2/util.dart';
 import 'package:data_app2/widgets/color_key_palette.dart';
 import 'package:data_app2/widgets/confirm_dialog.dart';
@@ -59,16 +59,9 @@ class EventTypeDetailScreen extends StatelessWidget {
                           final didDelete = await vm.delete();
                           if (context.mounted) {
                             if (didDelete) {
-                              simpleSnack(
-                                context,
-                                "Deleted type ${vm.typeEdit.id}",
-                              );
+                              simpleSnack(context, "Deleted type ${vm.typeEdit.id}");
                             } else {
-                              simpleSnack(
-                                context,
-                                "Failed to delete type",
-                                color: Colors.red,
-                              );
+                              simpleSnack(context, "Failed to delete type", color: Colors.red);
                             }
                             Navigator.of(context).pop();
                             Navigator.of(context).pop();
@@ -90,10 +83,7 @@ class EventTypeDetailScreen extends StatelessWidget {
                       rows: [
                         (
                           Text("Name"),
-                          TextFormField(
-                            onChanged: (v) => vm.updateName(v.trim()),
-                            initialValue: vm.typeEdit.name,
-                          ),
+                          TextFormField(onChanged: (v) => vm.updateName(v.trim()), initialValue: vm.typeEdit.name),
                         ),
                         (
                           Text("Color"),
@@ -112,10 +102,7 @@ class EventTypeDetailScreen extends StatelessWidget {
                             },
                             child: Text(
                               vm.color.name.capitalized,
-                              style: TextStyle(
-                                color: vm.color.inContext(context),
-                                fontWeight: FontWeight.bold,
-                              ),
+                              style: TextStyle(color: vm.color.inContext(context), fontWeight: FontWeight.bold),
                             ),
                           ),
                         ),
@@ -190,11 +177,7 @@ class EventTypeDetailDisplay extends StatelessWidget {
         _subtitle("Details"),
         _buildInfoRow('Id', type.id.toString()),
         _buildInfoRow('Name', type.name),
-        _buildInfoRow(
-          'Color',
-          type.color.toString(),
-          color: type.color.inContext(context),
-        ),
+        _buildInfoRow('Color', type.color.toString(), color: type.color.inContext(context)),
       ],
     );
   }

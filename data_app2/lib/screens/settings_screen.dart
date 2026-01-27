@@ -1,4 +1,6 @@
 import 'package:data_app2/app_state.dart';
+import 'package:data_app2/screens/home_screen.dart';
+import 'package:data_app2/screens/welcome_screen.dart';
 import 'package:data_app2/style.dart';
 import 'package:data_app2/util/dummy_data.dart';
 import 'package:data_app2/util.dart';
@@ -17,12 +19,7 @@ class EnumDropdown<E extends Enum> extends StatelessWidget {
 
   final void Function(E) onChanged;
 
-  const EnumDropdown({
-    super.key,
-    required this.initialValue,
-    required this.options,
-    required this.onChanged,
-  });
+  const EnumDropdown({super.key, required this.initialValue, required this.options, required this.onChanged});
 
   @override
   Widget build(BuildContext context) {
@@ -151,6 +148,8 @@ class SettingsScreen extends StatelessWidget {
                   },
                   label: Text("Licenses"),
                 ),
+
+                HomeNavLink("Show welcome screen", null, builder: (context) => WelcomeScreen()),
                 SizedBox(height: 20),
 
                 Text("Dangerous", style: TextStyle(fontSize: 20)),
@@ -166,8 +165,7 @@ class SettingsScreen extends StatelessWidget {
                           children: [
                             Center(
                               child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceEvenly,
+                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                 children: [
                                   TextButton(
                                     onPressed: () {
@@ -179,33 +177,21 @@ class SettingsScreen extends StatelessWidget {
                                     onPressed: () async {
                                       Navigator.pop(context);
                                       // delete all from DB
-                                      final cEvent = await app.db.events
-                                          .deleteAll();
-                                      final cType = await app.db.eventTypes
-                                          .deleteAll();
+                                      final cEvent = await app.db.events.deleteAll();
+                                      final cType = await app.db.eventTypes.deleteAll();
+                                      await app.db.prefs.clear();
 
-                                      Logger.root.info(
-                                        "Deleted all events and event types",
-                                      );
+                                      Logger.root.info("Deleted all data");
 
                                       // clear cache in repo
                                       app.evtTypeManager.clearCache();
 
                                       if (context.mounted) {
-                                        simpleSnack(
-                                          context,
-                                          "deleted: $cEvent events, $cType event-types",
-                                        );
+                                        simpleSnack(context, "deleted: $cEvent events, $cType event-types");
                                       }
                                     },
-                                    label: Text(
-                                      "delete",
-                                      style: TextStyle(color: Colors.red),
-                                    ),
-                                    icon: Icon(
-                                      Icons.warning,
-                                      color: Colors.red,
-                                    ),
+                                    label: Text("delete", style: TextStyle(color: Colors.red)),
+                                    icon: Icon(Icons.warning, color: Colors.red),
                                   ),
                                 ],
                               ),
@@ -227,9 +213,7 @@ class SettingsScreen extends StatelessWidget {
                           title: "Generate dummy data",
                           action: () async {
                             final recs = await dummyEvents(app);
-                            app.db.events.putAll(
-                              recs.map((r) => r.toIsar()).toList(),
-                            );
+                            app.db.events.putAll(recs.map((r) => r.toIsar()).toList());
                             Logger.root.warning("generated dummy data");
                             if (context.mounted) {
                               simpleSnack(context, "open events to refresh!");

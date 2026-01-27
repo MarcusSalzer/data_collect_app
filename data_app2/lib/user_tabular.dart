@@ -140,10 +140,7 @@ class TableProcessor extends ChangeNotifier {
   Future<TableRecord> findByTimeOrNew() async {
     final nowLocal = now();
     if (freq != TableFreq.free) {
-      final existing = await _db.tabular.getTableRecordsTime(
-        table: tableId,
-        dt: nowLocal,
-      );
+      final existing = await _db.tabular.getTableRecordsTime(table: tableId, dt: nowLocal);
       if (existing.isNotEmpty) {
         final rec = decodeRow(existing.first);
         return rec;
@@ -159,12 +156,7 @@ class TableProcessor extends ChangeNotifier {
     for (var (i, col) in columns.indexed) {
       values[i] = col.encode(rec.data[col.name]);
     }
-    final newId = await _db.tabular.saveTableRecord(
-      tableId,
-      rec.timestamp,
-      values,
-      rec.id,
-    );
+    final newId = await _db.tabular.saveTableRecord(tableId, rec.timestamp, values, rec.id);
     if (isNew) {
       rec.id = newId;
       _data.add(rec);
@@ -211,10 +203,7 @@ class TableProcessor extends ChangeNotifier {
   }
 
   Future<void> exportCsv({bool withSchema = false}) async {
-    final csvContent = tableRecordsToCsv(
-      _data,
-      csvHeader(withSchema: withSchema),
-    );
+    final csvContent = tableRecordsToCsv(_data, csvHeader(withSchema: withSchema));
     final fileName = "${name}_${Fmt.dtSecond(DateTime.now())}";
     exportFile(fileName, csvContent);
   }
@@ -257,11 +246,7 @@ class TableManager extends ChangeNotifier {
     );
   }
 
-  Future<void> newTable(
-    String tableName,
-    List<String> colNames,
-    TableFreq freq,
-  ) async {
+  Future<void> newTable(String tableName, List<String> colNames, TableFreq freq) async {
     await _db.tabular.saveUserTable(tableName, colNames, freq);
     init();
   }

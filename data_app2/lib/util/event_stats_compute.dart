@@ -1,8 +1,7 @@
-import 'package:data_app2/user_events.dart';
+import 'package:data_app2/data/evt_rec.dart';
 
 /// Get total time for each event type.
-List<MapEntry<int, Duration>> timePerEvent(Iterable<EvtRec> events,
-    {int? limit}) {
+List<MapEntry<int, Duration>> timePerEvent(Iterable<EvtRec> events, {int? limit}) {
   final Map<int, int> result = {};
   for (final evt in events) {
     final eSeconds = evt.duration?.inSeconds;
@@ -10,9 +9,7 @@ List<MapEntry<int, Duration>> timePerEvent(Iterable<EvtRec> events,
       result[evt.typeId] = (result[evt.typeId] ?? 0) + eSeconds;
     }
   }
-  final resList = result.entries
-      .map((e) => MapEntry(e.key, Duration(seconds: e.value)))
-      .toList();
+  final resList = result.entries.map((e) => MapEntry(e.key, Duration(seconds: e.value))).toList();
   resList.sort((a, b) => b.value.compareTo(a.value));
 
   if (limit == null || limit >= resList.length) {
@@ -20,10 +17,7 @@ List<MapEntry<int, Duration>> timePerEvent(Iterable<EvtRec> events,
   }
   final keepList = resList.sublist(0, limit);
   // sum "other" events
-  final restSum = resList.skip(limit).fold(
-        Duration.zero,
-        (p, entry) => p + entry.value,
-      );
+  final restSum = resList.skip(limit).fold(Duration.zero, (p, entry) => p + entry.value);
 
   if (restSum > Duration.zero) {
     keepList.add(MapEntry(-1, restSum));

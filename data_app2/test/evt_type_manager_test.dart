@@ -1,8 +1,8 @@
+import 'package:data_app2/data/evt_type_rec.dart';
 import 'package:data_app2/db_service.dart';
 import 'package:data_app2/util/colors.dart';
 import 'package:data_app2/isar_models.dart';
 import 'package:data_app2/event_type_manager.dart';
-import 'package:data_app2/user_events.dart';
 import 'package:isar_community/isar.dart';
 import 'package:test/test.dart';
 
@@ -83,19 +83,11 @@ void main() {
       expect(EvtTypeRec.fromIsar(fromDb!), EvtTypeRec(id: newId, name: "new"));
     });
     test('saveOrUpdate: updates', () async {
-      final id1 = await repo.saveOrUpdate(
-        EvtTypeRec(name: "new", color: ColorKey.blue),
-      );
-      final id2 = await repo.saveOrUpdate(
-        EvtTypeRec(name: "new", color: ColorKey.red),
-      );
+      final id1 = await repo.saveOrUpdate(EvtTypeRec(name: "new", color: ColorKey.blue));
+      final id2 = await repo.saveOrUpdate(EvtTypeRec(name: "new", color: ColorKey.red));
 
       expect(id1, id2, reason: "Should keep same id on update");
-      expect(
-        repo.resolveById(id1)?.color,
-        ColorKey.red,
-        reason: "repo should contain updated",
-      );
+      expect(repo.resolveById(id1)?.color, ColorKey.red, reason: "repo should contain updated");
     });
   });
 }

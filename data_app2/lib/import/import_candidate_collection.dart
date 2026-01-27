@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:data_app2/csv/infer_from_header.dart';
 import 'package:data_app2/data/evt_draft.dart';
-import 'package:data_app2/user_events.dart';
+import 'package:data_app2/data/evt_type_rec.dart';
 import 'package:data_app2/util/enums.dart';
 
 /// All importable files
@@ -65,8 +65,7 @@ class ImportCandidateSummary<T> {
 
   List<T> records;
 
-  ImportCandidateSummary(this.records, this.idOverlapCount)
-    : count = records.length {
+  ImportCandidateSummary(this.records, this.idOverlapCount) : count = records.length {
     // Timestamped?
     if (records case List<EvtDraft> evts) {
       // counts first and last

@@ -2,55 +2,49 @@
 
 import 'dart:math';
 
-import 'package:data_app2/app_state.dart';
-import 'package:data_app2/user_events.dart';
+import 'package:data_app2/data/today_summary_data.dart';
 import 'package:data_app2/util/fmt.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
-/// Displays a small summary table, using data in appstate.
-class EventsTodaySummaryFromAppState extends StatelessWidget {
-  const EventsTodaySummaryFromAppState({super.key});
+// /// Displays a small summary table, using data in appstate.
+// class EventsTodaySummaryFromAppState extends StatelessWidget {
+//   const EventsTodaySummaryFromAppState({super.key});
 
-  @override
-  Widget build(BuildContext context) {
-    final thm = Theme.of(context);
-    return Consumer<AppState>(
-      builder: (context, app, child) {
-        final summary = app.todaySummary;
-        if (summary == null) {
-          return Text("loading todaySummary");
-        }
-        if (summary.tpe.isEmpty) {
-          return const Center(child: Text("No events today"));
-        }
-        return Container(
-          padding: EdgeInsets.all(12),
-          margin: EdgeInsets.all(8),
-          decoration: ShapeDecoration(
-            color: thm.colorScheme.primaryContainer,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.all(Radius.circular(1)),
-            ),
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              EventDurationTable(tpe: summary.tpe),
-              SizedBox(height: 10),
-              MultiBar.horizontal(
-                sizes: summary.tpe.map((entry) => entry.value.inMinutes),
-                colors: summary.tpe
-                    .map((entry) => entry.key.color.inContext(context))
-                    .toList(),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-}
+//   @override
+//   Widget build(BuildContext context) {
+//     final thm = Theme.of(context);
+//     return Consumer<AppState>(
+//       builder: (context, app, child) {
+//         final summary = app.todaySummary;
+//         if (summary == null) {
+//           return Text("loading todaySummary");
+//         }
+//         if (summary.tpe.isEmpty) {
+//           return const Center(child: Text("No events today"));
+//         }
+//         return Container(
+//           padding: EdgeInsets.all(12),
+//           margin: EdgeInsets.all(8),
+//           decoration: ShapeDecoration(
+//             color: thm.colorScheme.primaryContainer,
+//             shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(1))),
+//           ),
+//           child: Column(
+//             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//             children: [
+//               EventDurationTable(summary),
+//               SizedBox(height: 10),
+//               MultiBar.horizontal(
+//                 sizes: summary.tpe.map((entry) => entry.value.inMinutes),
+//                 colors: summary.tpe.map((entry) => entry.key.color.inContext(context)).toList(),
+//               ),
+//             ],
+//           ),
+//         );
+//       },
+//     );
+//   }
+// }
 
 class MultiBar extends StatelessWidget {
   final Iterable<int> sizes;
@@ -59,19 +53,11 @@ class MultiBar extends StatelessWidget {
   final double thickness;
 
   // horizontal
-  const MultiBar.horizontal({
-    super.key,
-    required this.sizes,
-    required this.colors,
-    this.thickness = 5,
-  }) : direction = Axis.horizontal;
+  const MultiBar.horizontal({super.key, required this.sizes, required this.colors, this.thickness = 5})
+    : direction = Axis.horizontal;
   // vertical
-  const MultiBar.vertical({
-    super.key,
-    required this.sizes,
-    required this.colors,
-    this.thickness = 5,
-  }) : direction = Axis.horizontal;
+  const MultiBar.vertical({super.key, required this.sizes, required this.colors, this.thickness = 5})
+    : direction = Axis.horizontal;
 
   @override
   Widget build(BuildContext context) {
@@ -97,8 +83,7 @@ class MultiBar extends StatelessWidget {
 
 /// A Table showing events, each with a duration
 class EventDurationTable extends StatelessWidget {
-  final List<MapEntry<EvtTypeRec, Duration>> tpe;
-  late final Duration trackedTime;
+  final SummaryDataList summary;
 
   final String title;
 
@@ -106,20 +91,18 @@ class EventDurationTable extends StatelessWidget {
 
   final double height;
 
-  EventDurationTable({
+  const EventDurationTable(
+    this.summary, {
     super.key,
-    required this.tpe,
     this.title = "Tracked time today",
     this.includeBar = false,
     this.height = 220,
-  }) {
-    trackedTime = tpe.fold(Duration.zero, (p, c) => p + c.value);
-  }
+  });
 
   @override
   Widget build(BuildContext context) {
     final comps = <Widget>[];
-    for (final entry in tpe) {
+    for (final entry in summary.items) {
       comps.add(
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 4),
@@ -131,19 +114,16 @@ class EventDurationTable extends StatelessWidget {
                 child: Row(
                   spacing: 4,
                   children: [
-                    CircleAvatar(
-                      radius: 3,
-                      backgroundColor: entry.key.color.inContext(context),
-                    ),
+                    CircleAvatar(radius: 3, backgroundColor: entry.color.inContext(context)),
 
-                    Text(entry.key.name, overflow: TextOverflow.ellipsis),
+                    Text(entry.name, overflow: TextOverflow.ellipsis),
                   ],
                 ),
               ),
               Flexible(
                 flex: 1,
                 child: Text(
-                  Fmt.durationHmVerbose(entry.value),
+                  Fmt.durationHmVerbose(entry.duration),
                   textAlign: TextAlign.right,
                   style: const TextStyle(fontFamily: 'monospace', fontSize: 14),
                 ),
@@ -158,10 +138,8 @@ class EventDurationTable extends StatelessWidget {
         ? Padding(
             padding: const EdgeInsets.symmetric(vertical: 8.0),
             child: MultiBar.horizontal(
-              sizes: tpe.map((entry) => entry.value.inMinutes),
-              colors: tpe
-                  .map((entry) => entry.key.color.inContext(context))
-                  .toList(),
+              sizes: summary.items.map((entry) => entry.duration.inMinutes),
+              colors: summary.items.map((entry) => entry.color.inContext(context)).toList(),
               thickness: 3,
             ),
           )
@@ -178,21 +156,14 @@ class EventDurationTable extends StatelessWidget {
             children: [
               Flexible(
                 flex: 2,
-                child: Text(
-                  title,
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
+                child: Text(title, style: TextStyle(fontWeight: FontWeight.bold)),
               ),
               Flexible(
                 flex: 1,
                 child: Text(
-                  Fmt.durationHmVerbose(trackedTime),
+                  Fmt.durationHmVerbose(summary.trackedTime),
                   textAlign: TextAlign.right,
-                  style: const TextStyle(
-                    fontFamily: 'monospace',
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: const TextStyle(fontFamily: 'monospace', fontSize: 14, fontWeight: FontWeight.bold),
                 ),
               ),
             ],
@@ -210,16 +181,11 @@ class EventDurationTable extends StatelessWidget {
 }
 
 class EventsSummary extends StatelessWidget {
-  const EventsSummary({
-    super.key,
-    required this.title,
-    required this.tpe,
-    this.listHeight = 220,
-  });
+  const EventsSummary({super.key, required this.title, required this.summary, this.listHeight = 220});
 
   final String title;
 
-  final List<MapEntry<EvtTypeRec, Duration>> tpe;
+  final SummaryDataList summary;
 
   final double listHeight;
 
@@ -232,16 +198,9 @@ class EventsSummary extends StatelessWidget {
       padding: EdgeInsets.all(8),
       decoration: ShapeDecoration(
         color: thm.colorScheme.primaryContainer,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.all(Radius.circular(1)),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(1))),
       ),
-      child: EventDurationTable(
-        tpe: tpe,
-        title: title,
-        includeBar: true,
-        height: listHeight,
-      ),
+      child: EventDurationTable(summary, title: title, includeBar: true, height: listHeight),
     );
   }
 }
