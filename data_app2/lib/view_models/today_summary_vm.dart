@@ -1,6 +1,4 @@
 import 'package:data_app2/app_state.dart';
-import 'package:data_app2/data/evt_rec.dart';
-import 'package:data_app2/data/evt_type_rec.dart';
 import 'package:data_app2/data/today_summary_data.dart';
 import 'package:data_app2/local_datetime.dart';
 import 'package:data_app2/util/colors.dart';
@@ -24,14 +22,14 @@ class TodaySummaryVm extends ChangeNotifier {
       earliest: LocalDateTime.fromDateTimeLocalTZ(DateTime.now().startOfDay),
     );
 
-    final tpe = timePerEvent(evts.map((e) => EvtRec.fromIsar(e)), limit: 5);
+    final tpe = timePerEvent(evts, limit: 5);
 
     switch (mode) {
       case SummaryMode.evtType:
         todaySummary = SummaryDataList(
           tpe.map((e) {
-            final et = _app.evtTypeManager.resolveById(e.key) ?? EvtTypeRec(name: "unknown");
-            return SummaryItem(et.name, et.color, e.value);
+            final et = _app.evtTypeManager.resolveById(e.key);
+            return SummaryItem(et?.name ?? "unknown", et?.color ?? ColorKey.base, e.value);
           }).toList(),
         );
         break;
@@ -49,8 +47,8 @@ class TodaySummaryVm extends ChangeNotifier {
     final byCat = <int?, Duration>{};
 
     for (var e in byTypeId) {
-      final et = _app.evtTypeManager.resolveById(e.key) ?? EvtTypeRec(name: "unknown");
-      final cat = idToCat[et.categoryId];
+      final et = _app.evtTypeManager.resolveById(e.key);
+      final cat = idToCat[et?.categoryId];
       byCat[cat?.id] = (byCat[cat?.id] ?? Duration.zero) + e.value;
     }
 

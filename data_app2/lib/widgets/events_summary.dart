@@ -1,7 +1,6 @@
 // a small widget for seeing todays events
 
 import 'dart:math';
-
 import 'package:data_app2/data/today_summary_data.dart';
 import 'package:data_app2/util/fmt.dart';
 import 'package:flutter/material.dart';

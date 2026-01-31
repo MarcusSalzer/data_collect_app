@@ -1,7 +1,6 @@
 import 'package:data_app2/app_state.dart';
 import 'package:data_app2/view_models/event_create_vm.dart';
 import 'package:data_app2/util/fmt.dart';
-import 'package:data_app2/local_datetime.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -42,18 +41,11 @@ class _EventCreateMenuState extends State<EventCreateMenu> {
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
                           SizedBox(width: 100, child: Text(startTxt)),
-                          Expanded(
-                            child: Text(
-                              app.evtTypeManager
-                                      .resolveById(evt.typeId)
-                                      ?.name ??
-                                  "unknown",
-                            ),
-                          ),
+                          Expanded(child: Text(app.evtTypeManager.resolveById(evt.typeId)?.name ?? "unknown")),
                           TextButton.icon(
                             onPressed: () {
-                              evt.end = LocalDateTime.now();
-                              evm.updateEvent(evt);
+                              // evt.end = LocalDateTime.now();
+                              // evm.updateEvent(evt);
                             },
                             label: Text("stop"),
                             icon: Icon(Icons.stop),
@@ -140,9 +132,7 @@ class CommonEventsSuggest extends StatelessWidget {
                 evm.addEventByName(name, start: DateTime.now());
               },
               shape: RoundedRectangleBorder(
-                side: BorderSide(
-                  color: et?.color.inContext(context) ?? Colors.grey,
-                ),
+                side: BorderSide(color: et?.color.inContext(context) ?? Colors.grey),
                 borderRadius: BorderRadiusGeometry.all(Radius.circular(6)),
               ),
             );

@@ -1,5 +1,5 @@
 import 'package:data_app2/app_state.dart';
-import 'package:data_app2/data/evt_type_rec.dart';
+import 'package:data_app2/data/evt_type.dart';
 import 'package:data_app2/dialogs/show_confirm_save_back_dialog.dart';
 import 'package:data_app2/view_models/event_type_detail_view_model.dart';
 import 'package:data_app2/util/extensions.dart';
@@ -40,96 +40,104 @@ class EventTypeDetailScreen extends StatelessWidget {
                       simpleSnack(context, "Saved!");
                     }
                   }
-                  return vm.typeEdit;
+                  return null;
                 },
               );
             }
           },
-          child: Scaffold(
-            appBar: AppBar(
-              title: Text("${vm.typeEdit.name}${vm.isDirty ? " *" : ""}"),
-              actions: [
-                IconButton(
-                  onPressed: () {
-                    showDialog(
-                      context: context,
-                      builder: (context) => ConfirmDialog(
-                        title: "Delete event type?",
-                        action: () async {
-                          final didDelete = await vm.delete();
-                          if (context.mounted) {
-                            if (didDelete) {
-                              simpleSnack(context, "Deleted type ${vm.typeEdit.id}");
-                            } else {
-                              simpleSnack(context, "Failed to delete type", color: Colors.red);
-                            }
-                            Navigator.of(context).pop();
-                            Navigator.of(context).pop();
-                          }
-                        },
-                      ),
-                    );
+          child: _Scaffold(vm),
+        ),
+      ),
+    );
+  }
+}
+
+class _Scaffold extends StatelessWidget {
+  final EventTypeDetailViewModel vm;
+
+  const _Scaffold(this.vm);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("${vm.draft.name}${vm.isDirty ? " *" : ""}"),
+        actions: [
+          IconButton(
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (context) => ConfirmDialog(
+                  title: "Delete event type?",
+                  action: () async {
+                    final didDelete = await vm.delete();
+                    if (context.mounted) {
+                      if (didDelete) {
+                        simpleSnack(context, "Deleted type ${vm.draft.name}");
+                      } else {
+                        simpleSnack(context, "Failed to delete type", color: Colors.red);
+                      }
+                      Navigator.of(context).pop();
+                      Navigator.of(context).pop();
+                    }
                   },
-                  icon: Icon(Icons.delete_forever),
                 ),
-              ],
-            ),
-            body: SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  children: [
-                    TwoColumns(
-                      rows: [
-                        (
-                          Text("Name"),
-                          TextFormField(onChanged: (v) => vm.updateName(v.trim()), initialValue: vm.typeEdit.name),
-                        ),
-                        (
-                          Text("Color"),
-                          ElevatedButton(
-                            onPressed: () {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (context) => ColorKeyPalette(
-                                    selectedColorKey: vm.color,
-                                    onColorSelected: (newCol) {
-                                      vm.updateColor(newCol);
-                                    },
-                                  ),
-                                ),
-                              );
-                            },
-                            child: Text(
-                              vm.color.name.capitalized,
-                              style: TextStyle(color: vm.color.inContext(context), fontWeight: FontWeight.bold),
+              );
+            },
+            icon: Icon(Icons.delete_forever),
+          ),
+        ],
+      ),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            children: [
+              TwoColumns(
+                rows: [
+                  (Text("Name"), TextFormField(onChanged: (v) => vm.updateName, initialValue: vm.draft.name)),
+                  (
+                    Text("Color"),
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => ColorKeyPalette(
+                              selectedColorKey: vm.color,
+                              onColorSelected: (newCol) {
+                                vm.updateColor(newCol);
+                              },
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 32),
-                    if (vm.isDirty)
-                      TextButton(
-                        onPressed: () async {
-                          final errMsg = await vm.save();
-                          if (context.mounted) {
-                            if (errMsg != null) {
-                              simpleSnack(context, errMsg, color: Colors.red);
-                            } else {
-                              simpleSnack(context, "Saved!");
-                              Navigator.of(context).pop(vm.typeEdit);
-                            }
-                          }
-                        },
-                        child: Text("Save & exit"),
+                        );
+                      },
+                      child: Text(
+                        vm.color.name.capitalized,
+                        style: TextStyle(color: vm.color.inContext(context), fontWeight: FontWeight.bold),
                       ),
-                    SizedBox(height: 32),
-                    EventTypeDetailDisplay(vm.typeEdit),
-                  ],
-                ),
+                    ),
+                  ),
+                ],
               ),
-            ),
+              SizedBox(height: 32),
+              if (vm.isDirty)
+                TextButton(
+                  onPressed: () async {
+                    final errMsg = await vm.save();
+                    if (context.mounted) {
+                      if (errMsg != null) {
+                        simpleSnack(context, errMsg, color: Colors.red);
+                      } else {
+                        simpleSnack(context, "Saved!");
+                        Navigator.of(context).pop(vm.draft);
+                      }
+                    }
+                  },
+                  child: Text("Save & exit"),
+                ),
+              SizedBox(height: 32),
+              EventTypeDetailDisplay(vm.draft, vm.id),
+            ],
           ),
         ),
       ),
@@ -138,9 +146,10 @@ class EventTypeDetailScreen extends StatelessWidget {
 }
 
 class EventTypeDetailDisplay extends StatelessWidget {
-  final EvtTypeRec type;
+  final EvtTypeDraft type;
+  final int? id;
 
-  const EventTypeDetailDisplay(this.type, {super.key});
+  const EventTypeDetailDisplay(this.type, this.id, {super.key});
 
   // A helper method to create a row for a single data pair
   Widget _buildInfoRow(String title, String value, {Color? color}) {
@@ -175,7 +184,7 @@ class EventTypeDetailDisplay extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _subtitle("Details"),
-        _buildInfoRow('Id', type.id.toString()),
+        _buildInfoRow('Id', id.toString()),
         _buildInfoRow('Name', type.name),
         _buildInfoRow('Color', type.color.toString(), color: type.color.inContext(context)),
       ],

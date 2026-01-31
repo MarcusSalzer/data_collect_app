@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'package:data_app2/app_state.dart';
 import 'package:data_app2/csv/period_agg_csv_writer.dart';
 import 'package:data_app2/data/summary_with_period_aggs.dart';
@@ -15,8 +14,7 @@ class MultiSummaryExportScreen extends StatefulWidget {
   const MultiSummaryExportScreen(this.summary, {super.key});
 
   @override
-  State<MultiSummaryExportScreen> createState() =>
-      _MultiSummaryExportScreenState();
+  State<MultiSummaryExportScreen> createState() => _MultiSummaryExportScreenState();
 }
 
 class _MultiSummaryExportScreenState extends State<MultiSummaryExportScreen> {
@@ -47,12 +45,8 @@ class _MultiSummaryExportScreenState extends State<MultiSummaryExportScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           spacing: 12,
           children: [
-            Text(
-              "From ${Fmt.date(widget.summary.start)} to ${Fmt.date(widget.summary.end)}",
-            ),
-            Text(
-              "${widget.summary.aggs.length} records, ${widget.summary.nTypes} types",
-            ),
+            Text("From ${Fmt.date(widget.summary.start)} to ${Fmt.date(widget.summary.end)}"),
+            Text("${widget.summary.aggs.length} records, ${widget.summary.nTypes} types"),
             Divider(),
             Row(
               spacing: 8,
@@ -73,12 +67,7 @@ class _MultiSummaryExportScreenState extends State<MultiSummaryExportScreen> {
                 SizedBox.fromSize(
                   size: Size(80, 30),
                   child: Center(
-                    child: Text(
-                      suffix,
-                      style: TextStyle(
-                        color: includeSuffix ? null : Colors.grey,
-                      ),
-                    ),
+                    child: Text(suffix, style: TextStyle(color: includeSuffix ? null : Colors.grey)),
                   ),
                 ),
                 Checkbox(
@@ -98,9 +87,7 @@ class _MultiSummaryExportScreenState extends State<MultiSummaryExportScreen> {
                       final file = File(p.join(dir.path, pickedName + suffix));
                       // TODO: only tot-writer right now
                       final writer = PeriodAggTotCsvWriter(widget.summary.f);
-                      final lines = writer.encodeRowsWithHeader(
-                        widget.summary.aggs,
-                      );
+                      final lines = writer.encodeRowsWithHeader(widget.summary.aggs);
                       await file.writeAsString(lines.join("\n"));
 
                       if (context.mounted) {

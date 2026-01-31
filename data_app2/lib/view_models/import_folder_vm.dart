@@ -4,15 +4,7 @@ import 'package:data_app2/csv_import_service.dart';
 import 'package:data_app2/import/import_candidate_collection.dart';
 import 'package:flutter/foundation.dart';
 
-enum ImportStep {
-  scanningFolder,
-  confirmFiles,
-  preparingModels,
-  confirmImport,
-  importing,
-  done,
-  error,
-}
+enum ImportStep { scanningFolder, confirmFiles, preparingModels, confirmImport, importing, done, error }
 
 /// How to import data, when its id is already in the DB
 enum ImportOverlapPolicy {
@@ -29,10 +21,8 @@ extension ImportOverlapPolicyUi on ImportOverlapPolicy {
   };
 
   String get description => switch (this) {
-    ImportOverlapPolicy.skip =>
-      'Records with IDs already in the database will not be imported.',
-    ImportOverlapPolicy.overwrite =>
-      'Imported records will replace existing records with the same ID.',
+    ImportOverlapPolicy.skip => 'Records with IDs already in the database will not be imported.',
+    ImportOverlapPolicy.overwrite => 'Imported records will replace existing records with the same ID.',
     // ImportOverlapPolicy.reassignNew =>
     //   'Imported records will be assigned new IDs to avoid conflicts.',
   };
@@ -88,9 +78,7 @@ class ImportFolderVm extends ChangeNotifier {
       _candidates.clear();
 
       // Find all files with .csv extension
-      final files = folder.listSync().whereType<File>().where(
-        (f) => f.path.toLowerCase().endsWith('.csv'),
-      );
+      final files = folder.listSync().whereType<File>().where((f) => f.path.toLowerCase().endsWith('.csv'));
 
       for (final file in files) {
         await candidates.addFile(file);
@@ -121,13 +109,13 @@ class ImportFolderVm extends ChangeNotifier {
       await Future.delayed(const Duration(milliseconds: 200));
       // import types
       for (var c in candidates.evtTypeCands) {
-        if (c.summary case ImportCandidateSummary(:final records)) {
+        if (c.summary case ImportCandidateSummary(:final items)) {
           switch (_overlapPolicy) {
             case ImportOverlapPolicy.skip:
-              addedTypeIds = await _app.db.eventTypes.putIfNewId(records);
+              addedTypeIds = await _app.db.eventTypes.putIfNewId(items);
               break;
             case ImportOverlapPolicy.overwrite:
-              addedTypeIds = await _app.db.eventTypes.putAll(records);
+              addedTypeIds = await _app.db.eventTypes.updateAll(items);
               break;
             // case ImportOverlapPolicy.reassignNew:
             //   // TODO: Handle this case.
@@ -136,26 +124,17 @@ class ImportFolderVm extends ChangeNotifier {
         }
       }
       // refresh types
-      _app.evtTypeManager.reloadFromIsar(await _app.db.eventTypes.all());
+      _app.evtTypeManager.reloadFromModels(await _app.db.eventTypes.all());
 
       // import events
       for (var c in candidates.evtCands) {
-        if (c.summary case ImportCandidateSummary(:final records)) {
-          // resolve all event types
-          final evts = await Future.wait(
-            records.map(
-              (r) async => r.toIsar(
-                await _app.evtTypeManager.resolveOrCreate(name: r.typeName),
-              ),
-            ),
-          );
-
+        if (c.summary case ImportCandidateSummary(:final items)) {
           switch (_overlapPolicy) {
             case ImportOverlapPolicy.skip:
-              evtImportCount = await _app.db.events.putIfNewId(evts);
+              evtImportCount = (await _app.db.events.putIfNewId(items)).length;
               break;
             case ImportOverlapPolicy.overwrite:
-              evtImportCount = await _app.db.events.putAll(evts);
+              evtImportCount = (await _app.db.events.updateAll(items)).length;
               break;
             // case ImportOverlapPolicy.reassignNew:
             //   // TODO: Handle this case.

@@ -1,14 +1,13 @@
 import 'dart:io';
-
 import 'package:data_app2/app_state.dart';
 import 'package:data_app2/csv/evt_csv_adapter.dart';
-import 'package:data_app2/data/evt_draft.dart';
+import 'package:data_app2/data/evt.dart';
 import 'package:data_app2/io.dart';
 import 'package:data_app2/util/process_state.dart';
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 
-/// NOTE: Moving parts to CsvImportService
+@Deprecated("Unify logic with new import")
 class ImportAnyViewModel extends ChangeNotifier {
   String filePath;
   ProcessState<EvtImportSummary> state = Loading();
@@ -30,10 +29,7 @@ class ImportAnyViewModel extends ChangeNotifier {
     final header = lines[0];
     // default error
     if (header != adapter.header) {
-      state = Error(
-        "Unsupported header:",
-        examples: ["Expected: ${adapter.header}", "Got     : $header"],
-      );
+      state = Error("Unsupported header:", examples: ["Expected: ${adapter.header}", "Got     : $header"]);
     } else {
       // matches events header
       await _prepareImportEvents(lines);
@@ -50,11 +46,9 @@ class ImportAnyViewModel extends ChangeNotifier {
       final evtIdsFile = recs.map((r) => r.id).toSet();
       final idOverlap = evtIdsDb.intersection(evtIdsFile);
 
-      state = Ready(
-        EvtImportSummary.fromEvtDrafts(recs)..idOverlapCount = idOverlap.length,
-      );
+      // state = Ready(EvtImportSummary.fromEvtDrafts(recs)..idOverlapCount = idOverlap.length);
 
-      evtDrafts = recs;
+      // evtDrafts = recs;
     } catch (e) {
       state = Error(e);
     }
@@ -75,14 +69,10 @@ class ImportAnyViewModel extends ChangeNotifier {
     int c;
     try {
       // resolve all event types
-      final evts = await Future.wait(
-        recs.map(
-          (r) async => r.toIsar(
-            await _app.evtTypeManager.resolveOrCreate(name: r.typeName),
-          ),
-        ),
-      );
-      c = await _app.db.events.putAll(evts);
+      // final evts = await Future.wait(
+      //   recs.map((r) async => r.toIsar(await _app.evtTypeManager.resolveOrCreate(name: r.typeName))),
+      // );
+      c = (await _app.db.events.createAll(recs)).length;
 
       state = Done();
     } catch (e) {

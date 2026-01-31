@@ -1,5 +1,5 @@
 import 'package:data_app2/app_state.dart';
-import 'package:data_app2/data/evt_type_rec.dart';
+import 'package:data_app2/data/evt_type.dart';
 import 'package:data_app2/data/summary_with_period_aggs.dart';
 import 'package:data_app2/screens/events/multi_summary_export_screen.dart';
 import 'package:data_app2/util/enums.dart';

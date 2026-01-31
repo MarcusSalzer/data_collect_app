@@ -177,8 +177,8 @@ class SettingsScreen extends StatelessWidget {
                                     onPressed: () async {
                                       Navigator.pop(context);
                                       // delete all from DB
-                                      final cEvent = await app.db.events.deleteAll();
-                                      final cType = await app.db.eventTypes.deleteAll();
+                                      final cEvent = await app.db.events.forceDeleteAll();
+                                      final cType = await app.db.eventTypes.forceDeleteAll();
                                       await app.db.prefs.clear();
 
                                       Logger.root.info("Deleted all data");
@@ -213,7 +213,7 @@ class SettingsScreen extends StatelessWidget {
                           title: "Generate dummy data",
                           action: () async {
                             final recs = await dummyEvents(app);
-                            app.db.events.putAll(recs.map((r) => r.toIsar()).toList());
+                            await app.db.events.createAll(recs);
                             Logger.root.warning("generated dummy data");
                             if (context.mounted) {
                               simpleSnack(context, "open events to refresh!");

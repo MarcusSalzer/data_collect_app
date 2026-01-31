@@ -1,6 +1,6 @@
-import 'package:data_app2/data/evt_type_rec.dart';
+import 'package:data_app2/data/evt_type.dart';
 import 'package:data_app2/db_service.dart';
-import 'package:data_app2/isar_models.dart';
+import 'package:data_app2/util/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 
@@ -16,10 +16,8 @@ class EvtTypeManager extends ChangeNotifier {
     if (types != null) {
       for (var t in types) {
         final tId = t.id;
-        if (tId != null) {
-          _byName[t.name] = t;
-          _byId[tId] = t;
-        }
+        _byName[t.name] = t;
+        _byId[tId] = t;
       }
     }
   }
@@ -27,22 +25,20 @@ class EvtTypeManager extends ChangeNotifier {
   List<EvtTypeRec> get all => _byId.values.toList();
 
   /// Reset cache and fill
-  void reloadFromIsar(Iterable<EventType> evtTypes) {
+  void reloadFromModels(Iterable<EvtTypeRec> evtTypes) {
     _byName = {};
     _byId = {};
-    for (var et in evtTypes) {
-      final rec = EvtTypeRec.fromIsar(et);
-      _byName[et.name] = rec;
-      _byId[et.id] = rec;
+    for (var rec in evtTypes) {
+      _byName[rec.name] = rec;
+      _byId[rec.id] = rec;
     }
     notifyListeners();
   }
 
   /// add a single type
-  void add(int id, EvtTypeRec rec) {
-    rec.id = id;
+  void add(EvtTypeRec rec) {
     _byName[rec.name] = rec;
-    _byId[id] = rec;
+    _byId[rec.id] = rec;
     notifyListeners();
   }
 
@@ -60,8 +56,8 @@ class EvtTypeManager extends ChangeNotifier {
   }
 
   void remove(int id, String name) {
-    _byId.remove(id);
     _byName.remove(name);
+    _byId.remove(id);
     notifyListeners();
   }
 }
@@ -80,19 +76,18 @@ class EvtTypeManagerPersist extends EvtTypeManager {
       return cached;
     }
     final fromDB = await _db.eventTypes.getOrCreate(name);
-    add(fromDB.id, EvtTypeRec.fromIsar(fromDB));
+    add(fromDB);
     // state has updated
     notifyListeners();
     return fromDB.id;
   }
 
   /// Save new or update event-type. returns id
-  Future<int> saveOrUpdate(EvtTypeRec type) async {
-    final newId = await _db.eventTypes.saveOrUpdateByName(type);
-    add(newId, type);
+  Future<void> update(EvtTypeRec rec) async {
+    await _db.eventTypes.update(rec);
+    add(rec);
     // state has updated
     notifyListeners();
-    return newId;
   }
 
   /// Check DB for dangling EvtType references
@@ -104,9 +99,10 @@ class EvtTypeManagerPersist extends EvtTypeManager {
     return dangling;
   }
 
+  /// Delete both from DB and cache
   @override
   Future<bool> remove(int id, String name) async {
-    final didDelete = await _db.eventTypes.delete(id);
+    final didDelete = await _db.eventTypes.forceDelete(id);
     super.remove(id, name);
     return didDelete;
   }
@@ -116,10 +112,8 @@ class EvtTypeManagerPersist extends EvtTypeManager {
     final ids = await danglingTypeRefs();
     final created = <int>[];
     for (var i in ids) {
-      final newId = await _db.eventTypes.putWithId(i, "_new_type_$i");
-      if (newId != null) {
-        created.add(newId);
-      }
+      final newId = await _db.eventTypes.update(EvtTypeRec(i, "_new_type_$i", ColorKey.base, null));
+      created.add(newId);
     }
     notifyListeners();
     return created;

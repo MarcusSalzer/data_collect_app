@@ -3,7 +3,6 @@ import 'package:data_app2/csv/evt_type_csv_adapter.dart';
 import 'package:data_app2/csv/infer_from_header.dart';
 import 'package:data_app2/util/enums.dart';
 import 'package:test/test.dart';
-
 import '../test_util/paths.dart';
 
 void main() {
@@ -20,10 +19,7 @@ void main() {
   });
   test("infer header from cols", () {
     expect(roleFromCols(EvtCsvAdapter().cols.toSet()), ImportFileRole.events);
-    expect(
-      roleFromCols(EvtTypeCsvAdapter().cols.toSet()),
-      ImportFileRole.eventTypes,
-    );
+    expect(roleFromCols(EvtTypeCsvAdapter().cols.toSet()), ImportFileRole.eventTypes);
     expect(roleFromCols({"some", "random", "trash"}), ImportFileRole.unknown);
   });
 }

@@ -1,11 +1,10 @@
-import 'package:data_app2/data/evt_type_rec.dart';
 import 'package:data_app2/view_models/generic_selection_vm.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 /// Dynamic Floating action button with actions for (non)empty selections
 /// Needs an [GenericSelectionVm] in context
-class SelectionFab extends StatelessWidget {
+class SelectionFab<T> extends StatelessWidget {
   final String actionSelectedName;
   final void Function(Set<int>) actionSelected;
   final void Function() actionEmpty;
@@ -19,7 +18,7 @@ class SelectionFab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<GenericSelectionVm<EvtTypeRec>>(
+    return Consumer<GenericSelectionVm<T>>(
       builder: (context, selVM, child) {
         // special selection FAB
         if (selVM.anySelected) {

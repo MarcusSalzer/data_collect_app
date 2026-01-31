@@ -1,9 +1,8 @@
 // Generate dummy data with recent timestamps.
 
 import 'dart:math';
-
 import 'package:data_app2/app_state.dart';
-import 'package:data_app2/data/evt_rec.dart';
+import 'package:data_app2/data/evt.dart';
 
 const evtSamples = [
   (name: "work", time: Duration(minutes: 75)),
@@ -25,8 +24,8 @@ const nDays = 7;
 const nPerDay = 7;
 const durNoise = 15; // minutes
 
-Future<Iterable<EvtRec>> dummyEvents(AppState app) async {
-  final recs = <EvtRec>[];
+Future<Iterable<EvtDraft>> dummyEvents(AppState app) async {
+  final recs = <EvtDraft>[];
   for (var day = 0; day < nDays; day++) {
     var pos = DateTime.now().subtract(Duration(days: day));
     final eIdxDay = randomSample(evtSamples.length, nPerDay);
@@ -42,9 +41,8 @@ Future<Iterable<EvtRec>> dummyEvents(AppState app) async {
       pos = pos.subtract(dur);
       final name = ev.name;
 
-      final r = EvtRec.inCurrentTZ(
-        id: null,
-        typeId: await app.evtTypeManager.resolveOrCreate(name: name),
+      final r = EvtDraft.inCurrentTZ(
+        await app.evtTypeManager.resolveOrCreate(name: name),
         start: start,
         end: end,
       );

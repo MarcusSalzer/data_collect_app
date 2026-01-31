@@ -1,5 +1,5 @@
 import 'package:data_app2/app_state.dart' show AppState;
-import 'package:data_app2/data/evt_rec.dart';
+import 'package:data_app2/data/evt.dart';
 import 'package:data_app2/util/enums.dart';
 import 'package:data_app2/util/extensions.dart';
 import 'package:data_app2/util/fmt.dart';

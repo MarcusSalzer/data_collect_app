@@ -1,6 +1,6 @@
 import 'package:data_app2/app_state.dart';
-import 'package:data_app2/data/evt_rec.dart';
-import 'package:data_app2/data/evt_type_rec.dart';
+import 'package:data_app2/data/evt.dart';
+import 'package:data_app2/data/evt_type.dart';
 import 'package:data_app2/dialogs/show_confirm_save_back_dialog.dart';
 import 'package:data_app2/util/enums.dart';
 import 'package:data_app2/util/text_search.dart';
@@ -35,7 +35,6 @@ class EventDetailScreen extends StatelessWidget {
                   try {
                     await vm.save();
                     if (context.mounted) simpleSnack(context, "Saved!");
-                    return vm.evt;
                   } catch (e) {
                     if (context.mounted) {
                       simpleSnack(context, e.toString(), color: Colors.red);
@@ -51,7 +50,7 @@ class EventDetailScreen extends StatelessWidget {
               title: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  Text("Event ${vm.evt.id}${vm.isDirty ? " *" : ""}"),
+                  Text("Event ${vm.stored?.id}${vm.isDirty ? " *" : ""}"),
                   CircleAvatar(radius: 8, backgroundColor: vm.evtType?.color.inContext(context)),
                 ],
               ),
@@ -106,7 +105,7 @@ class EventDetailScreen extends StatelessWidget {
                             try {
                               await vm.save();
                               if (context.mounted) {
-                                Navigator.of(context).pop(vm.evt);
+                                Navigator.of(context).pop();
                                 simpleSnack(context, "Saved!");
                               }
                             } catch (e) {
@@ -119,7 +118,7 @@ class EventDetailScreen extends StatelessWidget {
                         ),
                       ),
                     SizedBox(height: 16),
-                    EventDetailDisplay(vm.evt, vm.evtType),
+                    if (vm.stored case EvtRec st) EventDetailDisplay(st, vm.evtType),
                   ],
                 ),
               ),
@@ -150,15 +149,13 @@ class EventEditForm extends StatelessWidget {
             onSelected: (v) {
               final newTypeId = v.id;
               // only allow setting persisted (has-id) types
-              if (newTypeId != null) {
-                vm.changeType(newTypeId);
-              }
+              vm.changeType(newTypeId);
             },
             searchMode: app.textSearchMode,
           ),
         ),
-        (Text("Start"), DTPickerPair(vm.evt.start, vm.changeStartLocalTZ)),
-        (Text("End"), DTPickerPair(vm.evt.end, vm.changeEndLocalTZ)),
+        (Text("Start"), DTPickerPair(vm.draft.start, vm.changeStartLocalTZ)),
+        (Text("End"), DTPickerPair(vm.draft.end, vm.changeEndLocalTZ)),
       ],
     );
   }
@@ -332,7 +329,7 @@ class EventDetailDisplay extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _subtitle("Details"),
-        _buildInfoRow('ID', evt.id?.toString() ?? 'N/A'),
+        _buildInfoRow('ID', evt.id.toString()),
         _buildInfoRow('Type', evtType.toString()),
         _buildInfoRow('Duration', Fmt.durationHmVerbose(evt.duration)),
         _subtitle("Start"),

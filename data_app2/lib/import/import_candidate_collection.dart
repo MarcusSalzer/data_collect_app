@@ -1,12 +1,12 @@
 import 'dart:io';
 import 'package:data_app2/csv/infer_from_header.dart';
-import 'package:data_app2/data/evt_draft.dart';
-import 'package:data_app2/data/evt_type_rec.dart';
+import 'package:data_app2/data/evt.dart';
+import 'package:data_app2/data/evt_type.dart';
 import 'package:data_app2/util/enums.dart';
 
 /// All importable files
 class ImportCandidateCollection {
-  List<CsvImportCandidate<EvtDraft>> evtCands = [];
+  List<CsvImportCandidate<EvtRec>> evtCands = [];
   List<CsvImportCandidate<EvtTypeRec>> evtTypeCands = [];
   List<CsvImportCandidate<Null>> unknownCands = [];
 
@@ -22,7 +22,7 @@ class ImportCandidateCollection {
     final size = (await file.stat()).size;
     switch (role) {
       case ImportFileRole.events:
-        evtCands.add(CsvImportCandidate<EvtDraft>(file, cols, size));
+        evtCands.add(CsvImportCandidate<EvtRec>(file, cols, size));
         break;
       case ImportFileRole.eventTypes:
         evtTypeCands.add(CsvImportCandidate<EvtTypeRec>(file, cols, size));
@@ -63,11 +63,11 @@ class ImportCandidateSummary<T> {
   DateTime? earliest;
   DateTime? latest;
 
-  List<T> records;
+  List<T> items;
 
-  ImportCandidateSummary(this.records, this.idOverlapCount) : count = records.length {
+  ImportCandidateSummary(this.items, this.idOverlapCount) : count = items.length {
     // Timestamped?
-    if (records case List<EvtDraft> evts) {
+    if (items case List<EvtRec> evts) {
       // counts first and last
       for (final r in evts) {
         final s = r.start?.asLocal;

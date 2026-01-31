@@ -12,13 +12,19 @@
 - ✅ _25-12-11_ refactor db-repos, clean up settings, logging.
 - ✅ _25-12-16_ Filter, select and summarize (event types) `v0.0.8`
 - ✅ _26-01-12_ Export csv event summary, Import/export event types. Faster import. Consistent text search behavior. `v0.0.9`
-- ❓ Welcome screen, categories
-- ❓ improved today-summary, JSON-serializable prefs
+- ❓ Welcome screen, categories, improved today-summary,
+- ❓ JSON-serializable prefs, improved test coverage
 - ❓ Daily summary (separate file), DB change detection
 - ❓ Persistent event filter, can apply globally in app?
 
+PROBLEMS:
+
+- ❓ Nullable "categoryId" breaks copywith
+- ❓ instead: DataRec extends Draft?
+
 Later:
 
+- ❓ Load CSV without id?
 - ❓ event type timeseries stats view, range inclusion setting, user defined "day starts at"
 - ❓ auto-backup, backup pruning (more compact file format?)
 - ❓ Linting: duplicates, overlapping events
@@ -30,6 +36,7 @@ Later:
 - ❓ Avoid isarmodels outside of repos (at least in reads, maybe in many writes too)
   - (also, using draft-classes or primitive args for writes can avoid needing nullable id:s on domain models?), although we need to await the id.
 - ❓ bag of activity vector
+- ❓ location data type
 
 ## Known and suspected issues
 

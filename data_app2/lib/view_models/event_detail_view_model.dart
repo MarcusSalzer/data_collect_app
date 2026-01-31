@@ -1,65 +1,80 @@
 import 'package:data_app2/app_state.dart';
-import 'package:data_app2/data/evt_rec.dart';
-import 'package:data_app2/data/evt_type_rec.dart';
+import 'package:data_app2/contracts/edit_vm.dart';
+import 'package:data_app2/data/evt.dart';
+import 'package:data_app2/data/evt_type.dart';
 import 'package:data_app2/local_datetime.dart';
-import 'package:flutter/material.dart';
+import 'package:isar_community/isar.dart';
 
 /// Handle details and editing of a single event
-class EventDetailViewModel extends ChangeNotifier {
-  final EvtRec _evt;
-  final EvtRec _original;
+class EventDetailViewModel extends EditVm<EvtRec, EvtDraft> {
+  EventDetailViewModel(EvtRec stored, this._app) : super(stored, stored.toDraft());
 
   final AppState _app;
 
-  bool get isDirty => _evt != _original;
-
-  EvtRec get evt => _evt;
   EvtTypeRec? get evtType {
-    return _app.evtTypeManager.resolveById(evt.typeId);
+    return _app.evtTypeManager.resolveById(draft.typeId);
   }
 
   List<EvtTypeRec> get allTypes => _app.evtTypeManager.all;
 
-  EventDetailViewModel(EvtRec evt, this._app) : _evt = evt.copyWith(), _original = evt;
-
   /// Update the type of the event
   void changeType(int newType) {
-    if (newType != _evt.typeId) {
-      _evt.typeId = newType;
+    if (newType != draft.typeId) {
+      draft.typeId = newType;
       notifyListeners();
     }
   }
 
   /// update start time
   void changeStartLocalTZ(DateTime dt) {
-    _evt.start = LocalDateTime.fromDateTimeLocalTZ(dt);
+    draft.start = LocalDateTime.fromDateTimeLocalTZ(dt);
     notifyListeners();
   }
 
   /// update end time
   void changeEndLocalTZ(DateTime dt) {
-    _evt.end = LocalDateTime.fromDateTimeLocalTZ(dt);
+    draft.end = LocalDateTime.fromDateTimeLocalTZ(dt);
     notifyListeners();
   }
 
   /// save the event to DB if updated
-  Future<bool> save() async {
-    if (isDirty) {
-      await _app.db.events.put(_evt.toIsar());
-      notifyListeners();
-      return true;
-    } else {
-      return false;
+  @override
+  Future<void> save() async {
+    final storedId = stored?.id;
+    try {
+      if (storedId == null) {
+        // Store new
+        final newId = await _app.db.events.create(draft);
+        stored = draft.toRec(newId);
+      } else {
+        // Update stored
+        final updated = draft.toRec(storedId);
+        await _app.db.events.update(updated);
+        stored = updated;
+      }
+    } on IsarError catch (e) {
+      if (e.message.contains("Unique")) {
+        errorMsg = "Please give a unique name";
+      } else {
+        errorMsg = e.message;
+      }
+    } catch (e) {
+      errorMsg = e.toString();
     }
+    notifyListeners();
   }
 
   /// delete the event from DB
+  @override
   Future<bool> delete() async {
-    final eId = _evt.id;
-    if (eId == null) {
+    final storedId = stored?.id;
+    if (storedId == null) {
       return false;
     }
-    final didDelete = await _app.db.events.delete(eId);
+    final didDelete = await _app.db.events.forceDelete(storedId);
     return didDelete;
   }
+
+  @override
+  String? get errorMsg => throw UnimplementedError();
 }

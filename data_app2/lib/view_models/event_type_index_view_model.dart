@@ -1,7 +1,6 @@
 import 'dart:collection';
-
 import 'package:data_app2/app_state.dart';
-import 'package:data_app2/data/evt_type_rec.dart';
+import 'package:data_app2/data/evt_type.dart';
 import 'package:data_app2/util/stats.dart';
 import 'package:flutter/material.dart';
 
@@ -28,8 +27,8 @@ class EventTypeIndexViewModel extends ChangeNotifier {
 
     // Sort by descending (zeros at end)
     types.sort((a, b) {
-      final af = freqs[a.id ?? -1] ?? 0;
-      final bf = freqs[b.id ?? -1] ?? 0;
+      final af = freqs[a.id] ?? 0;
+      final bf = freqs[b.id] ?? 0;
       // Higher freq first
       return bf.compareTo(af);
     });
@@ -37,17 +36,11 @@ class EventTypeIndexViewModel extends ChangeNotifier {
     return types;
   }
 
-  void _onRepoChanged() async {
-    await load();
-    notifyListeners();
-  }
-
-  EventTypeIndexViewModel(this._app) {
-    // propagate updates from eventType repo
-    _app.evtTypeManager.addListener(_onRepoChanged);
-  }
+  EventTypeIndexViewModel(this._app);
 
   Future<void> load() async {
+    // refresh type manager
+    _app.evtTypeManager.reloadFromModels(await _app.db.eventTypes.all());
     // Check for dangling type references
     danglingTypeRefs = await _app.evtTypeManager.danglingTypeRefs();
     await refreshCounts();
@@ -65,13 +58,7 @@ class EventTypeIndexViewModel extends ChangeNotifier {
 
   Future<List<int>> recreateDanglingTypes() async {
     final created = await _app.evtTypeManager.fillDangling();
-    load();
+    await load(); // also reload
     return created;
-  }
-
-  @override
-  void dispose() {
-    _app.evtTypeManager.removeListener(_onRepoChanged);
-    super.dispose();
   }
 }

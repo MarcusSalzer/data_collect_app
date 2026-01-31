@@ -1,7 +1,6 @@
 import 'dart:io';
-
-import 'package:data_app2/data/evt_draft.dart';
-import 'package:data_app2/data/evt_type_rec.dart';
+import 'package:data_app2/data/evt_old.dart';
+import 'package:data_app2/data/evt_type.dart';
 import 'package:data_app2/export_service.dart';
 import 'package:data_app2/io.dart';
 import 'package:data_app2/local_datetime.dart';
@@ -11,26 +10,26 @@ import 'package:test/test.dart';
 import 'package:path/path.dart' as p;
 
 final evts = [
-  EvtDraft(
+  EvtDraftOld(
     id: 1,
     typeName: "t1",
     start: LocalDateTime.fromDateTimeLocalTZ(DateTime(2020, 1, 1)),
     end: LocalDateTime.fromDateTimeLocalTZ(DateTime(2020, 1, 3)),
   ),
-  EvtDraft(
+  EvtDraftOld(
     id: 2,
     typeName: "t1",
     start: LocalDateTime.fromDateTimeLocalTZ(DateTime(2020, 2, 1)),
     end: LocalDateTime.fromDateTimeLocalTZ(DateTime(2020, 2, 3)),
   ),
-  EvtDraft(
+  EvtDraftOld(
     id: 2,
     typeName: "t2",
     start: LocalDateTime.fromDateTimeLocalTZ(DateTime(2020, 3, 1)),
     end: LocalDateTime.fromDateTimeLocalTZ(DateTime(2020, 3, 3)),
   ),
 ];
-final types = [EvtTypeRec(name: "t1"), EvtTypeRec(name: "t2"), EvtTypeRec(name: "t3"), EvtTypeRec(name: "t4")];
+final types = [EvtTypeRec(1, "t1"), EvtTypeRec(2, "t2"), EvtTypeRec(3, "t3"), EvtTypeRec(4, "t4")];
 
 void main() {
   late final Directory tempDir;

@@ -5,7 +5,6 @@ import 'package:data_app2/db_service.dart';
 import 'package:data_app2/util/process_state.dart';
 import 'package:data_app2/view_models/multi_evt_summary_vm.dart';
 import 'package:test/test.dart';
-
 import '../test_util/dummy_app.dart';
 import '../test_util/paths.dart';
 
@@ -24,8 +23,8 @@ void main() {
 
   tearDown(() {
     //clear db and cache
-    app.db.events.deleteAll();
-    app.db.eventTypes.deleteAll();
+    app.db.events.forceDeleteAll();
+    app.db.eventTypes.forceDeleteAll();
     app.evtTypeManager.clearCache();
   });
 

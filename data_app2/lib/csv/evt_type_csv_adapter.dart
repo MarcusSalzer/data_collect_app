@@ -1,7 +1,8 @@
 import 'package:data_app2/csv/csv_util.dart';
-import 'package:data_app2/data/evt_type_rec.dart';
+import 'package:data_app2/data/evt_type.dart';
 import 'package:data_app2/util/colors.dart';
 
+@Deprecated("use map pipeline instead")
 class EvtTypeCsvAdapter extends CsvAdapter<EvtTypeRec> {
   const EvtTypeCsvAdapter();
   @override
@@ -24,10 +25,7 @@ class EvtTypeCsvAdapter extends CsvAdapter<EvtTypeRec> {
       throw FormatException("got ${items.length} values (expected ${cols.length})");
     }
     final colorname = items[2];
-    return EvtTypeRec(
-      id: int.parse(items[0]),
-      name: items[1],
-      color: ColorKey.values.firstWhere((ck) => ck.name == colorname),
-    );
+    final catId = 0;
+    return EvtTypeRec(int.parse(items[0]), items[1], ColorKey.values.firstWhere((ck) => ck.name == colorname), catId);
   }
 }

@@ -1,17 +1,12 @@
 // Keep current settings in memory, for convenient access
 
 import 'dart:io';
-
 import 'package:data_app2/data/app_prefs.dart';
-import 'package:data_app2/data/evt_rec.dart';
-import 'package:data_app2/data/evt_type_rec.dart';
 import 'package:data_app2/data/today_summary_data.dart';
 import 'package:data_app2/style.dart';
 import 'package:data_app2/util/enums.dart';
-import 'package:data_app2/util/event_stats_compute.dart';
 import 'package:data_app2/event_type_manager.dart';
 import 'package:data_app2/util/extensions.dart';
-import 'package:data_app2/local_datetime.dart';
 import 'package:flutter/material.dart';
 import 'package:data_app2/db_service.dart';
 import 'package:logging/logging.dart';
@@ -50,7 +45,7 @@ class AppState extends ChangeNotifier {
   /// Will also get a [EvtTypeManagerPersist] and fill evt-type-cache
   AppState(this._db, this._prefs, this._userStoreDir) : _evtTypeManager = EvtTypeManagerPersist(db: _db) {
     _db.eventTypes.all().then((types) {
-      _evtTypeManager.reloadFromIsar(types);
+      _evtTypeManager.reloadFromModels(types);
     });
 
     // check dangling types (move this?)
@@ -62,8 +57,6 @@ class AppState extends ChangeNotifier {
       }
       Logger.root.info(msg);
     });
-
-    refreshSummary();
   }
 
   // --- Preference updating methods ---
@@ -97,20 +90,6 @@ class AppState extends ChangeNotifier {
 
     // persist new preferences
     await db.prefs.store(_prefs.toIsar());
-  }
-
-  /// For keeping summary after leaving events screen
-  @Deprecated("Use separate VM")
-  Future<void> refreshSummary() async {
-    final evts = await db.events.filteredLocalTime(
-      earliest: LocalDateTime.fromDateTimeLocalTZ(DateTime.now().startOfDay),
-    );
-
-    final tpe = timePerEvent(evts.map((e) => EvtRec.fromIsar(e)), limit: 5);
-    todaySummary = TodaySummaryDataByType(
-      tpe.map((e) => MapEntry(evtTypeManager.resolveById(e.key) ?? EvtTypeRec(name: "unknown"), e.value)).toList(),
-    );
-    notifyListeners();
   }
 
   /// Get directory inside configured storage dir

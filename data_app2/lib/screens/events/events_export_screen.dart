@@ -1,6 +1,5 @@
 import 'package:data_app2/app_state.dart';
 import 'package:data_app2/csv/csv_util.dart';
-import 'package:data_app2/data/evt_draft.dart';
 import 'package:data_app2/view_models/event_export_view_model.dart';
 import 'package:data_app2/util/process_state.dart';
 import 'package:data_app2/widgets/two_columns.dart';
@@ -30,8 +29,6 @@ class ExportScreen extends StatelessWidget {
                   case Loading():
                     return Center(child: Text("Loading..."));
                   case Ready(:final data):
-                    final adapter = vm.adapter;
-
                     return Column(
                       spacing: 12,
                       children: [
@@ -40,7 +37,6 @@ class ExportScreen extends StatelessWidget {
                         //     selectedSchema: vm.schema,
                         //     onChanged: (s) => vm.setSchema(s)),
                         Text("Example Row"),
-                        ExampleRowDisplay<EvtDraft>(adapter, data.example),
                         ElevatedButton.icon(
                           onPressed: () {
                             vm.doExport();
@@ -54,10 +50,7 @@ class ExportScreen extends StatelessWidget {
                     return Column(
                       spacing: 20,
                       children: [
-                        Text(
-                          "Export completed",
-                          style: TextStyle(fontSize: 20),
-                        ),
+                        Text("Export completed", style: TextStyle(fontSize: 20)),
                         if (log != null)
                           SingleChildScrollView(
                             child: Column(
@@ -80,6 +73,7 @@ class ExportScreen extends StatelessWidget {
   }
 }
 
+@Deprecated("not needed ")
 class ExampleRowDisplay<T> extends StatelessWidget {
   final T example;
   final CsvAdapter<T> adapter;
@@ -99,12 +93,7 @@ class ExampleRowDisplay<T> extends StatelessWidget {
     return TwoColumns(
       flex: (2, 3),
       rows: cols.indexed
-          .map(
-            (e) => (
-              Text(e.$2),
-              Text(values[e.$1], style: TextStyle(fontFamily: "monospace")),
-            ),
-          )
+          .map((e) => (Text(e.$2), Text(values[e.$1], style: TextStyle(fontFamily: "monospace"))))
           .toList(),
     );
   }

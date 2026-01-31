@@ -1,16 +1,17 @@
 import 'package:data_app2/csv/csv_util.dart';
-import 'package:data_app2/data/evt_draft.dart';
-import 'package:data_app2/data/evt_rec.dart';
+import 'package:data_app2/data/evt.dart';
+import 'package:data_app2/data/evt_old.dart';
 import 'package:data_app2/local_datetime.dart';
 
-/// Parses "human" schema, makes [EvtDraft] objects
-class EvtCsvAdapter extends CsvAdapter<EvtDraft> {
+/// Parses "human" schema, makes [EvtDraftOld] objects
+@Deprecated("use map pipeline instead")
+class EvtCsvAdapter extends CsvAdapter<EvtDraftOld> {
   const EvtCsvAdapter();
   @override
   List<String> get cols => ["id", "type_name", "start_utc", "start_offset_s", "end_utc", "end_offset_s"];
 
   @override
-  String toRow(EvtDraft rec) {
+  String toRow(EvtDraftOld rec) {
     return [
       rec.id,
       rec.typeName,
@@ -22,7 +23,7 @@ class EvtCsvAdapter extends CsvAdapter<EvtDraft> {
   }
 
   @override
-  EvtDraft fromRow(String row) {
+  EvtDraftOld fromRow(String row) {
     final items = row.split(sep);
 
     // parse local datetimes (allow null)
@@ -37,11 +38,12 @@ class EvtCsvAdapter extends CsvAdapter<EvtDraft> {
     final end = endOffsetS != null
         ? LocalDateTime.fromUtcISOAndffset(utcIso: items[4], offsetMillis: endOffsetS * 1000)
         : null;
-    return EvtDraft(id: int.parse(items[0]), typeName: items[1], start: start, end: end);
+    return EvtDraftOld(id: int.parse(items[0]), typeName: items[1], start: start, end: end);
   }
 }
 
 /// Parses "raw" schema, makes [EvtRec] objects
+@Deprecated("use map pipeline instead")
 class EvtCsvAdapterRaw extends CsvAdapter<EvtRec> {
   const EvtCsvAdapterRaw();
   @override
@@ -65,8 +67,8 @@ class EvtCsvAdapterRaw extends CsvAdapter<EvtRec> {
       throw FormatException("got ${items.length} values (expected ${cols.length})");
     }
     return EvtRec(
-      id: int.parse(items[0]),
-      typeId: int.parse(items[1]),
+      int.parse(items[0]), // id
+      int.parse(items[1]), // typeId
       // parse nullable timestamps
       start: LocalDateTime.maybeFromMillis(int.tryParse(items[2]), int.tryParse(items[3])),
       end: LocalDateTime.maybeFromMillis(int.tryParse(items[4]), int.tryParse(items[5])),

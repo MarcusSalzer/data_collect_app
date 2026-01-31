@@ -1,6 +1,6 @@
 import 'package:data_app2/app_state.dart';
 import 'package:data_app2/csv/evt_csv_adapter.dart';
-import 'package:data_app2/data/evt_draft.dart';
+import 'package:data_app2/data/evt_old.dart';
 import 'package:data_app2/export_service.dart';
 import 'package:data_app2/util/process_state.dart';
 import 'package:flutter/material.dart';
@@ -11,7 +11,7 @@ class EventExportViewModel extends ChangeNotifier {
   final AppState _app;
   final EvtCsvAdapter adapter = EvtCsvAdapter();
 
-  ProcessState<({int nEvt, int nType, EvtDraft example})> state = Loading();
+  ProcessState<({int nEvt, int nType})> state = Loading();
 
   EventExportViewModel(this._app);
 
@@ -21,15 +21,10 @@ class EventExportViewModel extends ChangeNotifier {
 
     final ce = await _app.db.events.count();
     final ct = await _app.db.eventTypes.count();
-    final ex = await _app.db.events.getOne();
     await Future.delayed(Duration(milliseconds: 400));
 
-    if (ex != null) {
-      state = Ready((
-        nEvt: ce,
-        nType: ct,
-        example: EvtDraft.fromIsar(ex, _app.evtTypeManager.resolveById(ex.typeId)?.name ?? "unknown"),
-      ));
+    if (ce > 0) {
+      state = Ready((nEvt: ce, nType: ct));
     } else {
       state = Error("Has no events");
     }
@@ -45,14 +40,14 @@ class EventExportViewModel extends ChangeNotifier {
       final evts = await _app.db.events.all();
       final types = _app.evtTypeManager.all;
       // resolve all typenames before export
-      final evtDrafts = await Future.wait<EvtDraft>(
+      final evtDrafts = await Future.wait<EvtDraftOld>(
         evts.map((e) async {
           final tp = _app.evtTypeManager.resolveById(e.typeId);
           // There shouldn't be events with unknown types.
           if (tp == null) {
             Logger.root.severe("[export] Unknown typeId: ${e.typeId}");
           }
-          return EvtDraft.fromIsar(e, tp?.name ?? "unknown");
+          return EvtDraftOld(id: e.id, typeName: tp?.name ?? "unknown", start: e.start, end: e.end);
         }),
         eagerError: true,
       );

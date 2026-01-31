@@ -1,6 +1,6 @@
 // Keep current settings in memory, for convenient access
 
-import 'package:data_app2/data/evt_type_rec.dart';
+import 'package:data_app2/data/evt_type.dart';
 import 'package:data_app2/util/colors.dart';
 
 class TodaySummaryDataByType {

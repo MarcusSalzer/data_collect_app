@@ -3,7 +3,6 @@ import 'package:data_app2/data/app_prefs.dart';
 import 'package:data_app2/db_service.dart';
 import 'package:data_app2/view_models/import_folder_vm.dart';
 import 'package:test/test.dart';
-
 import '../test_util/dummy_app.dart';
 import '../test_util/paths.dart';
 

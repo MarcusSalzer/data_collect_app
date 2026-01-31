@@ -3,7 +3,6 @@ import 'package:data_app2/data/app_prefs.dart';
 import 'package:data_app2/db_service.dart';
 import 'package:data_app2/view_models/event_create_vm.dart';
 import 'package:test/test.dart';
-
 import '../test_util/dummy_app.dart';
 import '../test_util/paths.dart';
 
@@ -24,8 +23,8 @@ void main() {
 
   tearDown(() {
     //clear db and cache
-    app.db.events.deleteAll();
-    app.db.eventTypes.deleteAll();
+    app.db.events.forceDeleteAll();
+    app.db.eventTypes.forceDeleteAll();
     app.evtTypeManager.clearCache();
   });
 
@@ -34,7 +33,7 @@ void main() {
       await app.setAutoLowerCase(false);
 
       await createVm.addEventByName("NEW!");
-      final allEvts = await app.db.events.all();
+      final allEvts = (await app.db.events.all()).toList();
       expect(allEvts.length, 1);
       expect(app.evtTypeManager.all.length, 1);
       final et = app.evtTypeManager.resolveById(allEvts[0].typeId);
@@ -44,7 +43,7 @@ void main() {
       await app.setAutoLowerCase(true);
 
       await createVm.addEventByName("NEW!");
-      final allEvts = await app.db.events.all();
+      final allEvts = (await app.db.events.all()).toList();
       expect(allEvts.length, 1);
       expect(app.evtTypeManager.all.length, 1);
       final et = app.evtTypeManager.resolveById(allEvts[0].typeId);

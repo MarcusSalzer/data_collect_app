@@ -1,17 +1,13 @@
-import 'package:data_app2/data/evt_type_rec.dart';
+import 'package:data_app2/data/evt_type.dart';
 import 'package:data_app2/db_service.dart';
 import 'package:data_app2/util/colors.dart';
 import 'package:data_app2/isar_models.dart';
 import 'package:data_app2/event_type_manager.dart';
 import 'package:isar_community/isar.dart';
 import 'package:test/test.dart';
-
 import 'test_util/dummy_app.dart';
 
-final exampleTypes = [
-  EvtTypeRec(id: 1, name: "a", color: ColorKey.amber),
-  EvtTypeRec(id: 2, name: "b", color: ColorKey.blue),
-];
+final exampleTypes = [EvtTypeRec(1, "a", ColorKey.amber), EvtTypeRec(2, "b", ColorKey.blue)];
 void main() {
   group("[in memory]", () {
     test("resolve: get types", () {
@@ -27,8 +23,8 @@ void main() {
 
     test("add: can add and resolve", () {
       final repo = EvtTypeManager(types: exampleTypes);
-      final newType = EvtTypeRec(name: "new");
-      repo.add(13, newType.copyWith());
+      final newType = EvtTypeRec(1, "new");
+      repo.add(newType);
       // Id should be added
       expect(repo.resolveById(13), newType.copyWith(id: 13));
       expect(repo.resolveByName("new"), newType.copyWith(id: 13));
@@ -42,9 +38,9 @@ void main() {
         expect(repo.all.length, exampleTypes.length + notifyCount);
       });
       expect(notifyCount, 0);
-      final newType = EvtTypeRec(name: "new");
+      final newType = EvtTypeRec(14, "new");
 
-      repo.add(14, newType);
+      repo.add(newType);
       expect(notifyCount, 1);
     });
   });
@@ -62,32 +58,29 @@ void main() {
       repo.dispose();
     });
 
-    test('fill from Isar objects', () {
-      repo.reloadFromIsar(exampleTypes.map((e) => e.toIsar()));
+    test('fill from models objects', () {
+      repo.reloadFromModels(exampleTypes);
 
       expect(repo.all, exampleTypes);
     });
 
-    // resolveOrCreate
-
     // saveOrUpdate
     test('saveOrUpdate: adds to cache', () async {
-      final newId = await repo.saveOrUpdate(EvtTypeRec(name: "new"));
-      expect(repo.resolveById(newId), EvtTypeRec(id: newId, name: "new"));
-      expect(repo.resolveByName("new"), EvtTypeRec(id: newId, name: "new"));
+      await repo.update(EvtTypeRec(11, "new"));
+      expect(repo.resolveById(11), EvtTypeRec(11, "new"));
+      expect(repo.resolveByName("new"), EvtTypeRec(11, "new"));
     });
     test('saveOrUpdate: persists', () async {
-      final newId = await repo.saveOrUpdate(EvtTypeRec(name: "new"));
-      final fromDb = await isar.eventTypes.get(newId);
+      await repo.update(EvtTypeRec(4, "new"));
+      final fromDb = await isar.eventTypes.get(4);
       expect(fromDb != null, true);
-      expect(EvtTypeRec.fromIsar(fromDb!), EvtTypeRec(id: newId, name: "new"));
+      expect(fromDb!, EvtTypeRec(4, "new"));
     });
     test('saveOrUpdate: updates', () async {
-      final id1 = await repo.saveOrUpdate(EvtTypeRec(name: "new", color: ColorKey.blue));
-      final id2 = await repo.saveOrUpdate(EvtTypeRec(name: "new", color: ColorKey.red));
+      await repo.update(EvtTypeRec(1, "new", ColorKey.blue));
+      await repo.update(EvtTypeRec(1, "new", ColorKey.red));
 
-      expect(id1, id2, reason: "Should keep same id on update");
-      expect(repo.resolveById(id1)?.color, ColorKey.red, reason: "repo should contain updated");
+      expect(repo.resolveById(1)?.color, ColorKey.red, reason: "repo should contain updated");
     });
   });
 }

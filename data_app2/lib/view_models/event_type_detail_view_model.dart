@@ -1,43 +1,64 @@
 import 'package:data_app2/app_state.dart';
-import 'package:data_app2/data/evt_type_rec.dart';
+import 'package:data_app2/contracts/data.dart';
+import 'package:data_app2/contracts/edit_vm.dart';
+import 'package:data_app2/data/evt_type.dart';
+import 'package:data_app2/errors/db_ref_exists_error.dart';
 import 'package:data_app2/util/colors.dart';
-import 'package:flutter/material.dart';
 import 'package:isar_community/isar.dart';
 
-class EventTypeDetailViewModel extends ChangeNotifier {
-  EvtTypeRec original;
-  final EvtTypeRec typeEdit;
+class EventTypeDetailViewModel extends EditVm<EvtTypeRec, EvtTypeDraft> {
+  EventTypeDetailViewModel(EvtTypeRec? stored, this._app)
+    : super(stored, stored?.toDraft() ?? EvtTypeDraft("[new type]"));
+
+  // === Final refs ===
   final AppState _app;
 
-  ColorKey get color => typeEdit.color;
-  bool get isDirty => typeEdit != original;
-
-  EventTypeDetailViewModel(EvtTypeRec? typeOriginal, this._app)
-    : original = typeOriginal ?? EvtTypeRec(name: "[new type]"), // temporary null object
-      typeEdit = typeOriginal?.copyWith() ?? EvtTypeRec(name: "[new type]");
+  ColorKey get color => draft.color;
 
   void updateColor(ColorKey newColor) {
-    typeEdit.color = newColor;
+    draft = draft.copyWith(color: newColor);
     notifyListeners();
   }
 
   void updateName(String name) {
-    typeEdit.name = name;
+    draft.copyWith(name: name.trim());
     notifyListeners();
   }
 
+  @override
   Future<bool> delete() async {
-    final id = original.id;
-    if (id == null) return false;
-    return await _app.evtTypeManager.remove(id, original.name);
+    final stored = this.stored;
+    if (stored == null) return false; // cannot delete if never saved
+
+    var didDelete = false;
+
+    try {
+      didDelete = await _app.db.eventTypes.forceDelete(stored.id);
+      return await _app.evtTypeManager.remove(stored.id, stored.name);
+    } on DbRefExistsError catch (e) {
+      errorMsg = "Category ${e.id} has references, will not delete";
+    }
+
+    notifyListeners();
+    return didDelete;
   }
 
   // save event type to DB, returns error message or null if successful
+  @override
   Future<String?> save() async {
     String? message;
     try {
-      await _app.evtTypeManager.saveOrUpdate(typeEdit);
-      original = typeEdit.copyWith();
+      if (stored case Identifiable stored) {
+        // We are updating a stored record
+        final updated = draft.toRec(stored.id);
+        await _app.evtTypeManager.update(updated);
+        stored = updated;
+      } else {
+        // We are creating a new record
+        final newRec = draft.toRec(await _app.db.eventTypes.create(draft));
+        await _app.evtTypeManager.update(newRec);
+        stored = newRec;
+      }
     } on IsarError catch (e) {
       if (e.message.contains("Unique")) {
         message = "Please give a unique name";

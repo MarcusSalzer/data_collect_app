@@ -1,5 +1,5 @@
 import 'package:data_app2/app_state.dart';
-import 'package:data_app2/data/evt_rec.dart';
+import 'package:data_app2/data/evt.dart';
 import 'package:data_app2/util/event_stats_compute.dart';
 import 'package:data_app2/util/extensions.dart';
 import 'package:data_app2/util/fmt.dart';

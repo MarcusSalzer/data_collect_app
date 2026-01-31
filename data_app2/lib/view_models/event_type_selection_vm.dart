@@ -1,5 +1,5 @@
 import 'package:data_app2/app_state.dart';
-import 'package:data_app2/data/evt_type_rec.dart';
+import 'package:data_app2/data/evt_type.dart';
 import 'package:data_app2/util/text_search.dart';
 import 'package:data_app2/view_models/event_type_index_view_model.dart';
 import 'package:data_app2/util/stats.dart';

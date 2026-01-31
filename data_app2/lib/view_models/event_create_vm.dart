@@ -1,7 +1,6 @@
 import 'dart:collection';
-
 import 'package:data_app2/app_state.dart';
-import 'package:data_app2/data/evt_rec.dart';
+import 'package:data_app2/data/evt.dart';
 import 'package:data_app2/util/stats.dart';
 import 'package:flutter/material.dart';
 
@@ -32,10 +31,9 @@ class EventCreateViewVM extends ChangeNotifier {
 
   /// Add a event of a "known" type, for example by clicking suggestion.
   Future<void> addEventByTypeId(int typeId, {DateTime? start, DateTime? end}) async {
-    final evtRec = EvtRec.inCurrentTZ(typeId: typeId, start: start, end: end);
-    final newId = await _app.db.events.put(evtRec.toIsar());
-    evtRec.id = newId;
-    _events.add(evtRec);
+    final draft = EvtDraft.inCurrentTZ(typeId, start: start, end: end);
+    final newId = await _app.db.events.create(draft);
+    _events.add(draft.toRec(newId));
     notifyListeners();
   }
 
@@ -52,26 +50,22 @@ class EventCreateViewVM extends ChangeNotifier {
 
   Future<void> delete(EvtRec event) async {
     final id = event.id;
-    if (id != null) {
-      // has id? means alredy stored in DB
-      await _app.db.events.delete(id);
-    }
+    await _app.db.events.forceDelete(id);
     _events.remove(event);
     notifyListeners();
   }
 
   /// Save a new or updated event
   Future<EvtRec> updateEvent(EvtRec evt) async {
-    final id = await _app.db.events.put(evt.toIsar());
-    // update id if new in DB
-    evt.id = id;
+    await _app.db.events.update(evt);
     notifyListeners();
+    // TODO dont return?
     return evt;
   }
 
   /// Update in memory list, of reverse chronological events
   Future<void> getLatest() async {
-    _events = (await _app.db.events.latest(_nList)).map((evIsar) => EvtRec.fromIsar(evIsar)).toList().reversed.toList();
+    _events = (await _app.db.events.latest(_nList)).toList().reversed.toList();
     notifyListeners();
   }
 

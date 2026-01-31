@@ -1,5 +1,5 @@
-import 'package:data_app2/data/evt_rec.dart';
-import 'package:data_app2/data/evt_type_rec.dart';
+import 'package:data_app2/data/evt.dart';
+import 'package:data_app2/data/evt_type.dart';
 import 'package:data_app2/util/enums.dart';
 import 'package:data_app2/util/extensions.dart';
 
@@ -23,7 +23,7 @@ class PeriodAgg {
   }
 }
 
-List<PeriodAgg> computeAggs(Iterable<EvtRec> evts, List<EvtTypeRec> typeRecs, GroupFreq f) {
+List<PeriodAgg> computeAggs(Iterable<EvtBase> evts, List<EvtTypeRec> typeRecs, GroupFreq f) {
   if (evts.isEmpty) {
     return List.empty();
   }

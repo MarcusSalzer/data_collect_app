@@ -1,5 +1,5 @@
 import 'package:data_app2/app_state.dart';
-import 'package:data_app2/data/evt_type_rec.dart';
+import 'package:data_app2/data/evt_type.dart';
 import 'package:data_app2/screens/events/multi_evt_type_summary_screen.dart';
 import 'package:data_app2/view_models/event_type_index_view_model.dart';
 import 'package:data_app2/screens/events/event_type_detail_screen.dart';
@@ -25,6 +25,7 @@ class _Body extends StatelessWidget {
             if (evtFreqs == null) {
               return Center(child: Text("Loading..."));
             }
+            // TODO: Actually this is refs not item count!
             if (evtFreqs.isEmpty) {
               return Center(child: Text("No event types"));
             }
@@ -54,32 +55,6 @@ class _Body extends StatelessWidget {
   }
 }
 
-class _Scaffold extends StatelessWidget {
-  const _Scaffold();
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: SelectionAppBar<EvtTypeRec>("Event types"),
-      body: _Body(),
-      floatingActionButton: SelectionFab(
-        // has selection: show summary for selection
-        actionSelectedName: "Summary",
-        actionSelected: (selected) {
-          Navigator.of(context).push(MaterialPageRoute(builder: (_) => MultiEvtTypeSummaryScreen(typeIds: selected)));
-        },
-        actionEmpty: () {
-          Navigator.of(context).push(MaterialPageRoute(builder: (_) => EventTypeDetailScreen(null))).then((_) {
-            if (context.mounted) {
-              // Reload data after possible edits
-              context.read<EventTypeIndexViewModel>().load();
-            }
-          });
-        },
-      ),
-    );
-  }
-}
-
 /// Screen showing a list of all event types, and more.
 class EventTypeIndexScreen extends StatelessWidget {
   const EventTypeIndexScreen({super.key});
@@ -103,7 +78,25 @@ class EventTypeIndexScreen extends StatelessWidget {
         ChangeNotifierProvider(create: (context) => indexVm..load()),
         ChangeNotifierProvider(create: (context) => selectionVm),
       ],
-      child: _Scaffold(),
+      child: Scaffold(
+        appBar: SelectionAppBar<EvtTypeRec>("Event types"),
+        body: _Body(),
+        floatingActionButton: SelectionFab<EvtTypeRec>(
+          // has selection: show summary for selection
+          actionSelectedName: "Summary",
+          actionSelected: (selected) {
+            Navigator.of(context).push(MaterialPageRoute(builder: (_) => MultiEvtTypeSummaryScreen(typeIds: selected)));
+          },
+          actionEmpty: () {
+            Navigator.of(context).push(MaterialPageRoute(builder: (_) => EventTypeDetailScreen(null))).then((_) {
+              if (context.mounted) {
+                // Reload data after possible edits
+                indexVm.load();
+              }
+            });
+          },
+        ),
+      ),
     );
   }
 }
@@ -140,20 +133,19 @@ class EvtTypeList extends StatelessWidget {
         final evtTypes = selVM.filtered;
         return Column(
           children: [
-            SelectionSearchBox(),
+            SelectionSearchBox<EvtTypeRec>(),
             Expanded(
               child: ListView.builder(
                 itemCount: evtTypes.length,
                 itemBuilder: (context, index) {
                   final typeRec = evtTypes[index];
-                  final id = typeRec.id!;
-                  final count = dataVM.idToCount?[id] ?? 0;
+                  final count = dataVM.idToCount?[typeRec.id] ?? 0;
 
                   return ListTile(
                     leading: Checkbox(
-                      value: selVM.isSelected(id),
+                      value: selVM.isSelected(typeRec.id),
                       onChanged: (_) {
-                        selVM.toggle(id);
+                        selVM.toggle(typeRec.id);
                       },
                     ),
                     title: Text(typeRec.name, style: TextStyle(color: typeRec.color.inContext(context))),
@@ -161,16 +153,12 @@ class EvtTypeList extends StatelessWidget {
                     trailing: IconButton(
                       onPressed: () {
                         final typeId = typeRec.id;
-                        if (typeId != null) {
-                          Navigator.of(
-                            context,
-                          ).push(MaterialPageRoute(builder: (context) => EventTypeOverviewScreen(typeId))).then((_) {
-                            // reload data
-                            dataVM.load();
-                          });
-                        } else {
-                          simpleSnack(context, "error: cannot find type $typeId");
-                        }
+                        Navigator.of(
+                          context,
+                        ).push(MaterialPageRoute(builder: (context) => EventTypeOverviewScreen(typeId))).then((_) {
+                          // reload data
+                          dataVM.load();
+                        });
                       },
                       icon: Icon(Icons.stacked_bar_chart),
                     ),

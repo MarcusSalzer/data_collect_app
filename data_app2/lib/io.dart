@@ -1,7 +1,5 @@
 import 'dart:io';
-
-import 'package:data_app2/data/evt_draft.dart';
-import 'package:data_app2/data/evt_rec.dart';
+import 'package:data_app2/data/evt.dart';
 import 'package:data_app2/util/enums.dart';
 import 'package:data_app2/user_tabular.dart';
 import 'package:file_picker/file_picker.dart';

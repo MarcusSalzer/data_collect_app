@@ -1,4 +1,4 @@
-import 'package:data_app2/data/evt_rec.dart';
+import 'package:data_app2/data/evt.dart';
 
 /// Get total time for each event type.
 List<MapEntry<int, Duration>> timePerEvent(Iterable<EvtRec> events, {int? limit}) {

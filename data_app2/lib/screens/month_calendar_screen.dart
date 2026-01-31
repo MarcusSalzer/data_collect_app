@@ -1,9 +1,8 @@
 import 'dart:math';
-
 import 'package:data_app2/app_state.dart';
-import 'package:data_app2/data/evt_rec.dart';
-import 'package:data_app2/data/evt_type_rec.dart';
+import 'package:data_app2/data/evt.dart';
 import 'package:data_app2/data/today_summary_data.dart';
+import 'package:data_app2/util/colors.dart';
 import 'package:data_app2/util/event_stats_compute.dart';
 import 'package:data_app2/util/extensions.dart';
 import 'package:data_app2/util/fmt.dart';
@@ -38,15 +37,17 @@ class MonthViewModel extends ChangeNotifier {
   /// load events for current month
   Future<void> _loadEvents() async {
     _events.clear(); // remove old data
-    final evts = await _app.db.events.filteredLocalTime(
+
+    _events = (await _app.db.events.filteredLocalTime(
       earliest: LocalDateTime.fromDateTimeLocalTZ(_current),
       latest: LocalDateTime.fromDateTimeLocalTZ(DateUtils.addMonthsToMonthDate(_current, 1)),
-    );
-    _events = evts.map((e) => EvtRec.fromIsar(e)).toList();
+    )).toList();
+
+    // Compute summary frim events
     summary = SummaryDataList(
       timePerEvent(_events).map((e) {
-        final et = _app.evtTypeManager.resolveById(e.key) ?? EvtTypeRec(name: "unknown");
-        return SummaryItem(et.name, et.color, e.value);
+        final et = _app.evtTypeManager.resolveById(e.key);
+        return SummaryItem(et?.name ?? "unknown", et?.color ?? ColorKey.base, e.value);
       }).toList(),
     );
     // eventsPerDay();
