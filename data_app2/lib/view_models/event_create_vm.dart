@@ -44,8 +44,8 @@ class EventCreateViewVM extends ChangeNotifier {
       name = name.toLowerCase();
     }
 
-    final typeId = await _app.evtTypeManager.resolveOrCreate(name: name);
-    await addEventByTypeId(typeId, start: start, end: end);
+    final typ = await _app.evtTypeManager.resolveOrCreate(name: name);
+    await addEventByTypeId(typ.id, start: start, end: end);
   }
 
   Future<void> delete(EvtRec event) async {

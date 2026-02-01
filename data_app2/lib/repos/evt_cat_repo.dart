@@ -19,6 +19,8 @@ class EvtCatRepo extends CrudRepo<EvtCatRec, EvtCatDraft, EventCategory> {
   @override
   get idProp => isar.eventCategorys.where().idProperty();
 
+  // === Specific queries... ===
+
   /// Delete a category, throws [DbRefExistsError] if it is referenced by some EvtType
   Future<bool> deleteIfUnreferenced(int id) async {
     // No index here yet. eventTypes is not huge so should be ok.

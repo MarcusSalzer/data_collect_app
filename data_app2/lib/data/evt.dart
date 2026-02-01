@@ -16,6 +16,16 @@ abstract class EvtBase {
     }
     return e.difference(s);
   }
+
+  @override
+  bool operator ==(Object other) =>
+      other is EvtBase && typeId == other.typeId && start == other.start && end == other.end;
+
+  @override
+  int get hashCode => Object.hash(typeId, start, end);
+
+  @override
+  String toString() => "Evt($typeId, $start, $end)";
 }
 
 class EvtDraft extends EvtBase implements Draft<EvtRec> {
@@ -44,13 +54,6 @@ class EvtDraft extends EvtBase implements Draft<EvtRec> {
   EvtRec toRec(int id) {
     return EvtRec(id, typeId, start: start, end: end);
   }
-
-  @override
-  bool operator ==(Object other) =>
-      other is EvtDraft && typeId == other.typeId && start == other.start && end == other.end;
-
-  @override
-  int get hashCode => Object.hash(typeId, start, end);
 }
 
 class EvtRec extends EvtBase implements Identifiable {
@@ -78,4 +81,10 @@ class EvtRec extends EvtBase implements Identifiable {
   factory EvtRec.inCurrentTZ(int id, int typeId, {required DateTime? start, required DateTime? end}) {
     return EvtDraft.inCurrentTZ(typeId, start: start, end: end).toRec(id);
   }
+
+  @override
+  bool operator ==(Object other) => other is EvtRec && id == other.id && super == other;
+
+  @override
+  int get hashCode => Object.hash(id, typeId, start, end);
 }

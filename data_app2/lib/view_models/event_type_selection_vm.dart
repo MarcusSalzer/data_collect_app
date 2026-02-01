@@ -51,7 +51,7 @@ class EventTypeSelectionVM extends ChangeNotifier {
 
   /// Get a filtered subset of the items in the index viewmodel
   List<EvtTypeRec> get filtered {
-    final all = source.itemsSorted;
+    final all = source.itemsSorted ?? [];
     if (_query.isEmpty) return all;
     // return all.where((t) => t.name.toLowerCase().contains(_query)).toList();
     return textSearchFilter<EvtTypeRec>(_query, all, _app.textSearchMode, (r) => r.name).toList();

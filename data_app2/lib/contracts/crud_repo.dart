@@ -58,6 +58,21 @@ abstract class CrudRepo<R extends Identifiable, D extends Draft<R>, I> {
     return await isar.writeTxn(() async => await coll.putAll(drafts.map(draftToIsar).toList()));
   }
 
+  /// Try creating all, throw error on first fail
+  Future<List<int>> createAllThrowEarly(Iterable<D> drafts) async {
+    final added = <int>[];
+    await isar.writeTxn(() async {
+      for (var d in drafts) {
+        try {
+          added.add(await coll.put(draftToIsar(d)));
+        } on IsarError catch (e) {
+          throw FormatException("Cannot store $d. ${e.message}");
+        }
+      }
+    });
+    return added;
+  }
+
   /// update an item
   /// TODO Id should not change! throw error?
   Future<int> update(R rec) async {

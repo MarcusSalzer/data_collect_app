@@ -2,7 +2,7 @@ import 'package:data_app2/errors/csv_format_error.dart';
 
 /// Core functionality for both reading and writing CSV.
 @Deprecated("use map pipeline instead")
-mixin CsvSchema {
+mixin CsvSchemaOld {
   List<String> get cols;
   String get sep => ",";
 
@@ -11,7 +11,7 @@ mixin CsvSchema {
 
 /// Core functionality for writing CSV.
 @Deprecated("use map pipeline instead")
-mixin CsvWriter<T> on CsvSchema {
+mixin CsvWriter<T> on CsvSchemaOld {
   String toRow(T rec);
 
   Iterable<String> encodeRows(Iterable<T> records) => records.map(toRow);
@@ -21,14 +21,14 @@ mixin CsvWriter<T> on CsvSchema {
 
 /// Core functionality for reading CSV.
 @Deprecated("use map pipeline instead")
-mixin CsvReader<T> on CsvSchema {
+mixin CsvReader<T> on CsvSchemaOld {
   T fromRow(String row);
 
   T _parseRow(int i, String r) {
     try {
       return fromRow(r);
     } on FormatException catch (e) {
-      throw CsvFormatError(row: i, msg: e.message);
+      throw CsvFormatError(row: i, message: e.message);
     }
   }
 
@@ -43,6 +43,6 @@ mixin CsvReader<T> on CsvSchema {
 
 /// For round-trip data
 @Deprecated("use map pipeline instead")
-abstract class CsvAdapter<T> with CsvSchema, CsvReader<T>, CsvWriter<T> {
+abstract class CsvAdapter<T> with CsvSchemaOld, CsvReader<T>, CsvWriter<T> {
   const CsvAdapter();
 }

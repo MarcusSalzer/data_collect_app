@@ -1,15 +1,17 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:data_app2/csv/evt_csv_adapter.dart';
-import 'package:data_app2/csv/evt_type_csv_adapter.dart';
+import 'package:data_app2/csv_2/builtin_schemas.dart';
 import 'package:data_app2/util/enums.dart';
 import 'package:flutter/foundation.dart';
 
+/// Infer type based on having all "writeCols"
 ImportFileRole roleFromCols(Set<String> fileCols) {
-  if (setEquals(fileCols, EvtCsvAdapter().cols.toSet())) {
+  if (setEquals(fileCols, CsvSchemasConst.evt.writeCols.toSet())) {
     return ImportFileRole.events;
-  } else if (setEquals(fileCols, EvtTypeCsvAdapter().cols.toSet())) {
+  } else if (setEquals(fileCols, CsvSchemasConst.evtType.writeCols.toSet())) {
     return ImportFileRole.eventTypes;
+  } else if (setEquals(fileCols, CsvSchemasConst.evtCat.writeCols.toSet())) {
+    return ImportFileRole.eventCats;
   }
   return ImportFileRole.unknown;
 }

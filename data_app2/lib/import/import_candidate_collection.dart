@@ -1,13 +1,15 @@
 import 'dart:io';
 import 'package:data_app2/csv/infer_from_header.dart';
 import 'package:data_app2/data/evt.dart';
+import 'package:data_app2/data/evt_cat.dart';
 import 'package:data_app2/data/evt_type.dart';
 import 'package:data_app2/util/enums.dart';
 
 /// All importable files
 class ImportCandidateCollection {
-  List<CsvImportCandidate<EvtRec>> evtCands = [];
-  List<CsvImportCandidate<EvtTypeRec>> evtTypeCands = [];
+  List<CsvImportCandidate<EvtDraft>> evtCands = [];
+  List<CsvImportCandidate<EvtTypeDraft>> evtTypeCands = [];
+  List<CsvImportCandidate<EvtCatDraft>> evtCatCands = [];
   List<CsvImportCandidate<Null>> unknownCands = [];
 
   void clear() {
@@ -22,10 +24,13 @@ class ImportCandidateCollection {
     final size = (await file.stat()).size;
     switch (role) {
       case ImportFileRole.events:
-        evtCands.add(CsvImportCandidate<EvtRec>(file, cols, size));
+        evtCands.add(CsvImportCandidate<EvtDraft>(file, cols, size));
         break;
       case ImportFileRole.eventTypes:
-        evtTypeCands.add(CsvImportCandidate<EvtTypeRec>(file, cols, size));
+        evtTypeCands.add(CsvImportCandidate<EvtTypeDraft>(file, cols, size));
+        break;
+      case ImportFileRole.eventCats:
+        evtCatCands.add(CsvImportCandidate<EvtCatDraft>(file, cols, size));
         break;
       case ImportFileRole.unknown:
         unknownCands.add(CsvImportCandidate<Null>(file, cols, size));
@@ -49,9 +54,6 @@ class CsvImportCandidate<T> {
   final int size;
   String? error;
 
-  // load later
-  ImportCandidateSummary<T>? summary;
-
   String get name => file.path.split("/").last;
 
   CsvImportCandidate(this.file, this.cols, this.size);
@@ -59,7 +61,7 @@ class CsvImportCandidate<T> {
 
 class ImportCandidateSummary<T> {
   final int count;
-  final int idOverlapCount;
+  final int? idOverlapCount;
   DateTime? earliest;
   DateTime? latest;
 

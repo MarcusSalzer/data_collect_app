@@ -1,4 +1,4 @@
-import 'package:data_app2/csv/csv_util.dart';
+import 'package:data_app2/csv/csv_util_old.dart';
 import 'package:data_app2/data/evt.dart';
 import 'package:data_app2/data/evt_old.dart';
 import 'package:data_app2/local_datetime.dart';
@@ -30,13 +30,13 @@ class EvtCsvAdapter extends CsvAdapter<EvtDraftOld> {
     final startOffsetS = int.tryParse(items[3]);
 
     final start = startOffsetS != null
-        ? LocalDateTime.fromUtcISOAndffset(utcIso: items[2], offsetMillis: startOffsetS * 1000)
+        ? LocalDateTime.fromUtcISOAndOffset(utcIso: items[2], offsetMillis: startOffsetS * 1000)
         : null;
 
     final endOffsetS = int.tryParse(items[5]);
 
     final end = endOffsetS != null
-        ? LocalDateTime.fromUtcISOAndffset(utcIso: items[4], offsetMillis: endOffsetS * 1000)
+        ? LocalDateTime.fromUtcISOAndOffset(utcIso: items[4], offsetMillis: endOffsetS * 1000)
         : null;
     return EvtDraftOld(id: int.parse(items[0]), typeName: items[1], start: start, end: end);
   }

@@ -47,10 +47,12 @@ class EvtTypeRec extends EvtTypeDraft implements Identifiable {
   @override
   int get hashCode => Object.hash(id, name);
 
+  @override
   EvtTypeRec copyWith({int? id, String? name, ColorKey? color, int? categoryId}) {
     return EvtTypeRec(id ?? this.id, name ?? this.name, color ?? this.color, categoryId ?? this.categoryId);
   }
 
+  @override
   EvtTypeDraft toDraft() {
     return EvtTypeDraft(name, color, categoryId);
   }

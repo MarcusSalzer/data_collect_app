@@ -7,8 +7,9 @@ import 'package:isar_community/isar.dart';
 class EvtTypeRepo extends CrudRepo<EvtTypeRec, EvtTypeDraft, EventType> {
   EvtTypeRepo(super.isar)
     : super(
-        draftToIsar: (d) => EventType(d.name, d.color, d.categoryId),
-        recToIsar: (r) => EventType(r.name, r.color, r.categoryId)..id = r.id,
+        // NOTE: trim names to avoid confusing uniqueness issues
+        draftToIsar: (d) => EventType(d.name.trim(), d.color, d.categoryId),
+        recToIsar: (r) => EventType(r.name.trim(), r.color, r.categoryId)..id = r.id,
         fromIsar: (i) => EvtTypeRec(i.id, i.name, i.color, i.categoryId),
       );
 

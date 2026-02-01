@@ -1,27 +1,24 @@
 import 'package:data_app2/data/evt.dart';
 import 'package:data_app2/db_service.dart';
 import 'package:data_app2/local_datetime.dart';
-import 'package:isar_community/isar.dart';
 import 'package:test/test.dart';
 import 'test_util/dummy_app.dart';
 
 void main() {
-  late final Isar isar;
   late final DBService db;
 
   setUpAll(() async {
-    isar = await getTmpIsar();
-    db = DBService(isar);
+    db = DBService(await getTmpIsar());
   });
 
   tearDownAll(() async {
-    await isar.close();
+    await db.isar.close();
   });
 
   // Clear DB between tests
   setUp(() async {
-    await isar.writeTxn(() async {
-      await isar.clear(); // clears all collections
+    await db.isar.writeTxn(() async {
+      await db.isar.clear(); // clears all collections
     });
   });
 
@@ -60,30 +57,30 @@ void main() {
     test('Get events in local-time range', () async {
       final tzoMs = 7_200_000; // two hours
 
-      final midnight = LocalDateTime.fromUtcISOAndffset(utcIso: '2025-05-01T22:00:00Z', offsetMillis: tzoMs);
+      final midnight = LocalDateTime.fromUtcISOAndOffset(utcIso: '2025-05-01T22:00:00Z', offsetMillis: tzoMs);
 
       // should be in first day
       final lastNight = EvtRec(
         787843,
         1,
-        start: LocalDateTime.fromUtcISOAndffset(utcIso: '2025-05-01T21:30:00Z', offsetMillis: tzoMs),
-        end: LocalDateTime.fromUtcISOAndffset(utcIso: '2025-05-01T21:55:00Z', offsetMillis: tzoMs),
+        start: LocalDateTime.fromUtcISOAndOffset(utcIso: '2025-05-01T21:30:00Z', offsetMillis: tzoMs),
+        end: LocalDateTime.fromUtcISOAndOffset(utcIso: '2025-05-01T21:55:00Z', offsetMillis: tzoMs),
       );
 
       // accross midnight, shouldnt count to either day
       final across = EvtRec(
         787844,
         3,
-        start: LocalDateTime.fromUtcISOAndffset(utcIso: '2025-05-01T21:30:00Z', offsetMillis: tzoMs),
-        end: LocalDateTime.fromUtcISOAndffset(utcIso: '2025-05-01T22:01:00Z', offsetMillis: tzoMs),
+        start: LocalDateTime.fromUtcISOAndOffset(utcIso: '2025-05-01T21:30:00Z', offsetMillis: tzoMs),
+        end: LocalDateTime.fromUtcISOAndOffset(utcIso: '2025-05-01T22:01:00Z', offsetMillis: tzoMs),
       );
 
       // should be in second day
       final earlyMorning = EvtRec(
         3389,
         2,
-        start: LocalDateTime.fromUtcISOAndffset(utcIso: '2025-05-01T22:30:00Z', offsetMillis: tzoMs),
-        end: LocalDateTime.fromUtcISOAndffset(utcIso: '2025-05-01T22:55:00Z', offsetMillis: tzoMs),
+        start: LocalDateTime.fromUtcISOAndOffset(utcIso: '2025-05-01T22:30:00Z', offsetMillis: tzoMs),
+        end: LocalDateTime.fromUtcISOAndOffset(utcIso: '2025-05-01T22:55:00Z', offsetMillis: tzoMs),
       );
 
       // Save to DB

@@ -11,7 +11,7 @@ enum GroupFreq { day, week, month }
 enum ImportMode { event, tabular }
 
 /// What are we importing
-enum ImportFileRole { events, eventTypes, unknown }
+enum ImportFileRole { events, eventTypes, eventCats, unknown }
 
 /// What to summarize
 enum SummaryMode {
@@ -71,4 +71,13 @@ enum RangeAggMode {
     end => "todo.",
     inside => "todo",
   };
+}
+
+enum ImportStep { scanningFolder, confirmFiles, preparingModels, confirmImport, importing, done, error }
+
+/// How to import data, when its id is already in the DB
+enum ImportOverlapPolicy {
+  skip,
+  overwrite,
+  // reassignNew, // make new ids
 }

@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:data_app2/app_state.dart';
 import 'package:data_app2/import/import_candidate_collection.dart';
 import 'package:data_app2/style.dart';
+import 'package:data_app2/util/enums.dart';
 import 'package:data_app2/util/fmt.dart';
 import 'package:data_app2/view_models/import_folder_vm.dart';
 import 'package:flutter/material.dart';
@@ -16,10 +17,7 @@ class ImportFolderScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (_) => ImportFolderVm(
-        _folder,
-        Provider.of<AppState>(context, listen: false),
-      ),
+      create: (_) => ImportFolderVm(_folder, Provider.of<AppState>(context, listen: false))..scanFolder(),
       child: Scaffold(
         appBar: AppBar(title: const Text('Import folder')),
         body: Padding(
@@ -63,10 +61,7 @@ class ImportFolderScreen extends StatelessWidget {
         Expanded(child: _candidateDisplay(vm.candidates)),
         _bottomBar(
           child: (vm.candidates.canImport)
-              ? ElevatedButton(
-                  onPressed: () => vm.prepareDomainModels(),
-                  child: const Text('Parse data'),
-                )
+              ? ElevatedButton(onPressed: () => vm.prepareCsvRows(), child: const Text('Parse data'))
               : Text("Nothing to import"),
         ),
       ],
@@ -110,10 +105,7 @@ class ImportFolderScreen extends StatelessWidget {
             Expanded(
               child: Column(
                 children: [
-                  Text(
-                    'Data parsed successfully.',
-                    style: TextStyle(fontSize: 16),
-                  ),
+                  Text('Data parsed successfully.', style: TextStyle(fontSize: 16)),
                   Expanded(child: _candidateDisplay(vm.candidates)),
                 ],
               ),
@@ -122,11 +114,8 @@ class ImportFolderScreen extends StatelessWidget {
               child: Column(
                 spacing: 8,
                 children: [
-                  OverlapOptionSummary(vm),
-                  ElevatedButton(
-                    onPressed: vm.importToDb,
-                    child: const Text('Import'),
-                  ),
+                  // OverlapOptionSummary(vm),
+                  ElevatedButton(onPressed: vm.importToDb, child: const Text('Import')),
                 ],
               ),
             ),
@@ -141,11 +130,7 @@ class ImportFolderScreen extends StatelessWidget {
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
-        children: [
-          const CircularProgressIndicator(),
-          const SizedBox(height: 16),
-          Text(text),
-        ],
+        children: [const CircularProgressIndicator(), const SizedBox(height: 16), Text(text)],
       ),
     );
   }
@@ -158,14 +143,9 @@ class ImportFolderScreen extends StatelessWidget {
           const Icon(Icons.check_circle, size: 48, color: Colors.green),
           const SizedBox(height: 16),
           const Text('Import completed'),
-          (result == null)
-              ? Text("Error, no result")
-              : _ImportResDisplay(result),
+          (result == null) ? Text("Error, no result") : _ImportResDisplay(result),
           const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
-          ),
+          ElevatedButton(onPressed: () => Navigator.pop(context), child: const Text('Close')),
         ],
       ),
     );
@@ -175,10 +155,7 @@ class ImportFolderScreen extends StatelessWidget {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(16),
-        child: Text(
-          msg ?? 'Unknown error',
-          style: const TextStyle(color: Colors.red),
-        ),
+        child: Text(msg ?? 'Unknown error', style: const TextStyle(color: Colors.red)),
       ),
     );
   }
@@ -204,11 +181,7 @@ class _ImportResDisplay extends StatelessWidget {
 }
 
 class CandidateGroup extends StatelessWidget {
-  const CandidateGroup({
-    super.key,
-    required this.name,
-    required this.candidates,
-  });
+  const CandidateGroup({super.key, required this.name, required this.candidates});
 
   final String name;
   final List<CsvImportCandidate<Object?>> candidates;
@@ -223,9 +196,8 @@ class CandidateGroup extends StatelessWidget {
 
         children: [
           Text(name, style: TextStyle(fontWeight: FontWeight.bold)),
-          ...candidates.map((c) => CandidateTile(c)),
-          if (candidates.isEmpty)
-            Text("none", style: TextStyle(fontStyle: FontStyle.italic)),
+          ...candidates.map((c) => CandidateTile(c, null)),
+          if (candidates.isEmpty) Text("none", style: TextStyle(fontStyle: FontStyle.italic)),
         ],
       ),
     );
@@ -233,9 +205,11 @@ class CandidateGroup extends StatelessWidget {
 }
 
 class CandidateTile extends StatelessWidget {
-  const CandidateTile(this.cand, {super.key});
+  const CandidateTile(this.cand, this._summary, {super.key});
 
   final CsvImportCandidate<Object?> cand;
+
+  final ImportCandidateSummary? _summary;
 
   @override
   Widget build(BuildContext context) {
@@ -249,35 +223,27 @@ class CandidateTile extends StatelessWidget {
       ),
     ];
     // if there is more data loaded
-    if (cand.summary case ImportCandidateSummary summary) {
+    if (_summary != null) {
       items.add(
         Row(
           spacing: 6,
           children: [
-            Text("${summary.count} items."),
-            Text(
-              "${summary.idOverlapCount} existing Ids.",
-              style: TextStyle(
-                fontWeight: (summary.idOverlapCount > 0)
-                    ? FontWeight.bold
-                    : null,
-              ),
-            ),
+            Text("${_summary.count} items."),
+            // Text(
+            //   "${summary.idOverlapCount} existing Ids.",
+            //   style: TextStyle(fontWeight: (summary.idOverlapCount > 0) ? FontWeight.bold : null),
+            // ),
           ],
         ),
       );
       // Optionally show dates
-      final (ea, la) = (summary.earliest, summary.latest);
+      final (ea, la) = (_summary.earliest, _summary.latest);
       if (ea != null || la != null) {
         items.add(Text("${Fmt.date(ea)} - ${Fmt.date(la)}"));
       }
     }
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      spacing: 6,
-      children: items,
-    );
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, spacing: 6, children: items);
   }
 }
 
@@ -312,14 +278,8 @@ class OverlapOptionOverlay extends StatelessWidget {
         child: Column(
           children: [
             ListTile(
-              title: const Text(
-                'Handling existing IDs',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              trailing: IconButton(
-                icon: const Icon(Icons.close),
-                onPressed: vm.closeOverlapOptions,
-              ),
+              title: const Text('Handling existing IDs', style: TextStyle(fontWeight: FontWeight.bold)),
+              trailing: IconButton(icon: const Icon(Icons.close), onPressed: vm.closeOverlapOptions),
             ),
             const Divider(),
             Expanded(child: OverlapOptionForm(vm)),

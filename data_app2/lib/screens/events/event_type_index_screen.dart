@@ -20,15 +20,14 @@ class _Body extends StatelessWidget {
       builder: (context, indexVM, child) {
         return Builder(
           builder: (context) {
-            final evtFreqs = indexVM.idToCount;
-
-            if (evtFreqs == null) {
+            final items = indexVM.itemsSorted;
+            if (items == null) {
               return Center(child: Text("Loading..."));
             }
-            // TODO: Actually this is refs not item count!
-            if (evtFreqs.isEmpty) {
-              return Center(child: Text("No event types"));
+            if (items.isEmpty) {
+              return Center(child: Text("No categories"));
             }
+
             final danglingTypeRefs = indexVM.danglingTypeRefs;
             if (danglingTypeRefs.isNotEmpty) {
               return Column(
@@ -67,7 +66,7 @@ class EventTypeIndexScreen extends StatelessWidget {
 
     final indexVm = EventTypeIndexViewModel(app);
     final selectionVm = GenericSelectionVm<EvtTypeRec>(
-      source: () => indexVm.itemsSorted,
+      source: () => indexVm.itemsSorted ??[ ],
       idOf: (r) => r.id,
       textOf: (r) => r.name,
       app: app,

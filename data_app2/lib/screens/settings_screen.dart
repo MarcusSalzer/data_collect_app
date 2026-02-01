@@ -179,6 +179,7 @@ class SettingsScreen extends StatelessWidget {
                                       // delete all from DB
                                       final cEvent = await app.db.events.forceDeleteAll();
                                       final cType = await app.db.eventTypes.forceDeleteAll();
+                                      final cCat = await app.db.categories.forceDeleteAll();
                                       await app.db.prefs.clear();
 
                                       Logger.root.info("Deleted all data");
@@ -187,7 +188,10 @@ class SettingsScreen extends StatelessWidget {
                                       app.evtTypeManager.clearCache();
 
                                       if (context.mounted) {
-                                        simpleSnack(context, "deleted: $cEvent events, $cType event-types");
+                                        simpleSnack(
+                                          context,
+                                          "deleted: $cEvent events, $cType event-types, $cCat event-categories",
+                                        );
                                       }
                                     },
                                     label: Text("delete", style: TextStyle(color: Colors.red)),

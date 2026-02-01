@@ -8,7 +8,7 @@ Future<Directory> getTmpDir() async {
 }
 
 Future<File> getTmpFile([String name = "tmpfile"]) async {
-  final dir = await Directory.systemTemp.createTemp();
+  final dir = await getTmpDir();
   return File(p.join(dir.path, name));
 }
 

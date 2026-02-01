@@ -70,8 +70,8 @@ class EvtTypeManagerPersist extends EvtTypeManager {
   /// Get a type id, trying in priority:
   /// 1. get type-id from cache
   /// 2. get from DB or create and persist new
-  Future<int> resolveOrCreate({required String name}) async {
-    final cached = resolveByName(name)?.id;
+  Future<EvtTypeRec> resolveOrCreate({required String name}) async {
+    final cached = resolveByName(name);
     if (cached != null) {
       return cached;
     }
@@ -79,7 +79,7 @@ class EvtTypeManagerPersist extends EvtTypeManager {
     add(fromDB);
     // state has updated
     notifyListeners();
-    return fromDB.id;
+    return fromDB;
   }
 
   /// Save new or update event-type. returns id

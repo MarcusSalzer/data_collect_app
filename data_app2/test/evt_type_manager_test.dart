@@ -1,7 +1,6 @@
 import 'package:data_app2/data/evt_type.dart';
 import 'package:data_app2/db_service.dart';
 import 'package:data_app2/util/colors.dart';
-import 'package:data_app2/isar_models.dart';
 import 'package:data_app2/event_type_manager.dart';
 import 'package:isar_community/isar.dart';
 import 'package:test/test.dart';
@@ -23,7 +22,7 @@ void main() {
 
     test("add: can add and resolve", () {
       final repo = EvtTypeManager(types: exampleTypes);
-      final newType = EvtTypeRec(1, "new");
+      final newType = EvtTypeRec(13, "new");
       repo.add(newType);
       // Id should be added
       expect(repo.resolveById(13), newType.copyWith(id: 13));
@@ -47,40 +46,41 @@ void main() {
 
   group('[with Persistence]', () {
     late Isar isar;
-    late EvtTypeManagerPersist repo;
+    late DBService db;
+    late EvtTypeManagerPersist manager;
     setUp(() async {
       isar = await getTmpIsar();
-      repo = EvtTypeManagerPersist(db: DBService(isar));
+      db = DBService(isar);
+      manager = EvtTypeManagerPersist(db: db);
     });
 
     tearDown(() async {
       await isar.close();
-      repo.dispose();
+      manager.dispose();
     });
 
     test('fill from models objects', () {
-      repo.reloadFromModels(exampleTypes);
+      manager.reloadFromModels(exampleTypes);
 
-      expect(repo.all, exampleTypes);
+      expect(manager.all, exampleTypes);
     });
 
     // saveOrUpdate
     test('saveOrUpdate: adds to cache', () async {
-      await repo.update(EvtTypeRec(11, "new"));
-      expect(repo.resolveById(11), EvtTypeRec(11, "new"));
-      expect(repo.resolveByName("new"), EvtTypeRec(11, "new"));
+      await manager.update(EvtTypeRec(11, "new"));
+      expect(manager.resolveById(11), EvtTypeRec(11, "new"));
+      expect(manager.resolveByName("new"), EvtTypeRec(11, "new"));
     });
     test('saveOrUpdate: persists', () async {
-      await repo.update(EvtTypeRec(4, "new"));
-      final fromDb = await isar.eventTypes.get(4);
-      expect(fromDb != null, true);
-      expect(fromDb!, EvtTypeRec(4, "new"));
+      await manager.update(EvtTypeRec(4, "new"));
+      final fromDb = await db.eventTypes.getById(4);
+      expect(fromDb, EvtTypeRec(4, "new"));
     });
     test('saveOrUpdate: updates', () async {
-      await repo.update(EvtTypeRec(1, "new", ColorKey.blue));
-      await repo.update(EvtTypeRec(1, "new", ColorKey.red));
+      await manager.update(EvtTypeRec(1, "new", ColorKey.blue));
+      await manager.update(EvtTypeRec(1, "new", ColorKey.red));
 
-      expect(repo.resolveById(1)?.color, ColorKey.red, reason: "repo should contain updated");
+      expect(manager.resolveById(1)?.color, ColorKey.red, reason: "repo should contain updated");
     });
   });
 }

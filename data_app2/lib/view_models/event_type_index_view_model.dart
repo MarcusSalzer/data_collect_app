@@ -16,10 +16,10 @@ class EventTypeIndexViewModel extends ChangeNotifier {
     return _app.evtTypeManager.resolveById(id);
   }
 
-  List<EvtTypeRec> get itemsSorted {
+  List<EvtTypeRec>? get itemsSorted {
     final freqs = _idToCount;
     if (freqs == null) {
-      return [];
+      return null;
     }
 
     // Copy list of all types

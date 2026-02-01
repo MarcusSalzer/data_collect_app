@@ -14,12 +14,10 @@ class LocalDateTime {
 
   Duration get offset => Duration(milliseconds: offsetMillis);
 
-  DateTime get asUtc =>
-      DateTime.fromMillisecondsSinceEpoch(utcMillis, isUtc: true);
+  DateTime get asUtc => DateTime.fromMillisecondsSinceEpoch(utcMillis, isUtc: true);
 
   /// Note: The DateTime object will have [isUtc] true.
-  DateTime get asLocal =>
-      DateTime.fromMillisecondsSinceEpoch(localMillis, isUtc: true);
+  DateTime get asLocal => DateTime.fromMillisecondsSinceEpoch(localMillis, isUtc: true);
 
   factory LocalDateTime.now() {
     final dt = DateTime.now();
@@ -28,13 +26,9 @@ class LocalDateTime {
 
   LocalDateTime.fromDateTimeLocalTZ(DateTime dt)
     : utcMillis = dt.millisecondsSinceEpoch,
-      localMillis =
-          dt.millisecondsSinceEpoch + dt.timeZoneOffset.inMilliseconds;
+      localMillis = dt.millisecondsSinceEpoch + dt.timeZoneOffset.inMilliseconds;
 
-  factory LocalDateTime.fromUtcISOAndffset({
-    required String utcIso,
-    required int offsetMillis,
-  }) {
+  factory LocalDateTime.fromUtcISOAndOffset({required String utcIso, required int offsetMillis}) {
     if (!utcIso.endsWith("Z")) {
       throw FormatException("Expected UTC ISO string with 'Z' suffix", utcIso);
     }
@@ -45,10 +39,7 @@ class LocalDateTime {
   }
 
   LocalDateTime copyWith({int? utcMillis, int? localMillis}) {
-    return LocalDateTime(
-      utcMillis ?? this.utcMillis,
-      localMillis ?? this.localMillis,
-    );
+    return LocalDateTime(utcMillis ?? this.utcMillis, localMillis ?? this.localMillis);
   }
 
   @override
@@ -67,10 +58,7 @@ class LocalDateTime {
 
   /// Formats an ISO-8601 string, without any timezone suffix.
   String toNaiveIso8601String({bool includeMs = false}) {
-    final dt = asLocal.copyWith(
-      millisecond: includeMs ? null : 0,
-      microsecond: 0,
-    );
+    final dt = asLocal.copyWith(millisecond: includeMs ? null : 0, microsecond: 0);
     final s = dt.toIso8601String();
 
     if (includeMs) {
@@ -82,9 +70,7 @@ class LocalDateTime {
 
   @override
   bool operator ==(Object other) {
-    return other is LocalDateTime &&
-        other.utcMillis == utcMillis &&
-        other.localMillis == localMillis;
+    return other is LocalDateTime && other.utcMillis == utcMillis && other.localMillis == localMillis;
   }
 
   @override

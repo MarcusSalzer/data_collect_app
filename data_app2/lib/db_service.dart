@@ -1,6 +1,6 @@
 import 'package:data_app2/repos/evt_cat_repo.dart';
 import 'package:data_app2/repos/evt_repo.dart';
-import 'package:data_app2/repos/event_type_repo.dart';
+import 'package:data_app2/repos/evt_type_repo.dart';
 import 'package:data_app2/repos/prefs_repo.dart';
 import 'package:data_app2/repos/tabular_repo.dart';
 import 'package:isar_community/isar.dart';
@@ -13,14 +13,14 @@ class DBService {
   final TabularRepo tabular;
   final EvtCatRepo categories;
 
-  final Isar _isar;
+  final Isar isar;
 
-  String? get dbFolder => _isar.directory;
+  String? get dbFolder => isar.directory;
 
-  DBService(this._isar)
-    : prefs = PrefsRepo(_isar),
-      events = EvtRepo(_isar),
-      eventTypes = EvtTypeRepo(_isar),
-      tabular = TabularRepo(_isar),
-      categories = EvtCatRepo(_isar);
+  DBService(this.isar)
+    : prefs = PrefsRepo(isar),
+      events = EvtRepo(isar),
+      eventTypes = EvtTypeRepo(isar),
+      tabular = TabularRepo(isar),
+      categories = EvtCatRepo(isar);
 }
