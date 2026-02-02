@@ -1,5 +1,5 @@
-import 'package:data_app2/csv_2/evt_csv.dart';
-import 'package:data_app2/csv_2/evt_type_csv.dart';
+import 'package:data_app2/csv/evt_csv.dart';
+import 'package:data_app2/csv/evt_type_csv.dart';
 import 'package:data_app2/data/evt.dart';
 import 'package:data_app2/data/evt_type.dart';
 import 'package:data_app2/util/colors.dart';
@@ -28,7 +28,7 @@ void main() {
     );
 
     final codec = EvtCsvCodec(typMan: evtTypeMan);
-    final lines = codec.encode([evtRec]).toList();
+    final lines = codec.encodeWithHeader([evtRec]).toList();
 
     expect(lines[0], "type,start_utc,start_offset_s,end_utc,end_offset_s");
     expect(lines[1], "$typeName,1970-01-01T00:00:00Z,2,1970-01-01T00:01:00Z,3");
@@ -42,7 +42,7 @@ void main() {
     );
 
     final codec = EvtCsvCodec(typMan: evtTypeMan);
-    final lines = codec.encode([evtRec]).toList();
+    final lines = codec.encodeWithHeader([evtRec]).toList();
 
     expect(lines[0], "type,start_utc,start_offset_s,end_utc,end_offset_s");
     expect(lines[1], "$typeName,1970-01-01T00:00:00Z,2,,");
@@ -54,7 +54,7 @@ void main() {
     final codec = EvtTypeCsvCodec();
     // create a new event
     final r = EvtTypeDraft("mytype", ColorKey.blue, null);
-    final lines = codec.encode([r]).toList();
+    final lines = codec.encodeWithHeader([r]).toList();
 
     expect(lines[0], "name,category");
     expect(lines[1], "mytype,");

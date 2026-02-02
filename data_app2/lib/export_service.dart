@@ -1,9 +1,13 @@
 import 'dart:io';
-import 'package:data_app2/csv/csv_util_old.dart';
-import 'package:data_app2/csv/evt_csv_adapter.dart';
-import 'package:data_app2/csv/evt_type_csv_adapter.dart';
-import 'package:data_app2/data/evt_old.dart';
+import 'package:data_app2/csv/csv_schema.dart';
+import 'package:data_app2/csv/evt_cat_csv.dart';
+import 'package:data_app2/csv/evt_csv.dart';
+import 'package:data_app2/csv/evt_type_csv.dart';
+import 'package:data_app2/data/evt.dart';
+import 'package:data_app2/data/evt_cat.dart';
 import 'package:data_app2/data/evt_type.dart';
+import 'package:data_app2/db_service.dart';
+import 'package:data_app2/event_type_manager.dart';
 import 'package:data_app2/util/fmt.dart';
 import 'package:path/path.dart' as p;
 
@@ -24,32 +28,41 @@ class CsvExportService {
   CsvExportService(this.parent, DateTime now) : name = _genName(now);
 
   /// Export all data
-  Future<({int nEvt, int nType})> doExport(Iterable<EvtDraftOld>? evts, Iterable<EvtTypeRec>? evtTypes) async {
-    // Count exported records
-    var nEvt = 0;
-    var nType = 0;
+  Future<Map<String, int>> exportAllData(DBService db, EvtTypeManager typMan) async {
+    // reload event types
+    typMan.reloadFromModels(await db.eventTypes.all());
 
-    if (evts != null) {
-      nEvt = await _save<EvtDraftOld>(evts, EvtCsvAdapter(), "events_all.csv");
-    }
-    if (evtTypes != null) {
-      nType = await _save<EvtTypeRec>(evtTypes, EvtTypeCsvAdapter(), "event_types.csv");
-    }
-    return (nEvt: nEvt, nType: nType);
+    final nEvt = await _save<EvtDraft>(
+      // Map to draft. Id:s not needed at export.
+      (await db.events.all()).map((r) => r.toDraft()),
+      EvtCsvCodec(typMan: typMan),
+      "events_all.csv",
+    );
+
+    final nType = await _save<EvtTypeDraft>(
+      typMan.all, // all after reload
+      EvtTypeCsvCodec(),
+      "event_types.csv",
+    );
+    final nCat = await _save<EvtCatDraft>(
+      (await db.categories.all()).map((r) => r.toDraft()),
+      EvtCatCsvCodec(),
+      "event_categories.csv",
+    );
+    return {"events": nEvt, "types": nType, "categories": nCat};
   }
 
   /// Save some data with a compatible adapter
-  Future<int> _save<T>(Iterable<T> records, CsvAdapter<T> adapter, String filename) async {
+  Future<int> _save<T>(Iterable<T> records, CsvCodecWrite<T> writer, String filename) async {
     // prepare file
     final file = File(p.join(folderPath, filename));
     if (await file.exists()) {
-      // TODO: Pathexists error?
       throw ExportError("Target (${file.path}) already exists.");
     }
     await file.create(recursive: true);
 
     // format content
-    final lines = adapter.encodeRowsWithHeader(records).toList();
+    final lines = writer.encodeWithHeader(records).toList();
     // write contents
     await file.writeAsString(lines.join("\n"));
     // How many lines were written

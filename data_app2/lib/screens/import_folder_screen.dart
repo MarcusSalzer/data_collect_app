@@ -25,7 +25,7 @@ class ImportFolderScreen extends StatelessWidget {
           actions: [
             IconButton(
               onPressed: () {
-                Navigator.of(context).push(MaterialPageRoute(builder: (_) => ImportHelpScreen()));
+                Navigator.of(context).push(MaterialPageRoute(builder: (_) => SchemaInfoScreen()));
               },
               icon: Icon(Icons.help_outline),
             ),

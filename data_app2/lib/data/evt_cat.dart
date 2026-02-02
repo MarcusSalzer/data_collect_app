@@ -15,17 +15,20 @@ class EvtCatDraft extends Draft<EvtCatRec> {
   }
 
   @override
-  EvtCatRec toRec(int id) {
+  toRec(int id) {
     return EvtCatRec(id, name);
   }
 }
 
 /// Data class for persisted event categories
-class EvtCatRec extends EvtCatDraft implements Identifiable {
-  EvtCatRec(this.id, super.name);
+class EvtCatRec implements Identifiable {
+  final String name;
+
+  EvtCatRec(this.id, this.name);
   @override
   final int id;
 
+  @override
   EvtCatDraft toDraft() {
     return EvtCatDraft(name);
   }

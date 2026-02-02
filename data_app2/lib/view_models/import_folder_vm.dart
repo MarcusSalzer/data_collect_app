@@ -1,8 +1,8 @@
 import 'dart:io';
 import 'package:data_app2/app_state.dart';
-import 'package:data_app2/csv_2/csv_row.dart';
-import 'package:data_app2/csv_2/evt_csv.dart';
-import 'package:data_app2/csv_2/evt_type_csv.dart';
+import 'package:data_app2/csv/csv_row.dart';
+import 'package:data_app2/csv/evt_csv.dart';
+import 'package:data_app2/csv/evt_type_csv.dart';
 import 'package:data_app2/import/import_candidate_collection.dart';
 import 'package:data_app2/util/enums.dart';
 import 'package:flutter/foundation.dart';
@@ -89,31 +89,31 @@ class ImportFolderVm extends ChangeNotifier {
   /// Step 2: read the whole files and make in memory models
   Future<void> prepareCsvRows() async {
     _setStep(ImportStep.preparingModels);
-    // First: types
-    final nameCounts = <String, int>{};
-    for (var cand in candidates.evtTypeCands) {
-      final codec = EvtTypeCsvCodec();
-      final rows = codec.parseRows(await cand.file.readAsLines()).toList();
-
-      // Ensure unique Event type names
-      for (var rn in rows.map((r) => r.req("name"))) {
-        nameCounts[rn] = (nameCounts[rn] ?? 0) + 1;
-      }
-      final duplicates = nameCounts.entries.where((e) => e.value > 1).map((e) => e.key).toList();
-      if (duplicates.isNotEmpty) {
-        throw FormatException("duplicate event names: ${duplicates.join(',')}");
-      }
-
-      // Store loaded rows
-      rowsPerCand[cand] = rows;
-    }
-
-    // Second: events
-    for (var cand in candidates.evtCands) {
-      rowsPerCand[cand] = EvtCsvCodec(typMan: _app.evtTypeManager).parseRows(await cand.file.readAsLines()).toList();
-    }
-
     try {
+      // First: types
+      final nameCounts = <String, int>{};
+      for (var cand in candidates.evtTypeCands) {
+        final codec = EvtTypeCsvCodec();
+        final rows = codec.parseRows(await cand.file.readAsLines()).toList();
+
+        // Ensure unique Event type names
+        for (var rn in rows.map((r) => r.req("name"))) {
+          nameCounts[rn] = (nameCounts[rn] ?? 0) + 1;
+        }
+        final duplicates = nameCounts.entries.where((e) => e.value > 1).map((e) => e.key).toList();
+        if (duplicates.isNotEmpty) {
+          throw StateError("duplicate event names: ${duplicates.join(',')}");
+        }
+
+        // Store loaded rows
+        rowsPerCand[cand] = rows;
+      }
+
+      // Second: events
+      for (var cand in candidates.evtCands) {
+        rowsPerCand[cand] = EvtCsvCodec(typMan: _app.evtTypeManager).parseRows(await cand.file.readAsLines()).toList();
+      }
+
       _setStep(ImportStep.confirmImport);
     } catch (e) {
       _fail(e.toString());

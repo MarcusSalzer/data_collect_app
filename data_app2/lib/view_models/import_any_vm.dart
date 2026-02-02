@@ -1,12 +1,13 @@
 import 'dart:io';
 import 'package:data_app2/app_state.dart';
 import 'package:data_app2/csv/infer_from_header.dart';
-import 'package:data_app2/csv_2/csv_schema.dart';
-import 'package:data_app2/csv_2/evt_cat_csv.dart';
-import 'package:data_app2/csv_2/evt_csv.dart';
-import 'package:data_app2/csv_2/evt_type_csv.dart';
+import 'package:data_app2/csv/csv_schema.dart';
+import 'package:data_app2/csv/evt_cat_csv.dart';
+import 'package:data_app2/csv/evt_csv.dart';
+import 'package:data_app2/csv/evt_type_csv.dart';
 import 'package:data_app2/util/enums.dart';
 import 'package:flutter/material.dart';
+import 'package:path/path.dart' as p;
 
 class ImportAnyVm extends ChangeNotifier {
   final String filePath;
@@ -27,7 +28,7 @@ class ImportAnyVm extends ChangeNotifier {
   /// Load file
   Future<void> load() async {
     final cols = await getCsvHeaderCols(File(filePath));
-    final role = roleFromCols(cols);
+    final role = roleFromName(p.basename(filePath));
 
     if (role == ImportFileRole.unknown) {
       _fail("Cannot import CSV with columns: '$cols'");

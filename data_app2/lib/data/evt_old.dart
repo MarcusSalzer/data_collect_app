@@ -66,9 +66,6 @@ class EvtRecOld {
     return "Evt($id | type: $typeId | Local: ${start?.asLocal} - ${end?.asLocal} | UTC: ${start?.asUtc} - ${end?.asUtc})";
   }
 
-  @override
-  int get hashCode => Object.hash(id, typeId, start, end);
-
   EvtRecOld copyWith({int? id, int? typeId, LocalDateTime? start, LocalDateTime? end}) {
     return EvtRecOld(
       id: id ?? this.id,

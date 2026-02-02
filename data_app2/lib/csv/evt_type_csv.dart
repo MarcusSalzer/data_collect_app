@@ -1,6 +1,6 @@
-import 'package:data_app2/csv_2/builtin_schemas.dart';
-import 'package:data_app2/csv_2/csv_row.dart';
-import 'package:data_app2/csv_2/csv_schema.dart';
+import 'package:data_app2/csv/builtin_schemas.dart';
+import 'package:data_app2/csv/csv_row.dart';
+import 'package:data_app2/csv/csv_schema.dart';
 import 'package:data_app2/data/evt_type.dart';
 import 'package:data_app2/util/colors.dart';
 

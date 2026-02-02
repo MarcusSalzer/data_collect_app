@@ -1,8 +1,6 @@
 import 'package:data_app2/app_state.dart';
-import 'package:data_app2/csv/csv_util_old.dart';
 import 'package:data_app2/view_models/event_export_view_model.dart';
 import 'package:data_app2/util/process_state.dart';
-import 'package:data_app2/widgets/two_columns.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -72,65 +70,3 @@ class ExportScreen extends StatelessWidget {
     );
   }
 }
-
-@Deprecated("not needed ")
-class ExampleRowDisplay<T> extends StatelessWidget {
-  final T example;
-  final CsvAdapter<T> adapter;
-  const ExampleRowDisplay(this.adapter, this.example, {super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final values = adapter.toRow(example).split(adapter.sep);
-    final cols = adapter.cols;
-
-    if (values.length != cols.length) {
-      return Text(
-        "CSV adapter error",
-        style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red),
-      );
-    }
-    return TwoColumns(
-      flex: (2, 3),
-      rows: cols.indexed
-          .map((e) => (Text(e.$2), Text(values[e.$1], style: TextStyle(fontFamily: "monospace"))))
-          .toList(),
-    );
-  }
-}
-
-// class CsvSchemaSelector extends StatelessWidget {
-//   final SchemaLevel selectedSchema;
-//   final ValueChanged<SchemaLevel> onChanged;
-
-//   const CsvSchemaSelector({
-//     super.key,
-//     required this.selectedSchema,
-//     required this.onChanged,
-//   });
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Column(
-//       crossAxisAlignment: CrossAxisAlignment.start,
-//       children: [
-//         const Text(
-//           "Select Export Schema:",
-//           style: TextStyle(fontWeight: FontWeight.bold),
-//         ),
-//         const Text("Note: only raw can be imported in app"),
-//         ...SchemaLevel.values.map((schema) {
-//           return RadioListTile<SchemaLevel>(
-//             title: Text(schema.name.capitalized),
-//             subtitle: Text(schema.desc),
-//             value: schema,
-//             groupValue: selectedSchema,
-//             onChanged: (value) {
-//               if (value != null) onChanged(value);
-//             },
-//           );
-//         }),
-//       ],
-//     );
-//   }
-// }

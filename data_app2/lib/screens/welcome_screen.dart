@@ -1,4 +1,5 @@
 import 'package:data_app2/screens/home_screen.dart';
+import 'package:data_app2/screens/import_help_screen.dart';
 import 'package:flutter/material.dart';
 
 class WelcomeScreen extends StatelessWidget {
@@ -17,7 +18,18 @@ class WelcomeScreen extends StatelessWidget {
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [Text("hello"), Text("Thanks for checking out the app.")],
+                  spacing: 12,
+                  children: [
+                    Text("Thanks for checking out the app."),
+                    SizedBox(height: 20),
+                    Text("Learn more"),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.of(context).push(MaterialPageRoute(builder: (_) => SchemaInfoScreen()));
+                      },
+                      child: Text("Supported data"),
+                    ),
+                  ],
                 ),
               ),
               Padding(

@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:data_app2/csv_2/builtin_schemas.dart';
+import 'package:data_app2/csv/builtin_schemas.dart';
 import 'package:data_app2/util/enums.dart';
 
 ImportFileRole roleFromName(String filename) {
@@ -14,21 +14,22 @@ ImportFileRole roleFromName(String filename) {
   return ImportFileRole.unknown;
 }
 
-/// Infer type based on having all "requiredCols"
-@Deprecated("unstable...")
+/// Heuristic inference of import role based on having all "requiredCols"
+/// If multiple possible, pick the option with fewest useless columns
+@Deprecated("Unreliable")
 ImportFileRole roleFromCols(Set<String> fileCols) {
-  final possible = <ImportFileRole>{};
+  final possibleExcess = <ImportFileRole, int>{};
 
-  if (CsvSchemasConst.evtCat.requiredCols.difference(fileCols).isEmpty) {
-    possible.add(ImportFileRole.events);
-  } else if (CsvSchemasConst.evtType.requiredCols.difference(fileCols).isEmpty) {
-    possible.add(ImportFileRole.eventTypes);
-  } else if (CsvSchemasConst.evtCat.requiredCols.difference(fileCols).isEmpty) {
-    possible.add(ImportFileRole.eventCats);
+  for (var MapEntry(key: role, value: sch) in CsvSchemasConst.byImportRole.entries) {
+    if (sch.requiredCols.difference(fileCols).isEmpty) {
+      possibleExcess[role] = fileCols.difference(sch.writeCols.toSet()).length;
+    }
   }
 
-  if (possible.length == 1) {
-    return possible.first;
+  if (possibleExcess.isNotEmpty) {
+    final possible = possibleExcess.entries.toList();
+    possible.sort((a, b) => a.value.compareTo(b.value));
+    return possible.first.key;
   }
 
   return ImportFileRole.unknown;

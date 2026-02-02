@@ -32,7 +32,7 @@ void main() {
     });
   });
   test('happy path', () async {
-    final file = await getTmpFile('evttypes.csv');
+    final file = await getTmpFile('event_types.csv');
     await file.writeAsString('name,category\nhello,\nworld,');
 
     // count notifications.

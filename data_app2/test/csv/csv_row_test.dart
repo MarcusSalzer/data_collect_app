@@ -1,4 +1,4 @@
-import 'package:data_app2/csv_2/csv_row.dart';
+import 'package:data_app2/csv/csv_row.dart';
 import 'package:test/test.dart';
 
 void main() {

@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:data_app2/csv/infer_from_header.dart';
-import 'package:data_app2/csv_2/builtin_schemas.dart';
-import 'package:data_app2/csv_2/csv_schema.dart';
+import 'package:data_app2/csv/builtin_schemas.dart';
+import 'package:data_app2/csv/csv_schema.dart';
 import 'package:data_app2/data/evt.dart';
 import 'package:data_app2/data/evt_cat.dart';
 import 'package:data_app2/data/evt_type.dart';
