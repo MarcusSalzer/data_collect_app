@@ -66,7 +66,7 @@ abstract class CrudRepo<R extends Identifiable, D extends Draft<R>, I> {
         try {
           added.add(await coll.put(draftToIsar(d)));
         } on IsarError catch (e) {
-          throw FormatException("Cannot store $d. ${e.message}");
+          throw StateError("Cannot store $d. ${e.message}");
         }
       }
     });

@@ -1,9 +1,12 @@
 import 'dart:io';
 import 'package:data_app2/csv/infer_from_header.dart';
+import 'package:data_app2/csv_2/builtin_schemas.dart';
+import 'package:data_app2/csv_2/csv_schema.dart';
 import 'package:data_app2/data/evt.dart';
 import 'package:data_app2/data/evt_cat.dart';
 import 'package:data_app2/data/evt_type.dart';
 import 'package:data_app2/util/enums.dart';
+import 'package:path/path.dart' as p;
 
 /// All importable files
 class ImportCandidateCollection {
@@ -20,20 +23,20 @@ class ImportCandidateCollection {
 
   Future<void> addFile(File file) async {
     final cols = await getCsvHeaderCols(file);
-    final role = roleFromCols(cols);
+    final role = roleFromName(p.basename(file.path));
     final size = (await file.stat()).size;
     switch (role) {
       case ImportFileRole.events:
-        evtCands.add(CsvImportCandidate<EvtDraft>(file, cols, size));
+        evtCands.add(CsvImportCandidate<EvtDraft>(file, cols, size, CsvSchemasConst.evt));
         break;
       case ImportFileRole.eventTypes:
-        evtTypeCands.add(CsvImportCandidate<EvtTypeDraft>(file, cols, size));
+        evtTypeCands.add(CsvImportCandidate<EvtTypeDraft>(file, cols, size, CsvSchemasConst.evtType));
         break;
       case ImportFileRole.eventCats:
-        evtCatCands.add(CsvImportCandidate<EvtCatDraft>(file, cols, size));
+        evtCatCands.add(CsvImportCandidate<EvtCatDraft>(file, cols, size, CsvSchemasConst.evtCat));
         break;
       case ImportFileRole.unknown:
-        unknownCands.add(CsvImportCandidate<Null>(file, cols, size));
+        unknownCands.add(CsvImportCandidate<Null>(file, cols, size, null));
         break;
     }
   }
@@ -50,13 +53,18 @@ class ImportCandidateCollection {
 /// One file that can be imported
 class CsvImportCandidate<T> {
   final File file;
+  final CsvSchema? schema;
   final Set<String> cols;
   final int size;
   String? error;
 
   String get name => file.path.split("/").last;
 
-  CsvImportCandidate(this.file, this.cols, this.size);
+  CsvImportCandidate(this.file, this.cols, this.size, this.schema);
+
+  bool colUsable(String col) {
+    return (schema?.writeCols.contains(col) ?? false);
+  }
 }
 
 class ImportCandidateSummary<T> {

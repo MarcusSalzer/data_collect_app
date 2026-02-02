@@ -78,6 +78,7 @@ enum ImportStep { scanningFolder, confirmFiles, preparingModels, confirmImport, 
 /// How to import data, when its id is already in the DB
 enum ImportOverlapPolicy {
   skip,
-  overwrite,
+  // overwrite,
+  fail,
   // reassignNew, // make new ids
 }

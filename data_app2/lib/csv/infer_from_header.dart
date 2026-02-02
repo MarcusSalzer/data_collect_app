@@ -2,17 +2,35 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:data_app2/csv_2/builtin_schemas.dart';
 import 'package:data_app2/util/enums.dart';
-import 'package:flutter/foundation.dart';
 
-/// Infer type based on having all "writeCols"
-ImportFileRole roleFromCols(Set<String> fileCols) {
-  if (setEquals(fileCols, CsvSchemasConst.evt.writeCols.toSet())) {
+ImportFileRole roleFromName(String filename) {
+  if (filename.contains("events")) {
     return ImportFileRole.events;
-  } else if (setEquals(fileCols, CsvSchemasConst.evtType.writeCols.toSet())) {
+  } else if (filename.contains("event_types")) {
     return ImportFileRole.eventTypes;
-  } else if (setEquals(fileCols, CsvSchemasConst.evtCat.writeCols.toSet())) {
+  } else if (filename.contains("event_categories")) {
     return ImportFileRole.eventCats;
   }
+  return ImportFileRole.unknown;
+}
+
+/// Infer type based on having all "requiredCols"
+@Deprecated("unstable...")
+ImportFileRole roleFromCols(Set<String> fileCols) {
+  final possible = <ImportFileRole>{};
+
+  if (CsvSchemasConst.evtCat.requiredCols.difference(fileCols).isEmpty) {
+    possible.add(ImportFileRole.events);
+  } else if (CsvSchemasConst.evtType.requiredCols.difference(fileCols).isEmpty) {
+    possible.add(ImportFileRole.eventTypes);
+  } else if (CsvSchemasConst.evtCat.requiredCols.difference(fileCols).isEmpty) {
+    possible.add(ImportFileRole.eventCats);
+  }
+
+  if (possible.length == 1) {
+    return possible.first;
+  }
+
   return ImportFileRole.unknown;
 }
 

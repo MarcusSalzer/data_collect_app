@@ -12,9 +12,9 @@
 - ✅ _25-12-11_ refactor db-repos, clean up settings, logging.
 - ✅ _25-12-16_ Filter, select and summarize (event types) `v0.0.8`
 - ✅ _26-01-12_ Export csv event summary, Import/export event types. Faster import. Consistent text search behavior. `v0.0.9`
-- ❓ Welcome screen, categories, improved today-summary, standardized Repos and domain models
-- ❓ JSON-serializable prefs, improved test coverage
-- ❓ Daily summary (separate file), DB change detection
+- ❓ Welcome screen, categories, improved today-summary, standardized Repos, CSV and domain models. `v0.1.0`
+- ❓ JSON-serializable prefs, improved test coverage, Import help screen
+- ❓ Daily summary (separate file), DB change detection `v0.1.1`
 - ❓ Persistent event filter, can apply globally in app?
 
 PROBLEMS:

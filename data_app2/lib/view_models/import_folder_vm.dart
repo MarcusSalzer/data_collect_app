@@ -10,14 +10,16 @@ import 'package:isar_community/isar.dart';
 
 extension ImportOverlapPolicyUi on ImportOverlapPolicy {
   String get title => switch (this) {
+    ImportOverlapPolicy.fail => 'Fail if existing',
     ImportOverlapPolicy.skip => 'Skip existing',
-    ImportOverlapPolicy.overwrite => 'Overwrite existing',
+    // ImportOverlapPolicy.overwrite => 'Overwrite existing',
     // ImportOverlapPolicy.reassignNew => 'New Ids',
   };
 
   String get description => switch (this) {
+    ImportOverlapPolicy.fail => 'Cancel if trying to import existing',
     ImportOverlapPolicy.skip => 'Records with IDs already in the database will not be imported.',
-    ImportOverlapPolicy.overwrite => 'Imported records will replace existing records with the same ID.',
+    // ImportOverlapPolicy.overwrite => 'Imported records will replace existing records with the same ID.',
     // ImportOverlapPolicy.reassignNew =>
     //   'Imported records will be assigned new IDs to avoid conflicts.',
   };
@@ -90,7 +92,8 @@ class ImportFolderVm extends ChangeNotifier {
     // First: types
     final nameCounts = <String, int>{};
     for (var cand in candidates.evtTypeCands) {
-      final rows = EvtTypeCsvCodec().parseRows(await cand.file.readAsLines()).toList();
+      final codec = EvtTypeCsvCodec();
+      final rows = codec.parseRows(await cand.file.readAsLines()).toList();
 
       // Ensure unique Event type names
       for (var rn in rows.map((r) => r.req("name"))) {
@@ -129,20 +132,16 @@ class ImportFolderVm extends ChangeNotifier {
         if (rowsPerCand[cand] case List<CsvRow> rows) {
           final items = EvtTypeCsvCodec().decode(rows);
 
-          // unique index might fail here
-          addedTypeIds = await _app.db.eventTypes.createAllThrowEarly(items);
+          switch (_overlapPolicy) {
+            case ImportOverlapPolicy.fail:
+              // unique index might fail here
+              addedTypeIds = await _app.db.eventTypes.createAllThrowEarly(items);
+              break;
+            case ImportOverlapPolicy.skip:
+              addedTypeIds = await _app.db.eventTypes.createAll(items);
+              break;
+          }
         }
-
-        // switch (_overlapPolicy) {
-        //   case ImportOverlapPolicy.skip:
-        //     addedTypeIds = await _app.db.eventTypes.createAll(items);
-        //     break;
-        //   case ImportOverlapPolicy.overwrite:
-        //     addedTypeIds = await _app.db.eventTypes.updateAll(items);
-        //     break;
-        // case ImportOverlapPolicy.reassignNew:
-        //   throw UnimplementedError();
-        // }
       }
       // refresh types
       _app.evtTypeManager.reloadFromModels(await _app.db.eventTypes.all());
@@ -155,14 +154,7 @@ class ImportFolderVm extends ChangeNotifier {
           // no unique-index, should be safe to do all at once.
           evtImportCount = (await _app.db.events.createAll(items)).length;
           // switch (_overlapPolicy) {
-          //   case ImportOverlapPolicy.skip:
-          //     evtImportCount = (await _app.db.events.putIfNewId(items)).length;
-          //     break;
-          //   case ImportOverlapPolicy.overwrite:
-          //     evtImportCount = (await _app.db.events.updateAll(items)).length;
-          //     break;
-          // case ImportOverlapPolicy.reassignNew:
-          //   throw UnimplementedError();
+
           // }
         }
       }

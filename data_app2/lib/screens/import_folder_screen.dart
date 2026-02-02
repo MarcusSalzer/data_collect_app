@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:data_app2/app_state.dart';
 import 'package:data_app2/import/import_candidate_collection.dart';
+import 'package:data_app2/screens/import_help_screen.dart';
 import 'package:data_app2/style.dart';
 import 'package:data_app2/util/enums.dart';
 import 'package:data_app2/util/fmt.dart';
@@ -19,7 +20,17 @@ class ImportFolderScreen extends StatelessWidget {
     return ChangeNotifierProvider(
       create: (_) => ImportFolderVm(_folder, Provider.of<AppState>(context, listen: false))..scanFolder(),
       child: Scaffold(
-        appBar: AppBar(title: const Text('Import folder')),
+        appBar: AppBar(
+          title: const Text('Import folder'),
+          actions: [
+            IconButton(
+              onPressed: () {
+                Navigator.of(context).push(MaterialPageRoute(builder: (_) => ImportHelpScreen()));
+              },
+              icon: Icon(Icons.help_outline),
+            ),
+          ],
+        ),
         body: Padding(
           padding: const EdgeInsets.all(16),
           child: Consumer<ImportFolderVm>(
@@ -214,12 +225,29 @@ class CandidateTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final items = <Widget>[
+      // BASIC: Name and size
       Row(
         spacing: 6,
         children: [
           Text(cand.name, style: filePathText),
           Text("(${cand.size ~/ 1000} kB)"),
         ],
+      ),
+      // USEFUL: Detected columns
+      Wrap(
+        spacing: 4,
+        runSpacing: 4,
+        children: cand.cols
+            .map(
+              (c) => Chip(
+                label: Text(c),
+                shape: RoundedRectangleBorder(
+                  side: BorderSide(color: cand.colUsable(c) ? Colors.green : Colors.red),
+                  borderRadius: BorderRadiusGeometry.all(Radius.circular(6)),
+                ),
+              ),
+            )
+            .toList(),
       ),
     ];
     // if there is more data loaded
@@ -243,7 +271,10 @@ class CandidateTile extends StatelessWidget {
       }
     }
 
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, spacing: 6, children: items);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, spacing: 6, children: items),
+    );
   }
 }
 
