@@ -31,10 +31,10 @@ class EventTypeDetailScreen extends StatelessWidget {
               showConfirmSaveBackDialog<EvtTypeRec?>(
                 context,
                 saveAction: () async {
-                  final errMsg = await vm.save();
+                  await vm.save();
                   if (context.mounted) {
-                    if (errMsg != null) {
-                      simpleSnack(context, errMsg, color: Colors.red);
+                    if (vm.errorMsg case String msg) {
+                      simpleSnack(context, msg, color: Colors.red);
                       return null;
                     } else {
                       simpleSnack(context, "Saved!");
@@ -123,10 +123,10 @@ class _Scaffold extends StatelessWidget {
               if (vm.isDirty)
                 TextButton(
                   onPressed: () async {
-                    final errMsg = await vm.save();
+                    await vm.save();
                     if (context.mounted) {
-                      if (errMsg != null) {
-                        simpleSnack(context, errMsg, color: Colors.red);
+                      if (vm.errorMsg case String msg) {
+                        simpleSnack(context, msg, color: Colors.red);
                       } else {
                         simpleSnack(context, "Saved!");
                         Navigator.of(context).pop(vm.draft);

@@ -1,3 +1,4 @@
+import 'package:data_app2/data/evt_type.dart';
 import 'package:data_app2/repos/evt_cat_repo.dart';
 import 'package:data_app2/repos/evt_repo.dart';
 import 'package:data_app2/repos/evt_type_repo.dart';
@@ -23,5 +24,25 @@ class DBService {
 
   Future<void> clear() async {
     await isar.writeTxn(() async => await isar.clear());
+  }
+
+  /// Check DB for dangling EvtType references
+  Future<List<int>> danglingTypeRefs() async {
+    final [refs, existing] = await Future.wait([events.allReferencedTypeIds(), eventTypes.allIds()]);
+
+    final dangling = refs.difference(existing).toList();
+    dangling.sort();
+    return dangling;
+  }
+
+  // create new types at missing ids.
+  Future<List<int>> fillDanglingTypeRefs() async {
+    final ids = await danglingTypeRefs();
+    final created = <int>[];
+    for (var i in ids) {
+      final newId = await eventTypes.update(EvtTypeRec(i, "_new_type_$i"));
+      created.add(newId);
+    }
+    return created;
   }
 }

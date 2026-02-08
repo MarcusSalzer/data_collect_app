@@ -1,4 +1,3 @@
-import 'package:data_app2/util/extensions.dart';
 import 'package:data_app2/view_models/today_summary_vm.dart';
 import 'package:data_app2/widgets/events_summary.dart';
 import 'package:flutter/material.dart';

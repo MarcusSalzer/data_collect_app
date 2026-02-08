@@ -19,7 +19,7 @@ class EvtCatDetailVm extends EditVm<EvtCatRec, EvtCatDraft> {
     var didDelete = false;
 
     try {
-      didDelete = await _app.db.categories.forceDelete(storedId);
+      didDelete = await _app.db.categories.deleteIfUnreferenced(storedId);
     } on DbRefExistsError catch (e) {
       errorMsg = "Category ${e.id} has references, will not delete";
     }
@@ -58,7 +58,7 @@ class EvtCatDetailVm extends EditVm<EvtCatRec, EvtCatDraft> {
   // === Specific methods ===
 
   void updateName(String name) {
-    draft = draft.copyWith(name: name.trim());
+    draft.name = name.trim();
     notifyListeners();
   }
 }

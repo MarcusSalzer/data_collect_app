@@ -5,7 +5,7 @@ class EvtCatDraft extends Draft<EvtCatRec> {
   EvtCatDraft(this.name);
 
   // === fields ===
-  final String name;
+  String name;
 
   // TODO color
   // final dynamic color;

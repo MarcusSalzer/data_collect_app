@@ -1,5 +1,6 @@
 import 'package:data_app2/contracts/crud_repo.dart';
 import 'package:data_app2/data/evt_type.dart';
+import 'package:data_app2/errors/db_ref_exists_error.dart';
 import 'package:data_app2/isar_models.dart';
 import 'package:isar_community/isar.dart';
 
@@ -46,5 +47,14 @@ class EvtTypeRepo extends CrudRepo<EvtTypeRec, EvtTypeDraft, EventType> {
         return fromIsar(newType);
       }
     });
+  }
+
+  /// Delete a event type, throws [DbRefExistsError] if it is referenced by some EvtType
+  Future<bool> deleteIfUnreferenced(int id) async {
+    // No index here yet. eventTypes is not huge so should be ok.
+    if (await isar.events.filter().typeIdEqualTo(id).findFirst() != null) {
+      throw DbRefExistsError(id);
+    }
+    return await super.forceDelete(id);
   }
 }

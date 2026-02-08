@@ -1,6 +1,5 @@
 import 'package:data_app2/data/evt_type.dart';
 import 'package:data_app2/db_service.dart';
-import 'package:data_app2/util/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 
@@ -82,23 +81,6 @@ class EvtTypeManagerPersist extends EvtTypeManager {
     return fromDB;
   }
 
-  /// Save new or update event-type. returns id
-  Future<void> update(EvtTypeRec rec) async {
-    await _db.eventTypes.update(rec);
-    add(rec);
-    // state has updated
-    notifyListeners();
-  }
-
-  /// Check DB for dangling EvtType references
-  Future<List<int>> danglingTypeRefs() async {
-    final [refs, existing] = await Future.wait([_db.events.allReferencedTypeIds(), _db.eventTypes.allIds()]);
-
-    final dangling = refs.difference(existing).toList();
-    dangling.sort();
-    return dangling;
-  }
-
   /// Delete both from DB and cache
   @override
   Future<bool> remove(int id, String name) async {
@@ -108,13 +90,8 @@ class EvtTypeManagerPersist extends EvtTypeManager {
   }
 
   // create new types at missing ids.
-  Future<List<int>> fillDangling() async {
-    final ids = await danglingTypeRefs();
-    final created = <int>[];
-    for (var i in ids) {
-      final newId = await _db.eventTypes.update(EvtTypeRec(i, "_new_type_$i", ColorKey.base, null));
-      created.add(newId);
-    }
+  Future<List<int>> fillDanglingTypeRefs() async {
+    final created = await _db.fillDanglingTypeRefs();
     notifyListeners();
     return created;
   }

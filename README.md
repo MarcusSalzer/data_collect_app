@@ -15,8 +15,6 @@
 - ✅ _26-02-02_ Welcome screen, categories, standardized Repos, CSV and domain models. `v0.1.0`
 - ✅ _26-02-06_ JSON-serializable prefs, improved test coverage, Import help screen
 - ❓ Consistent edit screens. Daily summary file, DB change detection `v0.1.1`
-- ❓ Persistent event filter, can apply globally in app?
-- ❓ Improved color?
 
 PROBLEMS:
 
@@ -25,6 +23,8 @@ PROBLEMS:
 
 Later:
 
+- ❓ improved color system (color groups for categories?)
+- ❓ Persistent event filter, can apply globally in app?
 - ❓ Load CSV without id?
 - ❓ event type timeseries stats view, range inclusion setting, user defined "day starts at"
 - ❓ auto-backup, backup pruning (more compact file format?)
@@ -32,10 +32,7 @@ Later:
 - ❓ Improved suggestions (recent, dynamic, pinned)
 - ❓ better calendar UI, horizontal page + vertical scroll?
 - ❓ tabular data, link to event
-- ❓ improved color system (color groups for categories?)
 - ❓ event aggregations. per-day-db? or save to file?
-- ❓ Avoid isarmodels outside of repos (at least in reads, maybe in many writes too)
-  - (also, using draft-classes or primitive args for writes can avoid needing nullable id:s on domain models?), although we need to await the id.
 - ❓ bag of activity vector
 - ❓ location data type
 

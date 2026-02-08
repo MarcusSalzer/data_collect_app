@@ -1,5 +1,4 @@
 import 'package:data_app2/app_state.dart';
-import 'package:data_app2/contracts/data.dart';
 import 'package:data_app2/contracts/edit_vm.dart';
 import 'package:data_app2/data/evt_type.dart';
 import 'package:data_app2/errors/db_ref_exists_error.dart';
@@ -20,7 +19,7 @@ class EvtTypeDetailVm extends EditVm<EvtTypeRec, EvtTypeDraft> {
   }
 
   void updateName(String name) {
-    draft.copyWith(name: name.trim());
+    draft.name = name.trim();
     notifyListeners();
   }
 
@@ -32,8 +31,8 @@ class EvtTypeDetailVm extends EditVm<EvtTypeRec, EvtTypeDraft> {
     var didDelete = false;
 
     try {
-      didDelete = await _app.db.eventTypes.forceDelete(stored.id);
-      return await _app.evtTypeManager.remove(stored.id, stored.name);
+      didDelete = await _app.db.eventTypes.deleteIfUnreferenced(stored.id);
+      await _app.evtTypeManager.remove(stored.id, stored.name);
     } on DbRefExistsError catch (e) {
       errorMsg = "Category ${e.id} has references, will not delete";
     }
@@ -44,30 +43,32 @@ class EvtTypeDetailVm extends EditVm<EvtTypeRec, EvtTypeDraft> {
 
   // save event type to DB, returns error message or null if successful
   @override
-  Future<String?> save() async {
-    String? message;
+  Future<void> save() async {
+    final storedId = stored?.id;
+
     try {
-      if (stored case Identifiable stored) {
-        // We are updating a stored record
-        final updated = draft.toRec(stored.id);
-        await _app.evtTypeManager.update(updated);
-        stored = updated;
-      } else {
+      if (storedId == null) {
         // We are creating a new record
-        final newRec = draft.toRec(await _app.db.eventTypes.create(draft));
-        await _app.evtTypeManager.update(newRec);
+        final newId = await _app.db.eventTypes.create(draft);
+        final newRec = draft.toRec(newId);
+        _app.evtTypeManager.add(newRec);
         stored = newRec;
+      } else {
+        // We are updating a stored record
+        final updated = draft.toRec(storedId);
+        await _app.db.eventTypes.update(updated);
+        _app.evtTypeManager.add(updated);
+        stored = updated;
       }
     } on IsarError catch (e) {
       if (e.message.contains("Unique")) {
-        message = "Please give a unique name";
+        errorMsg = "Please give a unique name";
       } else {
-        message = e.message;
+        errorMsg = e.message;
       }
     } catch (e) {
-      message = e.toString();
+      errorMsg = e.toString();
     }
     notifyListeners();
-    return message;
   }
 }

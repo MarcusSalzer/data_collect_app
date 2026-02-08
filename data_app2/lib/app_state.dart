@@ -54,7 +54,7 @@ class AppState extends ChangeNotifier {
     });
 
     // check dangling types (move this?)
-    evtTypeManager.danglingTypeRefs().then((d) {
+    _db.danglingTypeRefs().then((d) {
       final count = d.length;
       final msg = "has $count dangling type-refs";
       if (count > 0) {

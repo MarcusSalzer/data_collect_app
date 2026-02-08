@@ -25,10 +25,11 @@ void main() {
       final newType = EvtTypeRec(13, "new");
       repo.add(newType);
       // Id should be added
-      expect(repo.resolveById(13), newType.copyWith(id: 13));
-      expect(repo.resolveByName("new"), newType.copyWith(id: 13));
+      expect(repo.resolveById(13), newType);
+      expect(repo.resolveByName("new"), newType);
       expect(repo.all.length, 3);
     });
+
     test("add: should notify", () {
       var notifyCount = 0;
       final repo = EvtTypeManager(types: exampleTypes);
@@ -63,24 +64,6 @@ void main() {
       manager.reloadFromModels(exampleTypes);
 
       expect(manager.all, exampleTypes);
-    });
-
-    // saveOrUpdate
-    test('saveOrUpdate: adds to cache', () async {
-      await manager.update(EvtTypeRec(11, "new"));
-      expect(manager.resolveById(11), EvtTypeRec(11, "new"));
-      expect(manager.resolveByName("new"), EvtTypeRec(11, "new"));
-    });
-    test('saveOrUpdate: persists', () async {
-      await manager.update(EvtTypeRec(4, "new"));
-      final fromDb = await db.eventTypes.getById(4);
-      expect(fromDb, EvtTypeRec(4, "new"));
-    });
-    test('saveOrUpdate: updates', () async {
-      await manager.update(EvtTypeRec(1, "new", ColorKey.blue));
-      await manager.update(EvtTypeRec(1, "new", ColorKey.red));
-
-      expect(manager.resolveById(1)?.color, ColorKey.red, reason: "repo should contain updated");
     });
   });
 }

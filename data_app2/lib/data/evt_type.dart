@@ -5,9 +5,9 @@ class EvtTypeDraft extends Draft<EvtTypeRec> {
   EvtTypeDraft(this.name, [this.color = ColorKey.base, this.categoryId]);
 
   // === fields ===
-  final String name;
-  final ColorKey color;
-  final int? categoryId;
+  String name;
+  ColorKey color;
+  int? categoryId;
 
   @override
   String toString() {
@@ -19,37 +19,31 @@ class EvtTypeDraft extends Draft<EvtTypeRec> {
   }
 
   @override
+  bool operator ==(Object other) =>
+      other is EvtTypeDraft && name == other.name && color == other.color && categoryId == other.categoryId;
+
+  @override
+  int get hashCode => Object.hash(name, color, categoryId);
+
+  @override
   EvtTypeRec toRec(int id) {
     return EvtTypeRec(id, name, color, categoryId);
   }
 }
 
-class EvtTypeRec extends EvtTypeDraft implements Identifiable {
-  EvtTypeRec(this.id, super.name, [super.color, super.categoryId]);
+class EvtTypeRec implements Identifiable {
+  EvtTypeRec(this.id, this.name, [this.color = ColorKey.base, this.categoryId]);
 
   // === fields ===
+  final String name;
+  final ColorKey color;
+  final int? categoryId;
   @override
   final int id;
 
   @override
   String toString() {
     return "($id, $name, $color, $categoryId)";
-  }
-
-  @override
-  bool operator ==(Object other) =>
-      other is EvtTypeRec &&
-      id == other.id &&
-      name == other.name &&
-      color == other.color &&
-      categoryId == other.categoryId;
-
-  @override
-  int get hashCode => Object.hash(id, name);
-
-  @override
-  EvtTypeRec copyWith({int? id, String? name, ColorKey? color, int? categoryId}) {
-    return EvtTypeRec(id ?? this.id, name ?? this.name, color ?? this.color, categoryId ?? this.categoryId);
   }
 
   @override

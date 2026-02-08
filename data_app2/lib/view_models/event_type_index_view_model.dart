@@ -42,7 +42,7 @@ class EventTypeIndexViewModel extends ChangeNotifier {
     // refresh type manager
     _app.evtTypeManager.reloadFromModels(await _app.db.eventTypes.all());
     // Check for dangling type references
-    danglingTypeRefs = await _app.evtTypeManager.danglingTypeRefs();
+    danglingTypeRefs = await _app.db.danglingTypeRefs();
     await refreshCounts();
     notifyListeners();
   }
@@ -57,7 +57,7 @@ class EventTypeIndexViewModel extends ChangeNotifier {
   }
 
   Future<List<int>> recreateDanglingTypes() async {
-    final created = await _app.evtTypeManager.fillDangling();
+    final created = await _app.evtTypeManager.fillDanglingTypeRefs();
     await load(); // also reload
     return created;
   }
