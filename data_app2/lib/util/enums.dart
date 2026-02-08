@@ -15,11 +15,11 @@ enum ImportFileRole { events, eventTypes, eventCats, unknown }
 
 /// What to summarize
 enum SummaryMode {
-  evtType,
+  type,
   category;
 
   String get description => switch (this) {
-    evtType => "Summarize each type separately.",
+    type => "Summarize each type separately.",
     category => "Group summary by category.",
   };
 }

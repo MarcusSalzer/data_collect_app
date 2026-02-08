@@ -13,9 +13,10 @@
 - ✅ _25-12-16_ Filter, select and summarize (event types) `v0.0.8`
 - ✅ _26-01-12_ Export event summary, Import/export types. Faster import. Consistent text search. `v0.0.9`
 - ✅ _26-02-02_ Welcome screen, categories, standardized Repos, CSV and domain models. `v0.1.0`
-- ❓ JSON-serializable prefs, improved test coverage, Import help screen
-- ❓ Daily summary (separate file), DB change detection `v0.1.1`
+- ✅ _26-02-06_ JSON-serializable prefs, improved test coverage, Import help screen
+- ❓ Consistent edit screens. Daily summary file, DB change detection `v0.1.1`
 - ❓ Persistent event filter, can apply globally in app?
+- ❓ Improved color?
 
 PROBLEMS:
 

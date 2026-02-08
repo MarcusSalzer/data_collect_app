@@ -4,12 +4,14 @@ import 'package:data_app2/util/process_state.dart';
 import 'package:flutter/material.dart';
 
 /// For exporting all app data
-class EventExportViewModel extends ChangeNotifier {
+class CompleteExportVm extends ChangeNotifier {
   final AppState _app;
+
+  String? savedFolder;
 
   ProcessState<({int nEvt, int nType})> state = Loading();
 
-  EventExportViewModel(this._app);
+  CompleteExportVm(this._app);
 
   Future<void> load() async {
     state = Loading();
@@ -32,13 +34,13 @@ class EventExportViewModel extends ChangeNotifier {
       state = Loading();
       notifyListeners();
 
+      final serv = CompleteExportService(await _app.storeSubdir("export"), DateTime.now());
+
       /// export all data
-      final counts = await CsvExportService(
-        await _app.storeSubdir("export"),
-        DateTime.now(),
-      ).exportAllData(_app.db, _app.evtTypeManager);
+      final counts = await serv.exportAllData(_app.db, _app.evtTypeManager, _app.prefs);
 
       state = Done(counts.entries.map((e) => "${e.key}: ${e.value} lines").toList());
+      savedFolder = serv.folderPath;
     } else {
       state = Error("error, not ready");
     }

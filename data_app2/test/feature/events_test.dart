@@ -1,23 +1,14 @@
 import 'package:data_app2/app_state.dart';
-import 'package:data_app2/data/app_prefs.dart';
-import 'package:data_app2/db_service.dart';
 import 'package:data_app2/view_models/event_create_vm.dart';
 import 'package:test/test.dart';
 import '../test_util/dummy_app.dart';
-import '../test_util/paths.dart';
 
 void main() {
   late final AppState app;
   late final EventCreateViewVM createVm;
 
   setUpAll(() async {
-    final (dir, userDir) = await tmpDirWithSubdir();
-
-    final db = DBService(await getTmpIsar());
-    app = AppState(db, AppPrefs(), userDir);
-    // save prefs (defaults)
-    await db.prefs.store(app.prefs.toIsar());
-
+    app = await getDummyApp();
     createVm = EventCreateViewVM(app);
   });
 

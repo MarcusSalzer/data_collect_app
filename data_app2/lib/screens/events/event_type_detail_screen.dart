@@ -1,7 +1,7 @@
 import 'package:data_app2/app_state.dart';
 import 'package:data_app2/data/evt_type.dart';
 import 'package:data_app2/dialogs/show_confirm_save_back_dialog.dart';
-import 'package:data_app2/view_models/event_type_detail_view_model.dart';
+import 'package:data_app2/view_models/evt_type_detail_vm.dart';
 import 'package:data_app2/util/extensions.dart';
 import 'package:data_app2/util.dart';
 import 'package:data_app2/widgets/color_key_palette.dart';
@@ -17,12 +17,12 @@ class EventTypeDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider<EventTypeDetailViewModel>(
+    return ChangeNotifierProvider<EvtTypeDetailVm>(
       create: (context) {
         final app = Provider.of<AppState>(context, listen: false);
-        return EventTypeDetailViewModel(type, app);
+        return EvtTypeDetailVm(type, app);
       },
-      child: Consumer<EventTypeDetailViewModel>(
+      child: Consumer<EvtTypeDetailVm>(
         // prevent pop if has unsaved changes
         builder: (context, vm, child) => PopScope(
           canPop: !vm.isDirty,
@@ -53,7 +53,7 @@ class EventTypeDetailScreen extends StatelessWidget {
 }
 
 class _Scaffold extends StatelessWidget {
-  final EventTypeDetailViewModel vm;
+  final EvtTypeDetailVm vm;
 
   const _Scaffold(this.vm);
 

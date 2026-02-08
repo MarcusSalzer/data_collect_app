@@ -2,13 +2,16 @@ import 'package:data_app2/data/evt.dart';
 
 /// Get total time for each event type.
 List<MapEntry<int, Duration>> timePerEvent(Iterable<EvtRec> events, {int? limit}) {
+  // map id to duration
   final Map<int, int> result = {};
+
   for (final evt in events) {
     final eSeconds = evt.duration?.inSeconds;
     if (eSeconds != null) {
       result[evt.typeId] = (result[evt.typeId] ?? 0) + eSeconds;
     }
   }
+
   final resList = result.entries.map((e) => MapEntry(e.key, Duration(seconds: e.value))).toList();
   resList.sort((a, b) => b.value.compareTo(a.value));
 

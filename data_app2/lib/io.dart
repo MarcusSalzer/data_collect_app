@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'package:data_app2/data/evt.dart';
 import 'package:data_app2/util/enums.dart';
-import 'package:data_app2/user_tabular.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/services.dart';
 import 'package:logging/logging.dart';
@@ -11,7 +10,7 @@ import 'package:path_provider/path_provider.dart';
 const eventsCsvHeader = "id, name, start, end";
 
 /// Default Dir for storing exported data.
-Future<Directory> defaultStoreDir() async {
+Future<Directory> defaultUserStoreDir() async {
   Directory dir;
   if (Platform.isAndroid) {
     // Pick a user-accessible directory on Android
@@ -20,6 +19,27 @@ Future<Directory> defaultStoreDir() async {
     final docDir = await getApplicationDocumentsDirectory();
     dir = Directory(p.join(docDir.path, "data_app"));
   }
+  if (!(await dir.exists())) {
+    await dir.create(recursive: true);
+  }
+  return dir;
+}
+
+/// Default Dir for storing Internal data (DB, prefs)
+Future<Directory> defaultInternalStoreDir() async {
+  Directory dir;
+  // The applicationDocumentsdirectory is a safe choice, especially for Android.
+  // on android the app might not be allowed to write to user facing folders.
+  final docDir = await getApplicationDocumentsDirectory();
+  if (Platform.isAndroid) {
+    // not user accessible, android isolates per app.
+    dir = docDir;
+  } else {
+    // For example on desktop:
+    // Pick a sub-dir, to avoid cluttering "Documents"
+    dir = Directory(p.join(docDir.path, "data_app_internal"));
+  }
+
   if (!(await dir.exists())) {
     await dir.create(recursive: true);
   }
@@ -47,33 +67,14 @@ Future<Directory> defaultTmpDir() async {
 
 /// Default file for logging
 Future<File> defaultLogFile() async {
-  final dir = await defaultStoreDir();
+  final dir = await defaultUserStoreDir();
   final f = File(p.join(dir.path, "app.log"));
   return f;
 }
 
-/// export records as csv
-String tableRecordsToCsv(Iterable<TableRecord> recs, String header) {
-  final rows = recs.map((r) => r.toCsvRow()).join("\n");
-  return "$header\n$rows";
-}
-
-/// Write a [String] of content to a file in the storage folder
-Future<void> exportFile(String name, String content) async {
-  // throw Deprecated("message");
-  // final dir = await defaultStoreDir();
-  // if (!dir.existsSync()) {
-  //   dir.createSync(recursive: true);
-  // }
-  // final file = File(
-  //   p.join(dir.path, name),
-  // );
-  // file.writeAsString(content);
-}
-
 /// Let user pick a single file
 Future<String?> pickSingleFile() async {
-  final fpRes = await FilePicker.platform.pickFiles(initialDirectory: (await defaultStoreDir()).path);
+  final fpRes = await FilePicker.platform.pickFiles(initialDirectory: (await defaultUserStoreDir()).path);
   if (fpRes == null) {
     return null; // canceled
   }
@@ -82,7 +83,7 @@ Future<String?> pickSingleFile() async {
 
 /// Let user pick a single directory
 Future<Directory?> pickSingleFolder() async {
-  final path = await FilePicker.platform.getDirectoryPath(initialDirectory: (await defaultStoreDir()).path);
+  final path = await FilePicker.platform.getDirectoryPath(initialDirectory: (await defaultUserStoreDir()).path);
   return path != null ? Directory(path) : null;
 }
 

@@ -124,6 +124,13 @@ class SettingsScreen extends StatelessWidget {
                   onChanged: (v) => app.setColorScheme(v),
                   descriptionOf: (v) => v.description,
                 ),
+                EnumDropdownWithDescription<SummaryMode>(
+                  label: "Today's summary",
+                  value: app.prefs.summaryMode,
+                  options: SummaryMode.values,
+                  onChanged: (v) => app.setTodaySummaryMode(v),
+                  descriptionOf: (v) => v.description,
+                ),
 
                 SizedBox(height: 20),
                 Text("Info", style: TextStyle(fontSize: 20)),
@@ -180,7 +187,8 @@ class SettingsScreen extends StatelessWidget {
                                       final cEvent = await app.db.events.forceDeleteAll();
                                       final cType = await app.db.eventTypes.forceDeleteAll();
                                       final cCat = await app.db.categories.forceDeleteAll();
-                                      await app.db.prefs.clear();
+
+                                      await app.clearPrefs();
 
                                       Logger.root.info("Deleted all data");
 

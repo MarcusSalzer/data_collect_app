@@ -3,18 +3,20 @@ import 'package:data_app2/csv/csv_schema.dart';
 import 'package:data_app2/csv/evt_cat_csv.dart';
 import 'package:data_app2/csv/evt_csv.dart';
 import 'package:data_app2/csv/evt_type_csv.dart';
+import 'package:data_app2/data/app_prefs.dart';
 import 'package:data_app2/data/evt.dart';
 import 'package:data_app2/data/evt_cat.dart';
 import 'package:data_app2/data/evt_type.dart';
 import 'package:data_app2/db_service.dart';
 import 'package:data_app2/event_type_manager.dart';
+import 'package:data_app2/prefs_io.dart';
 import 'package:data_app2/util/fmt.dart';
 import 'package:path/path.dart' as p;
 
 /// Handles data export.
 ///
-/// Note that an export is a directory, containing a few csv-files.
-class CsvExportService {
+/// Note that an export is a directory, containing a few files.
+class CompleteExportService {
   /// Generate name based on UTC timestamp
   static String _genName(DateTime dt) {
     return Fmt.dtSecondSimple(dt.toUtc());
@@ -25,35 +27,39 @@ class CsvExportService {
 
   String get folderPath => p.join(parent.path, name);
 
-  CsvExportService(this.parent, DateTime now) : name = _genName(now);
+  CompleteExportService(this.parent, DateTime now) : name = _genName(now);
 
   /// Export all data
-  Future<Map<String, int>> exportAllData(DBService db, EvtTypeManager typMan) async {
+  Future<Map<String, int>> exportAllData(DBService db, EvtTypeManager typMan, AppPrefs prefs) async {
     // reload event types
     typMan.reloadFromModels(await db.eventTypes.all());
 
-    final nEvt = await _save<EvtDraft>(
+    final nEvt = await _saveCsv<EvtDraft>(
       // Map to draft. Id:s not needed at export.
       (await db.events.all()).map((r) => r.toDraft()),
       EvtCsvCodec(typMan: typMan),
       "events_all.csv",
     );
 
-    final nType = await _save<EvtTypeDraft>(
+    final nType = await _saveCsv<EvtTypeDraft>(
       typMan.all, // all after reload
       EvtTypeCsvCodec(),
       "event_types.csv",
     );
-    final nCat = await _save<EvtCatDraft>(
+    final nCat = await _saveCsv<EvtCatDraft>(
       (await db.categories.all()).map((r) => r.toDraft()),
       EvtCatCsvCodec(),
       "event_categories.csv",
     );
+
+    // export prefs
+    PrefsIo.store(prefs, File(p.join(folderPath, "prefs.json")));
+
     return {"events": nEvt, "types": nType, "categories": nCat};
   }
 
-  /// Save some data with a compatible adapter
-  Future<int> _save<T>(Iterable<T> records, CsvCodecWrite<T> writer, String filename) async {
+  /// Save some data with a compatible CSV writer
+  Future<int> _saveCsv<T>(Iterable<T> records, CsvCodecWrite<T> writer, String filename) async {
     // prepare file
     final file = File(p.join(folderPath, filename));
     if (await file.exists()) {

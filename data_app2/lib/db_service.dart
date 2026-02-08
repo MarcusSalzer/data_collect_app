@@ -1,13 +1,11 @@
 import 'package:data_app2/repos/evt_cat_repo.dart';
 import 'package:data_app2/repos/evt_repo.dart';
 import 'package:data_app2/repos/evt_type_repo.dart';
-import 'package:data_app2/repos/prefs_repo.dart';
 import 'package:data_app2/repos/tabular_repo.dart';
 import 'package:isar_community/isar.dart';
 
 /// Wrapper repository for all DB access
 class DBService {
-  final PrefsRepo prefs;
   final EvtRepo events;
   final EvtTypeRepo eventTypes;
   final TabularRepo tabular;
@@ -18,9 +16,12 @@ class DBService {
   String? get dbFolder => isar.directory;
 
   DBService(this.isar)
-    : prefs = PrefsRepo(isar),
-      events = EvtRepo(isar),
+    : events = EvtRepo(isar),
       eventTypes = EvtTypeRepo(isar),
       tabular = TabularRepo(isar),
       categories = EvtCatRepo(isar);
+
+  Future<void> clear() async {
+    await isar.writeTxn(() async => await isar.clear());
+  }
 }

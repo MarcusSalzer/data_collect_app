@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:data_app2/app_state.dart';
 import 'package:data_app2/csv/builtin_schemas.dart';
 import 'package:data_app2/export_service.dart';
+import 'package:data_app2/prefs_io.dart';
 import 'package:intl/intl.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
@@ -35,27 +36,27 @@ void main() {
 
   test("gets a timestamp-name", () async {
     final now = DateTime.now();
-    final es = CsvExportService(parentDir, now);
+    final es = CompleteExportService(parentDir, now);
     expect(es.name, correctName(now));
   });
 
   test("throws exception if file exists", () async {
-    final es = CsvExportService(parentDir, DateTime.now());
+    final es = CompleteExportService(parentDir, DateTime.now());
     // export once
-    await es.exportAllData(app.db, app.evtTypeManager);
+    await es.exportAllData(app.db, app.evtTypeManager, app.prefs);
     // should not be able to export again
-    expect(() => es.exportAllData(app.db, app.evtTypeManager), throwsException);
+    expect(() => es.exportAllData(app.db, app.evtTypeManager, app.prefs), throwsException);
   });
 
   test('writes empty', () async {
     final now = DateTime.now();
-    final es = CsvExportService(parentDir, now);
-    await es.exportAllData(app.db, app.evtTypeManager);
+    final es = CompleteExportService(parentDir, now);
+    await es.exportAllData(app.db, app.evtTypeManager, app.prefs);
     final folder = correctOutDir(parentDir, now);
     expect(folder.existsSync(), true);
 
     final childs = folder.listSync().map((f) => p.basename(f.path)).toSet();
-    expect(childs, {"events_all.csv", "event_types.csv", "event_categories.csv"});
+    expect(childs, {"events_all.csv", "event_types.csv", "event_categories.csv", "prefs.json"});
 
     // check contents
     final evtLines = File(p.join(folder.path, "events_all.csv")).readAsLinesSync();
@@ -66,5 +67,8 @@ void main() {
     expect(evtLines, [CsvSchemasConst.evt.writeCols.join(",")]);
     expect(typeLines, [CsvSchemasConst.evtType.writeCols.join(",")]);
     expect(catLines, [CsvSchemasConst.evtCat.writeCols.join(",")]);
+
+    // read prefs
+    expect((await PrefsIo.load(File(p.join(folder.path, "prefs.json"))))?.toJson(), app.prefs.toJson());
   });
 }

@@ -3,6 +3,7 @@ import 'package:data_app2/data/app_prefs.dart';
 import 'package:data_app2/db_service.dart';
 import 'package:data_app2/io.dart';
 import 'package:data_app2/isar_models.dart';
+import 'package:data_app2/prefs_io.dart';
 import 'package:data_app2/screens/home_screen.dart';
 import 'package:data_app2/app_state.dart';
 import 'package:data_app2/screens/welcome_screen.dart';
@@ -33,24 +34,25 @@ void main() async {
     // oops, cannot log there
   }
 
-  // before doing anything we need the DB-service
   try {
-    final db = DBService(await initIsar());
+    final prefsFile = await PrefsIo.defaultPrefsFile;
 
-    // stored preferences or defaults
-    final loadedPrefs = await db.prefs.load();
-    final prefs = AppPrefs.fromIsar(loadedPrefs);
-    if (loadedPrefs == null) {
+    final prefs = await PrefsIo.load(prefsFile);
+
+    if (prefs == null) {
+      Logger.root.info("No prefs found");
       // first startup, store default prefs
-      await db.prefs.store(prefs.toIsar());
+      PrefsIo.store(AppPrefs(), prefsFile);
     }
     runApp(
       MyApp(
-        db: db,
-        prefs: prefs,
-        userStoreDir: await defaultStoreDir(),
+        // Need a db. stored next to prefs
+        db: DBService(await initIsar(prefsFile.parent)),
+        prefs: prefs ?? AppPrefs(),
+        userStoreDir: await defaultUserStoreDir(),
         // No prefs -> first startup
-        showWelcome: loadedPrefs == null,
+        showWelcome: prefs == null,
+        prefsFile: prefsFile,
       ),
     );
   } on MissingPlatformDirectoryException catch (e) {
@@ -83,10 +85,13 @@ class MyApp extends StatelessWidget {
 
   final bool showWelcome;
 
+  final File prefsFile;
+
   const MyApp({
     super.key,
     required this.db,
     required this.prefs,
+    required this.prefsFile,
     required this.userStoreDir,
     required this.showWelcome,
   });
@@ -94,7 +99,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider<AppState>(
-      create: (_) => AppState(db, prefs, userStoreDir),
+      create: (_) => AppState(db, prefs, userStoreDir, prefsFile),
       child: Consumer<AppState>(
         builder: (context, app, child) => MaterialApp(
           title: 'data collect',

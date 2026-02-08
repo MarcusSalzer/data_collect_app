@@ -6,9 +6,8 @@ import 'package:data_app2/errors/db_ref_exists_error.dart';
 import 'package:data_app2/util/colors.dart';
 import 'package:isar_community/isar.dart';
 
-class EventTypeDetailViewModel extends EditVm<EvtTypeRec, EvtTypeDraft> {
-  EventTypeDetailViewModel(EvtTypeRec? stored, this._app)
-    : super(stored, stored?.toDraft() ?? EvtTypeDraft("[new type]"));
+class EvtTypeDetailVm extends EditVm<EvtTypeRec, EvtTypeDraft> {
+  EvtTypeDetailVm(EvtTypeRec? stored, this._app) : super(stored, stored?.toDraft() ?? EvtTypeDraft("[new type]"));
 
   // === Final refs ===
   final AppState _app;

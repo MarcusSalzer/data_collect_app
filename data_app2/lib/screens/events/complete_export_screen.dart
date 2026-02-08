@@ -1,11 +1,11 @@
 import 'package:data_app2/app_state.dart';
-import 'package:data_app2/view_models/event_export_view_model.dart';
+import 'package:data_app2/view_models/complete_export_vm.dart';
 import 'package:data_app2/util/process_state.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class ExportScreen extends StatelessWidget {
-  const ExportScreen({super.key});
+class CompleteExportScreen extends StatelessWidget {
+  const CompleteExportScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -14,12 +14,12 @@ class ExportScreen extends StatelessWidget {
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(12.0),
-          child: ChangeNotifierProvider<EventExportViewModel>(
+          child: ChangeNotifierProvider<CompleteExportVm>(
             create: (_) {
               final app = Provider.of<AppState>(context, listen: false);
-              return EventExportViewModel(app)..load();
+              return CompleteExportVm(app)..load();
             },
-            child: Consumer<EventExportViewModel>(
+            child: Consumer<CompleteExportVm>(
               builder: (context, vm, child) {
                 final ps = vm.state;
 
@@ -49,6 +49,7 @@ class ExportScreen extends StatelessWidget {
                       spacing: 20,
                       children: [
                         Text("Export completed", style: TextStyle(fontSize: 20)),
+                        Text(vm.savedFolder.toString(), style: TextStyle(fontFamily: "monospace")),
                         if (log != null)
                           SingleChildScrollView(
                             child: Column(

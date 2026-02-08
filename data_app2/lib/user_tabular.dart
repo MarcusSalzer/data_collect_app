@@ -5,8 +5,6 @@ import 'package:data_app2/db_service.dart';
 import 'package:data_app2/isar_models.dart';
 import 'package:data_app2/util/enums.dart';
 import 'package:data_app2/util/extensions.dart';
-import 'package:data_app2/util/fmt.dart';
-import 'package:data_app2/io.dart';
 import 'package:flutter/material.dart';
 
 class ColumnDef {
@@ -202,10 +200,9 @@ class TableProcessor extends ChangeNotifier {
     }
   }
 
+  @Deprecated("use csv schemas instead!")
   Future<void> exportCsv({bool withSchema = false}) async {
-    final csvContent = tableRecordsToCsv(_data, csvHeader(withSchema: withSchema));
-    final fileName = "${name}_${Fmt.dtSecond(DateTime.now())}";
-    exportFile(fileName, csvContent);
+    throw UnimplementedError();
   }
 }
 

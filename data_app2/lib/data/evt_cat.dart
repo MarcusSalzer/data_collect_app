@@ -18,6 +18,14 @@ class EvtCatDraft extends Draft<EvtCatRec> {
   toRec(int id) {
     return EvtCatRec(id, name);
   }
+
+  @override
+  bool operator ==(Object other) {
+    return other is EvtCatDraft && other.name == name;
+  }
+
+  @override
+  int get hashCode => name.hashCode;
 }
 
 /// Data class for persisted event categories

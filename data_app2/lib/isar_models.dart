@@ -1,8 +1,9 @@
+import 'dart:io';
+
 import 'package:data_app2/style.dart';
 import 'package:data_app2/util/colors.dart';
 import 'package:data_app2/util/enums.dart';
 import 'package:isar_community/isar.dart';
-import 'package:path_provider/path_provider.dart';
 
 // important: this file will contain Isar's generated code.
 part 'isar_models.g.dart';
@@ -99,13 +100,9 @@ class UserRow {
 }
 
 /// Initialize DB connection
-Future<Isar> initIsar() async {
-  // The applicationDocumentsdirectory is a safe choice, especially for Android.
-  // on android the app might not be allowed to write to user facing folders.
-  final dir = await getApplicationDocumentsDirectory();
-
+Future<Isar> initIsar(Directory dir) async {
   final isar = await Isar.open(
-    [PreferencesSchema, EventSchema, UserTableSchema, UserRowSchema, EventTypeSchema, EventCategorySchema],
+    [EventSchema, UserTableSchema, UserRowSchema, EventTypeSchema, EventCategorySchema],
     name: "data_app_db",
     directory: dir.path,
   );

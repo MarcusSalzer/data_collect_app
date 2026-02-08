@@ -1,19 +1,31 @@
-import 'package:data_app2/isar_models.dart';
 import 'package:data_app2/style.dart';
 import 'package:data_app2/util/enums.dart';
+import 'package:json_annotation/json_annotation.dart';
+
+part 'app_prefs.g.dart';
 
 /// Represent preferences in memory.
 /// Immutable for consistent updates.
+@JsonSerializable()
 class AppPrefs {
+  @JsonKey(defaultValue: ColorSchemeMode.dark)
   final ColorSchemeMode colorSchemeMode;
+
+  @JsonKey(defaultValue: LogLevel.warning)
   final LogLevel logLevel;
-  final bool autoLowerCase;
+
+  @JsonKey(defaultValue: SummaryMode.type)
+  final SummaryMode summaryMode;
+
+  @JsonKey(defaultValue: TextSearchMode.starts)
   final TextSearchMode textSearchMode;
 
-  /// with defaults
+  final bool autoLowerCase;
+
   const AppPrefs({
     this.colorSchemeMode = ColorSchemeMode.dark,
-    this.logLevel = LogLevel.debug,
+    this.logLevel = LogLevel.warning,
+    this.summaryMode = SummaryMode.type,
     this.autoLowerCase = false,
     this.textSearchMode = TextSearchMode.starts,
   });
@@ -21,59 +33,20 @@ class AppPrefs {
   AppPrefs copyWith({
     ColorSchemeMode? colorSchemeMode,
     LogLevel? logLevel,
+    SummaryMode? summaryMode,
     bool? autoLowerCase,
     TextSearchMode? textSearchMode,
   }) {
     return AppPrefs(
       colorSchemeMode: colorSchemeMode ?? this.colorSchemeMode,
       logLevel: logLevel ?? this.logLevel,
+      summaryMode: summaryMode ?? this.summaryMode,
       autoLowerCase: autoLowerCase ?? this.autoLowerCase,
       textSearchMode: textSearchMode ?? this.textSearchMode,
     );
   }
 
-  factory AppPrefs.fromIsar(Preferences? prefs) {
-    if (prefs == null) {
-      // default
-      return AppPrefs();
-    }
-    return AppPrefs(
-      colorSchemeMode: prefs.colorSchemeMode,
-      logLevel: prefs.logLevel,
-      autoLowerCase: prefs.autoLowerCase,
-      textSearchMode: prefs.textSearchMode,
-    );
-  }
+  factory AppPrefs.fromJson(Map<String, dynamic> json) => _$AppPrefsFromJson(json);
 
-  Preferences toIsar() {
-    return Preferences(colorSchemeMode, autoLowerCase, logLevel, textSearchMode);
-  }
+  Map<String, dynamic> toJson() => _$AppPrefsToJson(this);
 }
-
-// @JsonSerializable()
-// class AppPrefsJson {
-//   @JsonKey(defaultValue: ColorSchemeMode.system)
-//   final ColorSchemeMode colorSchemeMode;
-
-//   @JsonKey(defaultValue: LogLevel.info)
-//   final LogLevel logLevel;
-
-//   @JsonKey(defaultValue: false)
-//   final bool autoLowerCase;
-
-//   @JsonKey(defaultValue: TextSearchMode.smart)
-//   final TextSearchMode textSearchMode;
-
-//   const AppPrefs({
-//     this.colorSchemeMode = ColorSchemeMode.system,
-//     this.logLevel = LogLevel.info,
-//     this.autoLowerCase = false,
-//     this.textSearchMode = TextSearchMode.smart,
-//   });
-
-//   factory AppPrefs.fromJson(Map<String, dynamic> json)
-//     => _$AppPrefsFromJson(json);
-
-//   Map<String, dynamic> toJson()
-//     => _$AppPrefsToJson(this);
-// }

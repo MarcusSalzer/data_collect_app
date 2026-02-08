@@ -1,8 +1,11 @@
+import 'dart:io';
+
 import 'package:data_app2/app_state.dart';
 import 'package:data_app2/data/app_prefs.dart';
 import 'package:data_app2/db_service.dart';
 import 'package:data_app2/isar_models.dart';
 import 'package:isar_community/isar.dart';
+import 'package:path/path.dart' as p;
 import 'paths.dart';
 
 Future<Isar> getTmpIsar() async {
@@ -21,5 +24,7 @@ Future<AppState> getDummyApp() async {
   final (dir, userDir) = await tmpDirWithSubdir();
 
   final db = DBService(await getTmpIsar());
-  return AppState(db, AppPrefs(), userDir);
+  final prefsFile = File(p.join((await getTmpDir()).path, "test_prefs.json"));
+
+  return AppState(db, AppPrefs(), userDir, prefsFile);
 }

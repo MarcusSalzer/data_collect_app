@@ -1,24 +1,15 @@
 import 'package:data_app2/app_state.dart';
-import 'package:data_app2/data/app_prefs.dart';
 import 'package:data_app2/data/summary_with_period_aggs.dart';
-import 'package:data_app2/db_service.dart';
 import 'package:data_app2/util/process_state.dart';
 import 'package:data_app2/view_models/multi_evt_summary_vm.dart';
 import 'package:test/test.dart';
 import '../test_util/dummy_app.dart';
-import '../test_util/paths.dart';
 
 void main() {
   late final AppState app;
 
   setUpAll(() async {
-    // Use a temporary directory for the test DB
-    final (dir, userDir) = await tmpDirWithSubdir();
-
-    final db = DBService(await getTmpIsar());
-    app = AppState(db, AppPrefs(), userDir);
-    // save prefs (defaults)
-    await db.prefs.store(app.prefs.toIsar());
+    app = await getDummyApp();
   });
 
   tearDown(() {

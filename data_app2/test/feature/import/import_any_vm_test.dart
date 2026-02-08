@@ -27,9 +27,7 @@ void main() {
   });
   setUp(() async {
     /// clear all data before test
-    await app.db.isar.writeTxn(() async {
-      await app.db.isar.clear();
-    });
+    await app.db.clear();
   });
   test('happy path', () async {
     final file = await getTmpFile('event_types.csv');

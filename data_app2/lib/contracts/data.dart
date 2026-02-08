@@ -8,4 +8,8 @@ abstract interface class Identifiable {
 abstract class Draft<R extends Identifiable> {
   const Draft();
   R toRec(int id);
+  @override
+  bool operator ==(Object other);
+  @override
+  int get hashCode;
 }

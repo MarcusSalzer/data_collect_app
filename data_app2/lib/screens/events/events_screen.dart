@@ -1,7 +1,7 @@
 import 'package:data_app2/app_state.dart';
 import 'package:data_app2/util/enums.dart';
 import 'package:data_app2/view_models/event_create_vm.dart';
-import 'package:data_app2/screens/events/events_export_screen.dart';
+import 'package:data_app2/screens/events/complete_export_screen.dart';
 import 'package:data_app2/widgets/event_create_menu.dart';
 import 'package:data_app2/widgets/event_history_display.dart';
 import 'package:flutter/material.dart';
@@ -26,7 +26,7 @@ class EventsScreen extends StatelessWidget {
                 actions: [
                   TextButton(
                     onPressed: () async {
-                      Navigator.of(context).push(MaterialPageRoute(builder: (context) => ExportScreen()));
+                      Navigator.of(context).push(MaterialPageRoute(builder: (context) => CompleteExportScreen()));
                     },
                     child: Padding(padding: const EdgeInsets.all(8.0), child: Text("Export")),
                   ),

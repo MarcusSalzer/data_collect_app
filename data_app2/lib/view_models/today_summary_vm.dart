@@ -9,27 +9,38 @@ import 'package:flutter/material.dart';
 
 /// Manage state for today-summary
 class TodaySummaryVm extends ChangeNotifier {
+  TodaySummaryVm(this._app) : _mode = _app.prefs.summaryMode {
+    // refresh, for example if mode is changed
+    _app.addListener(_updateMode);
+  }
   final AppState _app;
-  // TODO include mode in app prefs
-  SummaryMode mode = SummaryMode.category;
   // keep track of today summary
   SummaryDataList? todaySummary;
 
-  TodaySummaryVm(this._app);
+  SummaryMode _mode;
+  SummaryMode get mode => _mode;
+
+  void _updateMode() {
+    final newMode = _app.prefs.summaryMode;
+    if (newMode != _mode) {
+      _mode = newMode;
+      refresh();
+    }
+  }
 
   Future<void> refresh() async {
     final evts = await _app.db.events.filteredLocalTime(
       earliest: LocalDateTime.fromDateTimeLocalTZ(DateTime.now().startOfDay),
     );
 
-    final tpe = timePerEvent(evts, limit: 5);
+    final tpe = timePerEvent(evts, limit: 16);
 
     switch (mode) {
-      case SummaryMode.evtType:
+      case SummaryMode.type:
         todaySummary = SummaryDataList(
           tpe.map((e) {
             final et = _app.evtTypeManager.resolveById(e.key);
-            return SummaryItem(et?.name ?? "unknown", et?.color ?? ColorKey.base, e.value);
+            return SummaryItem(et?.name ?? "other", et?.color ?? ColorKey.base, e.value);
           }).toList(),
         );
         break;
@@ -58,5 +69,11 @@ class TodaySummaryVm extends ChangeNotifier {
         return SummaryItem(cat?.name ?? "unknown", ColorKey.base, e.value);
       }).toList(),
     );
+  }
+
+  @override
+  void dispose() {
+    _app.removeListener(_updateMode);
+    super.dispose();
   }
 }

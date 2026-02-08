@@ -1,3 +1,4 @@
+import 'package:data_app2/util/extensions.dart';
 import 'package:data_app2/view_models/today_summary_vm.dart';
 import 'package:data_app2/widgets/events_summary.dart';
 import 'package:flutter/material.dart';
@@ -11,10 +12,10 @@ class TodaySummaryDisplay extends StatelessWidget {
     final thm = Theme.of(context);
 
     return Consumer<TodaySummaryVm>(
-      builder: (context, app, child) {
-        final summary = app.todaySummary;
+      builder: (context, vm, child) {
+        final summary = vm.todaySummary;
         if (summary == null) {
-          return Text("loading todaySummary");
+          return Center(child: Text("loading todaySummary"));
         }
         if (summary.items.isEmpty) {
           return const Center(child: Text("No events today"));
@@ -29,7 +30,7 @@ class TodaySummaryDisplay extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              EventDurationTable(summary),
+              EventDurationTable(summary, title: "Tracked today"),
               SizedBox(height: 10),
               MultiBar.horizontal(
                 sizes: summary.items.map((entry) => entry.duration.inMinutes),

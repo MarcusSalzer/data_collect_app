@@ -3,6 +3,7 @@
 import 'dart:io';
 import 'package:data_app2/data/app_prefs.dart';
 import 'package:data_app2/data/today_summary_data.dart';
+import 'package:data_app2/prefs_io.dart';
 import 'package:data_app2/style.dart';
 import 'package:data_app2/util/enums.dart';
 import 'package:data_app2/event_type_manager.dart';
@@ -33,6 +34,7 @@ class AppState extends ChangeNotifier {
 
   // get db instance & event types
   DBService get db => _db;
+  File get prefsFile => _prefsFile;
 
   /// Get the singleton type repository
   EvtTypeManagerPersist get evtTypeManager => _evtTypeManager;
@@ -40,10 +42,13 @@ class AppState extends ChangeNotifier {
   // keep track of today summary
   TodaySummaryDataByType? todaySummary;
 
+  final File _prefsFile;
+
   /// Initialize appstate.
   ///
   /// Will also get a [EvtTypeManagerPersist] and fill evt-type-cache
-  AppState(this._db, this._prefs, this._userStoreDir) : _evtTypeManager = EvtTypeManagerPersist(db: _db) {
+  AppState(this._db, this._prefs, this._userStoreDir, this._prefsFile)
+    : _evtTypeManager = EvtTypeManagerPersist(db: _db) {
     _db.eventTypes.all().then((types) {
       _evtTypeManager.reloadFromModels(types);
     });
@@ -81,15 +86,24 @@ class AppState extends ChangeNotifier {
     Logger.root.info("updated prefs: textSearchMode=$value");
   }
 
+  Future<void> setTodaySummaryMode(SummaryMode value) async {
+    await _updatePrefs(_prefs.copyWith(summaryMode: value));
+    Logger.root.info("updated prefs: todaySummaryMode=$value");
+  }
+
   Future<void> _updatePrefs(AppPrefs newPrefs) async {
     // remember new data
     _prefs = newPrefs;
     // update logger
     Logger.root.level = newPrefs.logLevel.toLogging();
-    notifyListeners();
-
     // persist new preferences
-    await db.prefs.store(_prefs.toIsar());
+    await PrefsIo.store(_prefs, _prefsFile);
+    notifyListeners();
+  }
+
+  Future<void> clearPrefs() async {
+    await _prefsFile.delete();
+    _prefs = AppPrefs();
   }
 
   /// Get directory inside configured storage dir
