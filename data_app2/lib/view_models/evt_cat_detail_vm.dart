@@ -30,7 +30,7 @@ class EvtCatDetailVm extends EditVm<EvtCatRec, EvtCatDraft> {
 
   /// try to save event type to DB
   @override
-  Future<void> save() async {
+  save() async {
     final storedId = stored?.id;
     try {
       if (storedId == null) {

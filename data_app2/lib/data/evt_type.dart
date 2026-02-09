@@ -14,9 +14,9 @@ class EvtTypeDraft extends Draft<EvtTypeRec> {
     return "($name, $color)";
   }
 
-  EvtTypeDraft copyWith({int? id, String? name, ColorKey? color, int? categoryId}) {
-    return EvtTypeDraft(name ?? this.name, color ?? this.color, categoryId ?? this.categoryId);
-  }
+  //   EvtTypeDraft copyWith({int? id, String? name, ColorKey? color, int? categoryId}) {
+  //     return EvtTypeDraft(name ?? this.name, color ?? this.color, categoryId ?? this.categoryId);
+  //   }
 
   @override
   bool operator ==(Object other) =>

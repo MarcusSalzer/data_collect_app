@@ -8,6 +8,7 @@ import 'package:data_app2/view_models/event_detail_view_model.dart';
 import 'package:data_app2/util/fmt.dart';
 import 'package:data_app2/local_datetime.dart';
 import 'package:data_app2/util.dart';
+import 'package:data_app2/widgets/generic_autocomplete.dart';
 import 'package:data_app2/widgets/two_columns.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -143,14 +144,17 @@ class EventEditForm extends StatelessWidget {
       rows: [
         (
           Text("Type"),
-          EvtTypeSelector(
+          GenericAutocomplete<EvtTypeRec>(
             options: vm.allTypes,
-            startOpt: vm.evtType,
+            initialValue: vm.evtType,
+            nameOf: (e) => e.name,
             onSelected: (v) {
-              final newTypeId = v.id;
-              // only allow setting persisted (has-id) types
-              vm.changeType(newTypeId);
+              vm.changeType(v.id);
             },
+            optionBuilder: (context, e) => ListTile(
+              leading: CircleAvatar(radius: 5, backgroundColor: e.color.inContext(context)),
+              title: Text(e.name),
+            ),
             searchMode: app.textSearchMode,
           ),
         ),
@@ -224,14 +228,15 @@ class DTPickerPair extends StatelessWidget {
 }
 
 /// Textfield for event types, with dropdown autocomplete.
-class EvtTypeSelector extends StatelessWidget {
+@Deprecated("new generic version!")
+class EvtTypeSelectorOld extends StatelessWidget {
   final List<EvtTypeRec> options;
   final void Function(EvtTypeRec) onSelected;
 
   final EvtTypeRec? startOpt;
   final TextSearchMode searchMode;
 
-  const EvtTypeSelector({
+  const EvtTypeSelectorOld({
     super.key,
     required this.options,
     required this.startOpt,

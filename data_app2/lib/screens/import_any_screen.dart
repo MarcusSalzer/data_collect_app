@@ -4,6 +4,7 @@ import 'package:data_app2/util/fmt.dart';
 import 'package:data_app2/view_models/import_any_vm.dart';
 import 'package:data_app2/io.dart';
 import 'package:data_app2/style.dart';
+import 'package:data_app2/widgets/schema_display_card.dart';
 import 'package:data_app2/widgets/two_columns.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -30,9 +31,11 @@ class ImportAnyScreen extends StatelessWidget {
                 case ImportStep.scanningFolder || ImportStep.importing || ImportStep.preparingModels:
                   return Center(child: Text("Loading..."));
                 case ImportStep.confirmImport:
+                  final foundSchema = vm.schema;
                   return Column(
                     spacing: 30,
                     children: [
+                      if (foundSchema != null) SchemaDisplayCard("Found", foundSchema),
                       ElevatedButton(
                         onPressed: () async {
                           await vm.doImport();

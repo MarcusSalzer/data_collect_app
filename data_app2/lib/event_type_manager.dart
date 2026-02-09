@@ -1,5 +1,6 @@
 import 'package:data_app2/data/evt_type.dart';
 import 'package:data_app2/db_service.dart';
+import 'package:data_app2/util/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 
@@ -9,28 +10,36 @@ class EvtTypeManager extends ChangeNotifier {
   Map<String, EvtTypeRec> _byName = {};
   Map<int, EvtTypeRec> _byId = {};
 
+  // To look up which how many in each category
+  Map<int, int> _catSizes = {};
+  // To look up which "position" each type has in its category.
+  Map<int, int> _posInCat = {};
+
   /// optionally fill with types
-  /// Note: only provided types with id will be included
   EvtTypeManager({Iterable<EvtTypeRec>? types}) {
     if (types != null) {
-      for (var t in types) {
-        final tId = t.id;
-        _byName[t.name] = t;
-        _byId[tId] = t;
-      }
+      _fill(types);
     }
   }
 
   List<EvtTypeRec> get all => _byId.values.toList();
 
-  /// Reset cache and fill
-  void reloadFromModels(Iterable<EvtTypeRec> evtTypes) {
+  /// Fill the cache and recompute things
+  void _fill(Iterable<EvtTypeRec> evtTypes) {
     _byName = {};
     _byId = {};
+    // Category membership
+    _catSizes = {};
+    _posInCat = {};
     for (var rec in evtTypes) {
       _byName[rec.name] = rec;
       _byId[rec.id] = rec;
     }
+  }
+
+  /// Reset cache and fill
+  void reloadFromModels(Iterable<EvtTypeRec> evtTypes) {
+    _fill(evtTypes);
     notifyListeners();
   }
 

@@ -39,7 +39,7 @@ class EventDetailViewModel extends EditVm<EvtRec, EvtDraft> {
 
   /// save the event to DB if updated
   @override
-  Future<void> save() async {
+  save() async {
     final storedId = stored?.id;
     try {
       if (storedId == null) {

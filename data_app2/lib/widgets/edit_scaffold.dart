@@ -6,20 +6,11 @@ import 'package:flutter/material.dart';
 
 /// The common UI elements for a edit screen
 class EditScaffold<R extends Identifiable> extends StatelessWidget {
-  const EditScaffold({
-    super.key,
-    required this.title,
-    required this.body,
-    required this.confirmDiscard,
-    required this.vm,
-  });
+  const EditScaffold({super.key, required this.title, required this.body, required this.vm});
 
   final EditVm<R, Draft<R>> vm;
   final String title;
   final Widget body;
-
-  /// Return true = allow pop
-  final Future<bool> Function() confirmDiscard;
 
   @override
   Widget build(BuildContext context) {
@@ -28,7 +19,18 @@ class EditScaffold<R extends Identifiable> extends StatelessWidget {
       onPopInvokedWithResult: (didPop, Object? res) async {
         if (didPop || !vm.isDirty) return;
 
-        if (await confirmDiscard() && context.mounted) {
+        if ((await showDialog<bool>(
+                  context: context,
+                  builder: (dialogContext) => ConfirmDialog(
+                    title: "Discard changes?",
+                    action: () {
+                      Navigator.pop(dialogContext, true);
+                    },
+                    actionName: "discard",
+                  ),
+                ) ??
+                false) &&
+            context.mounted) {
           Navigator.of(context).pop();
         }
       },
@@ -40,19 +42,19 @@ class EditScaffold<R extends Identifiable> extends StatelessWidget {
             IconButton(
               icon: const Icon(Icons.delete_forever),
               onPressed: () {
-                showDialog(
+                showDialog<void>(
                   context: context,
-                  builder: (context) => ConfirmDialog(
+                  builder: (dialogContext) => ConfirmDialog(
                     title: "Are you sure?",
                     action: () async {
-                      final didDelete = await vm.delete();
-                      if (context.mounted) {
-                        if (didDelete) {
-                          simpleSnack(context, "Deleted");
-                        } else {
-                          simpleSnack(context, "Failed to delete", color: Colors.red);
-                        }
-                        Navigator.of(context).pop();
+                      await vm.delete();
+
+                      if (dialogContext.mounted) {
+                        Navigator.of(dialogContext).pop();
+                      }
+                      if (context.mounted && vm.errorMsg == null) {
+                        Navigator.of(context).pop("deleted");
+                        simpleSnack(context, "Deleted");
                       }
                     },
                   ),
@@ -61,31 +63,34 @@ class EditScaffold<R extends Identifiable> extends StatelessWidget {
             ),
           ],
         ),
-        body: Column(
-          children: [
-            if (vm.errorMsg case String msg)
-              MaterialBanner(
-                content: Text(msg),
-                actions: [TextButton(onPressed: () {}, child: const Text("Dismiss"))],
-              ),
-            Expanded(child: body),
-            if (vm.isDirty)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                child: SafeArea(
-                  child: TextButton(
-                    onPressed: () async {
-                      await vm.save();
-                      if (context.mounted) {
-                        simpleSnack(context, "Saved!");
-                        Navigator.of(context).pop();
-                      }
-                    },
-                    child: Text("Save & exit"),
+        body: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            children: [
+              if (vm.errorMsg case String msg)
+                MaterialBanner(
+                  content: Text(msg),
+                  actions: [TextButton(onPressed: vm.dismissError, child: const Text("Dismiss"))],
+                ),
+              Expanded(child: body),
+              if (vm.isDirty)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  child: SafeArea(
+                    child: TextButton(
+                      onPressed: () async {
+                        await vm.save();
+                        if (context.mounted && vm.errorMsg == null) {
+                          Navigator.of(context).pop();
+                          simpleSnack(context, "Saved!");
+                        }
+                      },
+                      child: Text("Save & exit"),
+                    ),
                   ),
                 ),
-              ),
-          ],
+            ],
+          ),
         ),
       ),
     );

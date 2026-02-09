@@ -24,6 +24,7 @@ class ImportAnyVm extends ChangeNotifier {
   // === Public ===
   ImportStep get step => _step;
   String? get errorMsg => _errorMsg;
+  CsvSchema? get schema => _codec?.schema;
 
   /// Load file
   Future<void> load() async {
@@ -46,14 +47,14 @@ class ImportAnyVm extends ChangeNotifier {
 
   Future<void> doImport() async {
     _setStep(ImportStep.importing);
-
-    final lines = await File(filePath).readAsLines();
-
     final cod = _codec;
     if (cod == null) {
       _fail("no matching codec");
-    } else {
-      final rows = cod.parseRows(lines);
+      return;
+    }
+
+    try {
+      final rows = cod.parseRows(await File(filePath).readAsLines());
       if (cod is EvtCsvCodec) {
         // Events
         await _app.db.events.createAll(cod.decode(rows));
@@ -64,8 +65,10 @@ class ImportAnyVm extends ChangeNotifier {
         // Event categoriues
         await _app.db.categories.createAll(cod.decode(rows));
       }
+      _setStep(ImportStep.done);
+    } catch (e) {
+      _fail(e.toString());
     }
-    _setStep(ImportStep.done);
   }
 
   /// Update current step and notify listeners

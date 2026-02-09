@@ -149,17 +149,24 @@ class EvtTypeList extends StatelessWidget {
                     ),
                     title: Text(typeRec.name, style: TextStyle(color: typeRec.color.inContext(context))),
                     subtitle: Text(count.toString()),
+                    onTap: () {
+                      Navigator.of(
+                        context,
+                      ).push(MaterialPageRoute(builder: (context) => EventTypeOverviewScreen(typeRec.id))).then((_) {
+                        // reload data
+                        dataVM.load();
+                      });
+                    },
                     trailing: IconButton(
                       onPressed: () {
-                        final typeId = typeRec.id;
                         Navigator.of(
                           context,
-                        ).push(MaterialPageRoute(builder: (context) => EventTypeOverviewScreen(typeId))).then((_) {
+                        ).push(MaterialPageRoute(builder: (context) => EventTypeDetailScreen(typeRec))).then((_) {
                           // reload data
                           dataVM.load();
                         });
                       },
-                      icon: Icon(Icons.stacked_bar_chart),
+                      icon: Icon(Icons.edit),
                     ),
                   );
                 },

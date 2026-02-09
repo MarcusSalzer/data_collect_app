@@ -1,14 +1,15 @@
+import 'dart:ui';
+
 import 'package:data_app2/contracts/data.dart';
+import 'package:data_app2/util/colors.dart';
 
 /// Data class for event categories
 class EvtCatDraft extends Draft<EvtCatRec> {
-  EvtCatDraft(this.name);
+  EvtCatDraft(this.name, [this.color = ColorEngine.defaultColor]);
 
   // === fields ===
   String name;
-
-  // TODO color
-  // final dynamic color;
+  Color color;
 
   EvtCatDraft copyWith({String? name}) {
     return EvtCatDraft(name ?? this.name);
@@ -16,12 +17,12 @@ class EvtCatDraft extends Draft<EvtCatRec> {
 
   @override
   toRec(int id) {
-    return EvtCatRec(id, name);
+    return EvtCatRec(id, name, color);
   }
 
   @override
   bool operator ==(Object other) {
-    return other is EvtCatDraft && other.name == name;
+    return other is EvtCatDraft && other.name == name && other.color == color;
   }
 
   @override
@@ -32,9 +33,10 @@ class EvtCatDraft extends Draft<EvtCatRec> {
 class EvtCatRec implements Identifiable {
   final String name;
 
-  EvtCatRec(this.id, this.name);
+  EvtCatRec(this.id, this.name, this.color);
   @override
   final int id;
+  final Color color;
 
   @override
   EvtCatDraft toDraft() {

@@ -1,146 +1,90 @@
 import 'package:data_app2/app_state.dart';
+import 'package:data_app2/data/evt_cat.dart';
 import 'package:data_app2/data/evt_type.dart';
-import 'package:data_app2/dialogs/show_confirm_save_back_dialog.dart';
 import 'package:data_app2/view_models/evt_type_detail_vm.dart';
-import 'package:data_app2/util/extensions.dart';
-import 'package:data_app2/util.dart';
-import 'package:data_app2/widgets/color_key_palette.dart';
-import 'package:data_app2/widgets/confirm_dialog.dart';
+import 'package:data_app2/widgets/edit_scaffold.dart';
+import 'package:data_app2/widgets/generic_autocomplete.dart';
 import 'package:data_app2/widgets/two_columns.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class EventTypeDetailScreen extends StatelessWidget {
-  final EvtTypeRec? type;
+  final EvtTypeRec? stored;
 
-  const EventTypeDetailScreen(this.type, {super.key});
+  const EventTypeDetailScreen(this.stored, {super.key});
 
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider<EvtTypeDetailVm>(
       create: (context) {
-        final app = Provider.of<AppState>(context, listen: false);
-        return EvtTypeDetailVm(type, app);
+        // Create VM and start loading "secondary" data
+        return EvtTypeDetailVm(stored, context.read<AppState>())..load();
       },
       child: Consumer<EvtTypeDetailVm>(
         // prevent pop if has unsaved changes
-        builder: (context, vm, child) => PopScope(
-          canPop: !vm.isDirty,
-          onPopInvokedWithResult: (didPop, Object? res) async {
-            if (!didPop) {
-              showConfirmSaveBackDialog<EvtTypeRec?>(
-                context,
-                saveAction: () async {
-                  await vm.save();
-                  if (context.mounted) {
-                    if (vm.errorMsg case String msg) {
-                      simpleSnack(context, msg, color: Colors.red);
-                      return null;
-                    } else {
-                      simpleSnack(context, "Saved!");
-                    }
-                  }
-                  return null;
-                },
-              );
-            }
-          },
-          child: _Scaffold(vm),
+        builder: (context, vm, _) => EditScaffold<EvtTypeRec>(
+          title: stored == null ? "New Category" : "Edit Category",
+          body: Column(
+            children: [
+              EditInputs(vm: vm),
+              SizedBox(height: 32),
+              EventTypeDetailDisplay(vm.draft, vm.id),
+            ],
+          ),
+          vm: vm,
         ),
       ),
     );
   }
 }
 
-class _Scaffold extends StatelessWidget {
-  final EvtTypeDetailVm vm;
+class EditInputs extends StatelessWidget {
+  const EditInputs({super.key, required this.vm});
 
-  const _Scaffold(this.vm);
+  final EvtTypeDetailVm vm;
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text("${vm.draft.name}${vm.isDirty ? " *" : ""}"),
-        actions: [
-          IconButton(
-            onPressed: () {
-              showDialog(
-                context: context,
-                builder: (context) => ConfirmDialog(
-                  title: "Delete event type?",
-                  action: () async {
-                    final didDelete = await vm.delete();
-                    if (context.mounted) {
-                      if (didDelete) {
-                        simpleSnack(context, "Deleted type ${vm.draft.name}");
-                      } else {
-                        simpleSnack(context, "Failed to delete type", color: Colors.red);
-                      }
-                      Navigator.of(context).pop();
-                      Navigator.of(context).pop();
-                    }
+    final loadedCategories = vm.categories;
+
+    return TwoColumns(
+      rows: [
+        (Text("Name"), TextFormField(onChanged: vm.updateName, initialValue: vm.draft.name)),
+        // (
+        //   Text("Color"),
+        //   ElevatedButton(
+        //     onPressed: () {
+        //       Navigator.of(context).push(
+        //         MaterialPageRoute(
+        //           builder: (context) => ColorKeyPalette(selectedColorKey: vm.color, onColorSelected: vm.updateColor),
+        //         ),
+        //       );
+        //     },
+        //     child: Text(
+        //       vm.color.name.capitalized,
+        //       style: TextStyle(color: vm.color.inContext(context), fontWeight: FontWeight.bold),
+        //     ),
+        //   ),
+        // ),
+        (
+          Text("Category"),
+          (loadedCategories == null)
+              ? Text("Loading...")
+              : GenericAutocomplete<EvtCatRec>(
+                  options: loadedCategories,
+                  initialValue: vm.currentCategory,
+                  nameOf: (e) => e.name,
+                  onSelected: (v) {
+                    vm.updateCategory(v.id);
                   },
-                ),
-              );
-            },
-            icon: Icon(Icons.delete_forever),
-          ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            children: [
-              TwoColumns(
-                rows: [
-                  (Text("Name"), TextFormField(onChanged: (v) => vm.updateName, initialValue: vm.draft.name)),
-                  (
-                    Text("Color"),
-                    ElevatedButton(
-                      onPressed: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) => ColorKeyPalette(
-                              selectedColorKey: vm.color,
-                              onColorSelected: (newCol) {
-                                vm.updateColor(newCol);
-                              },
-                            ),
-                          ),
-                        );
-                      },
-                      child: Text(
-                        vm.color.name.capitalized,
-                        style: TextStyle(color: vm.color.inContext(context), fontWeight: FontWeight.bold),
-                      ),
-                    ),
+                  optionBuilder: (context, e) => ListTile(
+                    leading: CircleAvatar(radius: 5, backgroundColor: Colors.white),
+                    title: Text(e.name),
                   ),
-                ],
-              ),
-              SizedBox(height: 32),
-              if (vm.isDirty)
-                TextButton(
-                  onPressed: () async {
-                    await vm.save();
-                    if (context.mounted) {
-                      if (vm.errorMsg case String msg) {
-                        simpleSnack(context, msg, color: Colors.red);
-                      } else {
-                        simpleSnack(context, "Saved!");
-                        Navigator.of(context).pop(vm.draft);
-                      }
-                    }
-                  },
-                  child: Text("Save & exit"),
+                  searchMode: context.watch<AppState>().textSearchMode,
                 ),
-              SizedBox(height: 32),
-              EventTypeDetailDisplay(vm.draft, vm.id),
-            ],
-          ),
         ),
-      ),
+      ],
     );
   }
 }
@@ -186,6 +130,7 @@ class EventTypeDetailDisplay extends StatelessWidget {
         _subtitle("Details"),
         _buildInfoRow('Id', id.toString()),
         _buildInfoRow('Name', type.name),
+        _buildInfoRow('Category', type.categoryId.toString()),
         _buildInfoRow('Color', type.color.toString(), color: type.color.inContext(context)),
       ],
     );

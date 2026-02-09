@@ -1,5 +1,6 @@
 import 'package:data_app2/app_state.dart';
 import 'package:data_app2/contracts/edit_vm.dart';
+import 'package:data_app2/data/evt_cat.dart';
 import 'package:data_app2/data/evt_type.dart';
 import 'package:data_app2/errors/db_ref_exists_error.dart';
 import 'package:data_app2/util/colors.dart';
@@ -11,20 +12,36 @@ class EvtTypeDetailVm extends EditVm<EvtTypeRec, EvtTypeDraft> {
   // === Final refs ===
   final AppState _app;
 
-  ColorKey get color => draft.color;
+  // === State ===
 
-  void updateColor(ColorKey newColor) {
-    draft = draft.copyWith(color: newColor);
-    notifyListeners();
-  }
+  Map<int, EvtCatRec>? _catsById;
+  List<EvtCatRec>? get categories => _catsById?.values.toList();
+  ColorKey get color => draft.color;
+  EvtCatRec? get currentCategory => _catsById?[draft.categoryId];
+
+  // void updateColor(ColorKey newColor) {
+  //   draft.color = newColor;
+  //   notifyListeners();
+  // }
 
   void updateName(String name) {
     draft.name = name.trim();
     notifyListeners();
   }
 
+  void updateCategory(int? catId) {
+    draft.categoryId = catId;
+    notifyListeners();
+  }
+
+  /// Load additional needed data (Categories)
+  Future<void> load() async {
+    _catsById = Map.fromEntries((await _app.db.categories.all()).map((r) => MapEntry(r.id, r)));
+    notifyListeners();
+  }
+
   @override
-  Future<bool> delete() async {
+  delete() async {
     final stored = this.stored;
     if (stored == null) return false; // cannot delete if never saved
 
@@ -43,7 +60,7 @@ class EvtTypeDetailVm extends EditVm<EvtTypeRec, EvtTypeDraft> {
 
   // save event type to DB, returns error message or null if successful
   @override
-  Future<void> save() async {
+  save() async {
     final storedId = stored?.id;
 
     try {

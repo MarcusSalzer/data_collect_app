@@ -31,7 +31,6 @@ class _Body extends StatelessWidget {
           onTapItem: (rec) {
             Navigator.of(context).push(MaterialPageRoute(builder: (context) => EvtCatDetailScreen(rec))).then((_) {
               // reload data
-              print("reload");
               indexVM.load();
             });
           },
@@ -74,7 +73,6 @@ class EvtCatIndexScreen extends StatelessWidget {
             // Create new
             Navigator.of(context).push(MaterialPageRoute(builder: (_) => EvtCatDetailScreen(null))).then((_) {
               // Reload data after possible edits
-              print("reload (new)");
               indexVm.load();
             });
           },

@@ -22,6 +22,9 @@ class AppPrefs {
 
   final bool autoLowerCase;
 
+  // TODO store color spread parameter!
+  double get colorSpread => 0.5;
+
   const AppPrefs({
     this.colorSchemeMode = ColorSchemeMode.dark,
     this.logLevel = LogLevel.warning,

@@ -21,6 +21,10 @@ class WelcomeScreen extends StatelessWidget {
                   spacing: 12,
                   children: [
                     Text("Thanks for checking out the app."),
+                    Text("This is free software, which is hopefully useful. It is distributed without any warranty."),
+                    Text(
+                      "Note: To keep your data safe, remember to back it up using the 'export'-feature, and ideally copy it to a different machine.",
+                    ),
                     SizedBox(height: 20),
                     Text("Learn more"),
                     TextButton(

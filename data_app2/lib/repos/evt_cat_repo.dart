@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:data_app2/data/evt_cat.dart';
 import 'package:data_app2/errors/db_ref_exists_error.dart';
 import 'package:data_app2/isar_models.dart';
@@ -8,9 +10,9 @@ import 'package:isar_community/isar.dart';
 class EvtCatRepo extends CrudRepo<EvtCatRec, EvtCatDraft, EventCategory> {
   EvtCatRepo(super.isar)
     : super(
-        draftToIsar: (d) => EventCategory(d.name),
-        recToIsar: (r) => EventCategory(r.name)..id = r.id,
-        fromIsar: (i) => EvtCatRec(i.id, i.name),
+        draftToIsar: (d) => EventCategory(d.name, d.color.toARGB32()),
+        recToIsar: (r) => EventCategory(r.name, r.color.toARGB32())..id = r.id,
+        fromIsar: (i) => EvtCatRec(i.id, i.name, Color(i.colorArgb32)),
       );
 
   @override

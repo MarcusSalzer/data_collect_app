@@ -6,8 +6,8 @@ import 'package:flutter/material.dart';
 Future<void> showImportSomethingDialog(BuildContext context) {
   return showDialog(
     context: context,
-    builder: (BuildContext context) {
-      final theme = Theme.of(context);
+    builder: (BuildContext dialogContext) {
+      final theme = Theme.of(dialogContext);
 
       return SimpleDialog(
         title: Center(child: const Text('Import data')),
@@ -27,12 +27,10 @@ Future<void> showImportSomethingDialog(BuildContext context) {
                       return;
                     }
 
-                    if (context.mounted) {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => ImportAnyScreen(path),
-                        ),
-                      );
+                    if (dialogContext.mounted) {
+                      Navigator.of(
+                        dialogContext,
+                      ).pushReplacement(MaterialPageRoute(builder: (context) => ImportAnyScreen(path)));
                     }
                   },
                   child: Text("Pick file"),
@@ -50,12 +48,10 @@ Future<void> showImportSomethingDialog(BuildContext context) {
                 TextButton(
                   onPressed: () async {
                     final folder = await pickSingleFolder();
-                    if (context.mounted && folder != null) {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => ImportFolderScreen(folder),
-                        ),
-                      );
+                    if (dialogContext.mounted && folder != null) {
+                      Navigator.of(
+                        dialogContext,
+                      ).pushReplacement(MaterialPageRoute(builder: (context) => ImportFolderScreen(folder)));
                     }
                   },
                   child: Text("Pick folder"),
@@ -66,7 +62,7 @@ Future<void> showImportSomethingDialog(BuildContext context) {
           SizedBox(height: 12),
           TextButton(
             onPressed: () {
-              Navigator.of(context).pop();
+              Navigator.of(dialogContext).pop();
             },
             child: Text("cancel"),
           ),

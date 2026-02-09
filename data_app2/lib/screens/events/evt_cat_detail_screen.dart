@@ -15,22 +15,27 @@ class EvtCatDetailScreen extends StatelessWidget {
     return ChangeNotifierProvider(
       create: (_) => EvtCatDetailVm(stored, context.read<AppState>()),
       child: Consumer<EvtCatDetailVm>(
-        builder: (context, vm, _) {
-          return EditScaffold<EvtCatRec>(
-            title: stored == null ? "New Category" : "Edit Category",
-            vm: vm,
-            confirmDiscard: () async => false,
-            body: Padding(
-              padding: const EdgeInsets.all(16),
-              child: TextFormField(
-                decoration: const InputDecoration(labelText: "Name"),
-                onChanged: vm.updateName,
-                initialValue: vm.draft.name,
-              ),
-            ),
-          );
-        },
+        builder: (context, vm, _) => EditScaffold<EvtCatRec>(
+          title: stored == null ? "New Category" : "Edit Category",
+          vm: vm,
+          body: _EditForm(vm),
+        ),
       ),
+    );
+  }
+}
+
+class _EditForm extends StatelessWidget {
+  final EvtCatDetailVm vm;
+
+  const _EditForm(this.vm);
+
+  @override
+  Widget build(BuildContext context) {
+    return TextFormField(
+      decoration: const InputDecoration(labelText: "Name"),
+      onChanged: vm.updateName,
+      initialValue: vm.draft.name,
     );
   }
 }

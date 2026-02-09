@@ -35,9 +35,12 @@ class EventTypeOverviewScreen extends StatelessWidget {
                           Navigator.of(
                             context,
                           ).push(MaterialPageRoute(builder: (context) => EventTypeDetailScreen(vm.type))).then((value) {
-                            vm.load();
-                            if (value != null) {
-                              // reload if anything changed
+                            // reload
+                            if (value == "deleted" && context.mounted) {
+                              // Extra pop after deleted
+                              Navigator.of(context).pop();
+                            } else {
+                              vm.load();
                             }
                           });
                         },

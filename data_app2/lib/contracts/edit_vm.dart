@@ -13,4 +13,9 @@ abstract class EditVm<R extends Identifiable, D extends Draft> extends ChangeNot
 
   Future<bool> delete();
   Future<void> save();
+
+  void dismissError() {
+    errorMsg = null;
+    notifyListeners();
+  }
 }

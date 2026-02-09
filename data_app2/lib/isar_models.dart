@@ -66,8 +66,8 @@ class EventCategory {
   Id id = Isar.autoIncrement;
   @Index(unique: true)
   String name;
-
-  EventCategory(this.name);
+  int colorArgb32;
+  EventCategory(this.name, [this.colorArgb32 = 0]);
 }
 
 // USER-DEFINED TABULAR DATASETS

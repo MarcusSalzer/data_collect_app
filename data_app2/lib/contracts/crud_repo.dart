@@ -73,8 +73,24 @@ abstract class CrudRepo<R extends Identifiable, D extends Draft<R>, I> {
     return added;
   }
 
+  /// create and save new EventTypes
+  Future<({List<int> addedIds, List<D> skipped})> createIfPossible(Iterable<D> drafts) async {
+    final addedIds = <int>[];
+    final skipped = <D>[];
+
+    await isar.writeTxn(() async {
+      for (var d in drafts) {
+        try {
+          addedIds.add(await coll.put(draftToIsar(d)));
+        } on IsarError {
+          skipped.add(d);
+        }
+      }
+    });
+    return (addedIds: addedIds, skipped: skipped);
+  }
+
   /// update an item
-  /// TODO Id should not change! throw error?
   Future<int> update(R rec) async {
     return await isar.writeTxn(() async => await coll.put(recToIsar(rec)));
   }

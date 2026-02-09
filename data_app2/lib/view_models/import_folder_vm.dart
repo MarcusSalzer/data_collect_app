@@ -28,10 +28,11 @@ extension ImportOverlapPolicyUi on ImportOverlapPolicy {
 class ImportResult {
   Set<int> newTypeIds;
   int evtCount;
+  int skippedTypeCount;
 
   int get evtTypeCount => newTypeIds.length;
 
-  ImportResult(this.newTypeIds, this.evtCount);
+  ImportResult(this.newTypeIds, this.evtCount, this.skippedTypeCount);
 }
 
 /// Handle folder import workflow:
@@ -53,7 +54,7 @@ class ImportFolderVm extends ChangeNotifier {
   ImportStep _step = ImportStep.scanningFolder; // progress through steps
   String? _errorMsg;
   ImportResult? _result;
-  ImportOverlapPolicy _overlapPolicy = ImportOverlapPolicy.skip; // default
+  ImportOverlapPolicy _overlapPolicy = ImportOverlapPolicy.fail; // default
   bool _showOverlapOptions = false; // showing a form
 
   // --- Get ---
@@ -125,6 +126,7 @@ class ImportFolderVm extends ChangeNotifier {
     _setStep(ImportStep.importing);
     List<int> addedTypeIds = [];
     int evtImportCount = 0;
+    int skippedTypeCount = 0;
 
     try {
       // import types
@@ -138,8 +140,11 @@ class ImportFolderVm extends ChangeNotifier {
               addedTypeIds = await _app.db.eventTypes.createAllThrowEarly(items);
               break;
             case ImportOverlapPolicy.skip:
-              addedTypeIds = await _app.db.eventTypes.createAll(items);
-              break;
+              throw UnimplementedError("Idk, doesnt work now");
+            // final (addedIds: addedTypeIds, skipped: skipped) = await _app.db.eventTypes.createIfPossible(items);
+            // skippedTypeCount = skipped.length;
+            // print("skppp ${skipped.length}");
+            // break;
           }
         }
       }
@@ -165,7 +170,7 @@ class ImportFolderVm extends ChangeNotifier {
     } catch (e) {
       _fail(e.toString());
     }
-    _result = ImportResult(addedTypeIds.toSet(), evtImportCount);
+    _result = ImportResult(addedTypeIds.toSet(), evtImportCount, skippedTypeCount);
   }
 
   /// Update current step and notify listeners

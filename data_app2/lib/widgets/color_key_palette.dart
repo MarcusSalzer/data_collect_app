@@ -1,15 +1,12 @@
 import 'package:data_app2/util/colors.dart';
 import 'package:flutter/material.dart';
 
+@Deprecated("Use new plain colors instead")
 class ColorKeyPalette extends StatelessWidget {
   final ColorKey selectedColorKey;
   final ValueChanged<ColorKey> onColorSelected;
 
-  const ColorKeyPalette({
-    required this.selectedColorKey,
-    required this.onColorSelected,
-    super.key,
-  });
+  const ColorKeyPalette({required this.selectedColorKey, required this.onColorSelected, super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -17,9 +14,7 @@ class ColorKeyPalette extends StatelessWidget {
     final options = ColorKey.values;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text("Color picker"),
-      ),
+      appBar: AppBar(title: Text("Color picker")),
       body: Center(
         child: Wrap(
           spacing: 8.0,
@@ -38,11 +33,7 @@ class ColorKeyPalette extends StatelessWidget {
                 height: 40,
                 decoration: BoxDecoration(
                   color: color,
-                  border: isSelected
-                      ? Border.all(
-                          color: Theme.of(context).colorScheme.onPrimary,
-                          width: 3)
-                      : null,
+                  border: isSelected ? Border.all(color: Theme.of(context).colorScheme.onPrimary, width: 3) : null,
                 ),
               ),
             );

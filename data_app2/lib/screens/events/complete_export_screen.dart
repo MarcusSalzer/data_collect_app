@@ -31,10 +31,6 @@ class CompleteExportScreen extends StatelessWidget {
                       spacing: 12,
                       children: [
                         Text("Has ${data.nEvt} events | ${data.nType} types"),
-                        // CsvSchemaSelector(
-                        //     selectedSchema: vm.schema,
-                        //     onChanged: (s) => vm.setSchema(s)),
-                        Text("Example Row"),
                         ElevatedButton.icon(
                           onPressed: () {
                             vm.doExport();

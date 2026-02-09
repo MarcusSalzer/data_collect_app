@@ -64,7 +64,7 @@ void main() {
       expect(vm.errorMsg, contains("will not delete"));
       expect(await app.db.categories.count(), 1);
     });
-    test('update & save', () async {
+    test('update name & save', () async {
       await app.db.categories.create(EvtCatDraft("oops"));
       final rec = (await app.db.categories.all()).first;
 
@@ -124,7 +124,7 @@ void main() {
       expect(vm.errorMsg, contains("will not delete"));
       expect(await app.db.eventTypes.count(), 1);
     });
-    test('update & save', () async {
+    test('update name & save', () async {
       await app.db.eventTypes.create(EvtTypeDraft("oops"));
       final rec = (await app.db.eventTypes.all()).first;
 
@@ -136,6 +136,25 @@ void main() {
       expect(vm.isDirty, false);
       expect(vm.errorMsg, isNull);
       expect((await app.db.eventTypes.all()).first.name, "corrected");
+    });
+    test('update category & save', () async {
+      final catIds = await app.db.categories.createAll([EvtCatDraft("cat A"), EvtCatDraft("cat B")]);
+      await app.db.eventTypes.create(EvtTypeDraft("hello"));
+      final rec = (await app.db.eventTypes.all()).first;
+
+      final vm = EvtTypeDetailVm(rec, app);
+      await vm.load();
+      expect(vm.categories?.length, 2);
+      expect(vm.currentCategory, null);
+
+      vm.updateCategory(catIds[1]);
+      expect(vm.isDirty, true);
+      expect(vm.currentCategory?.name, "cat B");
+
+      await vm.save();
+      expect(vm.isDirty, false);
+      expect(vm.errorMsg, isNull);
+      expect((await app.db.eventTypes.all()).first.categoryId, catIds[1]);
     });
   });
 }

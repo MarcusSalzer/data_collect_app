@@ -93,22 +93,6 @@ class ImportFolderScreen extends StatelessWidget {
   }
 
   Widget _confirmImport(BuildContext context, ImportFolderVm vm) {
-    // return Column(
-    //   children: [
-    //     Text(
-    //       'Data parsed successfully.\nReady to import.',
-    //       style: TextStyle(fontSize: 16),
-    //     ),
-    //     Expanded(child: _candidateDisplay(vm.candidates)),
-    //     OverlapOptionForm(vm),
-    //     _bottomBar(
-    //       child: ElevatedButton(
-    //         onPressed: vm.importToDb,
-    //         child: const Text('Import'),
-    //       ),
-    //     ),
-    //   ],
-    // );
     return Stack(
       children: [
         Column(
@@ -187,7 +171,7 @@ class _ImportResDisplay extends StatelessWidget {
   const _ImportResDisplay(this.res);
   @override
   Widget build(BuildContext context) {
-    return Text("Imported: ${res.evtTypeCount} types, ${res.evtCount} events.");
+    return Text("Imported: ${res.evtTypeCount} types, ${res.evtCount} events. Skipped ${res.skippedTypeCount} types.");
   }
 }
 
@@ -337,10 +321,7 @@ class OverlapOptionForm extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'When imported data contains existing IDs',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
+              const Text('When imported data overlaps', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
               const SizedBox(height: 12),
               ...ImportOverlapPolicy.values.map(
                 (policy) => RadioListTile<ImportOverlapPolicy>(

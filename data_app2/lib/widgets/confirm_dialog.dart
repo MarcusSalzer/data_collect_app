@@ -3,11 +3,8 @@ import 'package:flutter/material.dart';
 class ConfirmDialog extends StatelessWidget {
   final Function action;
   final String title;
-  const ConfirmDialog({
-    required this.title,
-    required this.action,
-    super.key,
-  });
+  final String actionName;
+  const ConfirmDialog({required this.title, required this.action, this.actionName = "confirm", super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -18,18 +15,16 @@ class ConfirmDialog extends StatelessWidget {
         Row(
           children: [
             TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                child: Text("cancel")),
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text("cancel"),
+            ),
             ElevatedButton.icon(
               onPressed: () async {
                 await action();
-                if (context.mounted) {
-                  Navigator.pop(context);
-                }
               },
-              label: Text("confirm"),
+              label: Text(actionName),
               icon: Icon(Icons.warning),
             ),
           ],
