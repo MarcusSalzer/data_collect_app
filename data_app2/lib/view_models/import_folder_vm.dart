@@ -137,7 +137,7 @@ class ImportFolderVm extends ChangeNotifier {
           switch (_overlapPolicy) {
             case ImportOverlapPolicy.fail:
               // unique index might fail here
-              addedTypeIds = await _app.db.eventTypes.createAllThrowEarly(items);
+              addedTypeIds = await _app.db.evtTypes.createAllThrowEarly(items);
               break;
             case ImportOverlapPolicy.skip:
               throw UnimplementedError("Idk, doesnt work now");
@@ -148,8 +148,10 @@ class ImportFolderVm extends ChangeNotifier {
           }
         }
       }
-      // refresh types
-      _app.evtTypeManager.reloadFromModels(await _app.db.eventTypes.all());
+      // refresh types and categories
+      final (t, c) = await _app.db.allTypesAndCats();
+
+      _app.evtTypeManager.reloadFromModels(t, c);
 
       // import events
       for (var cand in candidates.evtCands) {
@@ -157,7 +159,7 @@ class ImportFolderVm extends ChangeNotifier {
           final items = EvtCsvCodec(typMan: _app.evtTypeManager).decode(rows);
 
           // no unique-index, should be safe to do all at once.
-          evtImportCount = (await _app.db.events.createAll(items)).length;
+          evtImportCount = (await _app.db.evts.createAll(items)).length;
           // switch (_overlapPolicy) {
 
           // }

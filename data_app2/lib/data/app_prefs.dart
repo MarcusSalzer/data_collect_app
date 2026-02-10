@@ -22,8 +22,7 @@ class AppPrefs {
 
   final bool autoLowerCase;
 
-  // TODO store color spread parameter!
-  double get colorSpread => 0.5;
+  final double colorSpread;
 
   const AppPrefs({
     this.colorSchemeMode = ColorSchemeMode.dark,
@@ -31,6 +30,7 @@ class AppPrefs {
     this.summaryMode = SummaryMode.type,
     this.autoLowerCase = false,
     this.textSearchMode = TextSearchMode.starts,
+    this.colorSpread = 0.5,
   });
 
   AppPrefs copyWith({
@@ -39,6 +39,7 @@ class AppPrefs {
     SummaryMode? summaryMode,
     bool? autoLowerCase,
     TextSearchMode? textSearchMode,
+    double? colorSpread,
   }) {
     return AppPrefs(
       colorSchemeMode: colorSchemeMode ?? this.colorSchemeMode,
@@ -46,6 +47,7 @@ class AppPrefs {
       summaryMode: summaryMode ?? this.summaryMode,
       autoLowerCase: autoLowerCase ?? this.autoLowerCase,
       textSearchMode: textSearchMode ?? this.textSearchMode,
+      colorSpread: colorSpread ?? this.colorSpread,
     );
   }
 

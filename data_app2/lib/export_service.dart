@@ -31,23 +31,24 @@ class CompleteExportService {
 
   /// Export all data
   Future<Map<String, int>> exportAllData(DBService db, EvtTypeManager typMan, AppPrefs prefs) async {
-    // reload event types
-    typMan.reloadFromModels(await db.eventTypes.all());
+    // reload event types and categories
+    final (t, c) = await db.allTypesAndCats();
+    typMan.reloadFromModels(t, c);
 
     final nEvt = await _saveCsv<EvtDraft>(
       // Map to draft. Id:s not needed at export.
-      (await db.events.all()).map((r) => r.toDraft()),
+      (await db.evts.all()).map((r) => r.toDraft()),
       EvtCsvCodec(typMan: typMan),
       "events_all.csv",
     );
 
     final nType = await _saveCsv<EvtTypeDraft>(
-      typMan.all.map((e) => e.toDraft()), // all after reload
+      typMan.allTypes.map((e) => e.toDraft()), // all after reload
       EvtTypeCsvCodec(),
       "event_types.csv",
     );
     final nCat = await _saveCsv<EvtCatDraft>(
-      (await db.categories.all()).map((r) => r.toDraft()),
+      (await db.evtCats.all()).map((r) => r.toDraft()),
       EvtCatCsvCodec(),
       "event_categories.csv",
     );

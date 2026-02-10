@@ -9,9 +9,9 @@ class EvtTypeRepo extends CrudRepo<EvtTypeRec, EvtTypeDraft, EventType> {
   EvtTypeRepo(super.isar)
     : super(
         // NOTE: trim names to avoid confusing uniqueness issues
-        draftToIsar: (d) => EventType(d.name.trim(), d.color, d.categoryId),
-        recToIsar: (r) => EventType(r.name.trim(), r.color, r.categoryId)..id = r.id,
-        fromIsar: (i) => EvtTypeRec(i.id, i.name, i.color, i.categoryId),
+        draftToIsar: (d) => EventType(d.name.trim(), d.categoryId),
+        recToIsar: (r) => EventType(r.name.trim(), r.categoryId)..id = r.id,
+        fromIsar: (i) => EvtTypeRec(i.id, i.name, i.categoryId),
       );
 
   @override

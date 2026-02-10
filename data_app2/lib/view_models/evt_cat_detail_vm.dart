@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:data_app2/app_state.dart';
 import 'package:data_app2/contracts/edit_vm.dart';
 import 'package:data_app2/data/evt_cat.dart';
@@ -19,7 +21,7 @@ class EvtCatDetailVm extends EditVm<EvtCatRec, EvtCatDraft> {
     var didDelete = false;
 
     try {
-      didDelete = await _app.db.categories.deleteIfUnreferenced(storedId);
+      didDelete = await _app.db.evtCats.deleteIfUnreferenced(storedId);
     } on DbRefExistsError catch (e) {
       errorMsg = "Category ${e.id} has references, will not delete";
     }
@@ -35,12 +37,12 @@ class EvtCatDetailVm extends EditVm<EvtCatRec, EvtCatDraft> {
     try {
       if (storedId == null) {
         // Store new
-        final newId = await _app.db.categories.create(draft);
+        final newId = await _app.db.evtCats.create(draft);
         stored = draft.toRec(newId);
       } else {
         // Update stored
         final updated = draft.toRec(storedId);
-        await _app.db.categories.update(updated);
+        await _app.db.evtCats.update(updated);
         stored = updated;
       }
     } on IsarError catch (e) {
@@ -57,8 +59,13 @@ class EvtCatDetailVm extends EditVm<EvtCatRec, EvtCatDraft> {
 
   // === Specific methods ===
 
-  void updateName(String name) {
-    draft.name = name.trim();
+  void updateName(String value) {
+    draft.name = value.trim();
+    notifyListeners();
+  }
+
+  void updateColor(Color value) {
+    draft.color = value;
     notifyListeners();
   }
 }

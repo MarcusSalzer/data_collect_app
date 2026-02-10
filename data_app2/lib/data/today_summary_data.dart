@@ -1,7 +1,8 @@
 // Keep current settings in memory, for convenient access
 
+import 'dart:ui';
+
 import 'package:data_app2/data/evt_type.dart';
-import 'package:data_app2/util/colors.dart';
 
 class TodaySummaryDataByType {
   final List<MapEntry<EvtTypeRec, Duration>> tpe;
@@ -12,7 +13,7 @@ class TodaySummaryDataByType {
 
 class SummaryItem {
   final String name;
-  final ColorKey color;
+  final Color color;
   final Duration duration;
 
   SummaryItem(this.name, this.color, this.duration);

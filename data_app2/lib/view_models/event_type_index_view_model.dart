@@ -23,7 +23,7 @@ class EventTypeIndexViewModel extends ChangeNotifier {
     }
 
     // Copy list of all types
-    final types = [..._app.evtTypeManager.all];
+    final types = [..._app.evtTypeManager.allTypes];
 
     // Sort by descending (zeros at end)
     types.sort((a, b) {
@@ -39,8 +39,9 @@ class EventTypeIndexViewModel extends ChangeNotifier {
   EventTypeIndexViewModel(this._app);
 
   Future<void> load() async {
-    // refresh type manager
-    _app.evtTypeManager.reloadFromModels(await _app.db.eventTypes.all());
+    // refresh types and categories
+    final (t, c) = await _app.db.allTypesAndCats();
+    _app.evtTypeManager.reloadFromModels(t, c);
     // Check for dangling type references
     danglingTypeRefs = await _app.db.danglingTypeRefs();
     await refreshCounts();
@@ -49,7 +50,7 @@ class EventTypeIndexViewModel extends ChangeNotifier {
 
   /// Count each event type
   Future<void> refreshCounts() async {
-    final evts = await _app.db.events.all();
+    final evts = await _app.db.evts.all();
 
     var counts = valueCounts<int>(evts.map((e) => e.typeId));
 

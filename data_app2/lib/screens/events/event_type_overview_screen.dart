@@ -28,7 +28,7 @@ class EventTypeOverviewScreen extends StatelessWidget {
               builder: (context, vm, child) {
                 return Scaffold(
                   appBar: AppBar(
-                    title: Text(vm.type.name, style: TextStyle(color: vm.type.color.inContext(context))),
+                    title: Text(vm.type.name, style: TextStyle(color: app.colorFor(vm.type))),
                     actions: [
                       TextButton.icon(
                         onPressed: () {
@@ -135,7 +135,7 @@ class EventTypeStatsDisplay extends StatelessWidget {
                             histData.y[i].toDouble(),
                           ),
                         ),
-                        color: model.type.color.inContext(context),
+                        color: model.color,
                         isCurved: true,
                         dotData: FlDotData(show: false),
                       ),
@@ -161,7 +161,7 @@ class EventTypeStatsDisplay extends StatelessWidget {
                     .map(
                       (e) => BarChartGroupData(
                         x: e.key,
-                        barRods: [BarChartRodData(toY: e.value.toDouble(), color: model.type.color.inContext(context))],
+                        barRods: [BarChartRodData(toY: e.value.toDouble(), color: model.color)],
                       ),
                     )
                     .toList(),

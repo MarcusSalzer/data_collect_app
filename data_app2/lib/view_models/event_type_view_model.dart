@@ -11,6 +11,9 @@ class EventTypeViewModel extends ChangeNotifier {
   final int typeId;
   final AppState _app;
 
+  // Stored once and reused
+  final Color color;
+
   bool _isLoading = false;
   List<EvtRec> _evts = [];
   Duration _totTime = Duration.zero;
@@ -23,7 +26,7 @@ class EventTypeViewModel extends ChangeNotifier {
   Duration get totTime => _totTime;
   Map<int, int> get perWeekDay => _perWeekDay;
 
-  EventTypeViewModel(this.typeId, this._app) {
+  EventTypeViewModel(this.typeId, this._app) : color = _app.evtTypeManager.colorForId(typeId, _app.prefs.colorSpread) {
     load();
   }
   Future<void> load() async {
@@ -31,7 +34,7 @@ class EventTypeViewModel extends ChangeNotifier {
     _evts = [];
     notifyListeners();
 
-    _evts = (await _app.db.events.filteredLocalTime(typeIds: [typeId])).toList();
+    _evts = (await _app.db.evts.filteredLocalTime(typeIds: [typeId])).toList();
 
     _totTime = totalEventTime(_evts);
 

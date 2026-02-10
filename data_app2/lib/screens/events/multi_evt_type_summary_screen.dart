@@ -214,6 +214,7 @@ class TypeRecShortList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final app = context.read<AppState>();
     return Column(
       spacing: 8,
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -222,7 +223,7 @@ class TypeRecShortList extends StatelessWidget {
             (t) => Row(
               spacing: 8,
               children: [
-                CircleAvatar(backgroundColor: t.color.inContext(context), radius: 5),
+                CircleAvatar(backgroundColor: app.colorFor(t), radius: 5),
                 Text(t.name),
               ],
             ),

@@ -1,6 +1,49 @@
 import 'package:data_app2/screens/settings_screen.dart';
 import 'package:flutter/material.dart';
 
+/// Container for a single setting
+class SettingContainer extends StatelessWidget {
+  final String label;
+  final String description;
+  final (int, int) flex;
+
+  final Widget child;
+
+  const SettingContainer(this.label, this.description, {required this.child, this.flex = (3, 5), super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Container(
+      color: theme.colorScheme.primaryContainer,
+      padding: EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                flex: flex.$1,
+                child: Text(label, style: TextStyle(fontSize: 16)),
+              ),
+              Expanded(flex: flex.$2, child: child),
+            ],
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            child: Text(
+              description,
+              style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class EnumDropdownWithDescription<T extends Enum> extends StatelessWidget {
   final T value;
   final List<T> options;
@@ -23,42 +66,10 @@ class EnumDropdownWithDescription<T extends Enum> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Container(
-      color: theme.colorScheme.primaryContainer,
-      padding: EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                flex: flex.$1,
-                child: Text(label, style: TextStyle(fontSize: 16)),
-              ),
-              Expanded(
-                flex: flex.$2,
-                child: EnumDropdown<T>(
-                  initialValue: value,
-                  options: options,
-                  onChanged: onChanged,
-                ),
-              ),
-            ],
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            child: Text(
-              descriptionOf(value),
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ),
-        ],
-      ),
+    return SettingContainer(
+      label,
+      descriptionOf(value),
+      child: EnumDropdown<T>(initialValue: value, options: options, onChanged: onChanged),
     );
   }
 }

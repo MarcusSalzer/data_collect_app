@@ -22,7 +22,7 @@ class EventTypeDetailScreen extends StatelessWidget {
       },
       child: Consumer<EvtTypeDetailVm>(
         // prevent pop if has unsaved changes
-        builder: (context, vm, _) => EditScaffold<EvtTypeRec>(
+        builder: (context, vm, _) => EditScaffoldForVm<EvtTypeRec>(
           title: stored == null ? "New Category" : "Edit Category",
           body: Column(
             children: [
@@ -131,7 +131,8 @@ class EventTypeDetailDisplay extends StatelessWidget {
         _buildInfoRow('Id', id.toString()),
         _buildInfoRow('Name', type.name),
         _buildInfoRow('Category', type.categoryId.toString()),
-        _buildInfoRow('Color', type.color.toString(), color: type.color.inContext(context)),
+        // TODO COLOR INFO (inlcuding compute info)
+        // _buildInfoRow('Color', type.color.toString(), color: type.color.inContext(context)),
       ],
     );
   }

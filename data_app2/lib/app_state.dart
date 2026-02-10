@@ -2,6 +2,7 @@
 
 import 'dart:io';
 import 'package:data_app2/data/app_prefs.dart';
+import 'package:data_app2/data/evt_type.dart';
 import 'package:data_app2/data/today_summary_data.dart';
 import 'package:data_app2/prefs_io.dart';
 import 'package:data_app2/style.dart';
@@ -47,10 +48,10 @@ class AppState extends ChangeNotifier {
   /// Initialize appstate.
   ///
   /// Will also get a [EvtTypeManagerPersist] and fill evt-type-cache
-  AppState(this._db, this._prefs, this._userStoreDir, this._prefsFile)
-    : _evtTypeManager = EvtTypeManagerPersist(db: _db) {
-    _db.eventTypes.all().then((types) {
-      _evtTypeManager.reloadFromModels(types);
+  AppState(this._db, this._prefs, this._userStoreDir, this._prefsFile) : _evtTypeManager = EvtTypeManagerPersist(_db) {
+    // Fill the cache
+    _db.allTypesAndCats().then((r) {
+      _evtTypeManager.reloadFromModels(r.$1, r.$2);
     });
 
     // check dangling types (move this?)
@@ -64,34 +65,34 @@ class AppState extends ChangeNotifier {
     });
   }
 
-  // --- Preference updating methods ---
+  // --- Preference updating ---
 
   Future<void> setColorScheme(ColorSchemeMode value) async {
-    await _updatePrefs(_prefs.copyWith(colorSchemeMode: value));
+    await updatePrefs(_prefs.copyWith(colorSchemeMode: value));
     Logger.root.info("updated prefs: colorSchemeMode=$value");
   }
 
   Future<void> setAutoLowerCase(bool value) async {
-    await _updatePrefs(_prefs.copyWith(autoLowerCase: value));
+    await updatePrefs(_prefs.copyWith(autoLowerCase: value));
     Logger.root.info("updated prefs: autoLowercase=$value");
   }
 
   Future<void> setLogLevel(LogLevel value) async {
-    await _updatePrefs(_prefs.copyWith(logLevel: value));
+    await updatePrefs(_prefs.copyWith(logLevel: value));
     Logger.root.warning("updated prefs: logLevel=$value");
   }
 
   Future<void> setSearchMode(TextSearchMode value) async {
-    await _updatePrefs(_prefs.copyWith(textSearchMode: value));
+    await updatePrefs(_prefs.copyWith(textSearchMode: value));
     Logger.root.info("updated prefs: textSearchMode=$value");
   }
 
   Future<void> setTodaySummaryMode(SummaryMode value) async {
-    await _updatePrefs(_prefs.copyWith(summaryMode: value));
+    await updatePrefs(_prefs.copyWith(summaryMode: value));
     Logger.root.info("updated prefs: todaySummaryMode=$value");
   }
 
-  Future<void> _updatePrefs(AppPrefs newPrefs) async {
+  Future<void> updatePrefs(AppPrefs newPrefs) async {
     // remember new data
     _prefs = newPrefs;
     // update logger
@@ -113,5 +114,10 @@ class AppState extends ChangeNotifier {
     await dir.create(recursive: true);
 
     return dir;
+  }
+
+  /// convenience function for getting a event type color
+  Color colorFor(EvtTypeRec? evtType) {
+    return _evtTypeManager.colorFor(evtType, prefs.colorSpread);
   }
 }

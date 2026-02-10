@@ -62,29 +62,29 @@ void main() {
 
   group('EvtRepo', () {
     runCrudRepoTests<EvtRec, EvtDraft, Event>(
-      repo: () => db.events,
+      repo: () => db.evts,
       makeDraft: TestDummyData.makeEvtDraft,
       expectEqual: (actual, match) => expect(actual, match), // use equality op
     );
   });
   group('EvtTypeRepo', () {
     runCrudRepoTests<EvtTypeRec, EvtTypeDraft, EventType>(
-      repo: () => db.eventTypes,
+      repo: () => db.evtTypes,
       makeDraft: TestDummyData.makeEvtTypeDraft,
       expectEqual: (a, b) {
         expect(a.id, b.id);
         expect(a.name, b.name, reason: "name");
-        expect(a.color, b.color);
         expect(a.categoryId, b.categoryId, reason: "category Id");
       },
     );
   });
   group('EvtCatRepo', () {
     runCrudRepoTests<EvtCatRec, EvtCatDraft, EventCategory>(
-      repo: () => db.categories,
+      repo: () => db.evtCats,
       makeDraft: TestDummyData.makeEvtCatDraft,
       expectEqual: (a, b) {
         expect(a.id, b.id);
+        expect(a.color, b.color);
         expect(a.name, b.name);
       },
     );

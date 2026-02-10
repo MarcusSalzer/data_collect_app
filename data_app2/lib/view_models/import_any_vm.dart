@@ -57,13 +57,13 @@ class ImportAnyVm extends ChangeNotifier {
       final rows = cod.parseRows(await File(filePath).readAsLines());
       if (cod is EvtCsvCodec) {
         // Events
-        await _app.db.events.createAll(cod.decode(rows));
+        await _app.db.evts.createAll(cod.decode(rows));
       } else if (cod is EvtTypeCsvCodec) {
         // Event types
-        await _app.db.eventTypes.createAll(cod.decode(rows));
+        await _app.db.evtTypes.createAll(cod.decode(rows));
       } else if (cod is EvtCatCsvCodec) {
         // Event categoriues
-        await _app.db.categories.createAll(cod.decode(rows));
+        await _app.db.evtCats.createAll(cod.decode(rows));
       }
       _setStep(ImportStep.done);
     } catch (e) {

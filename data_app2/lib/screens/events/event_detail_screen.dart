@@ -2,8 +2,6 @@ import 'package:data_app2/app_state.dart';
 import 'package:data_app2/data/evt.dart';
 import 'package:data_app2/data/evt_type.dart';
 import 'package:data_app2/dialogs/show_confirm_save_back_dialog.dart';
-import 'package:data_app2/util/enums.dart';
-import 'package:data_app2/util/text_search.dart';
 import 'package:data_app2/view_models/event_detail_view_model.dart';
 import 'package:data_app2/util/fmt.dart';
 import 'package:data_app2/local_datetime.dart';
@@ -52,7 +50,7 @@ class EventDetailScreen extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   Text("Event ${vm.stored?.id}${vm.isDirty ? " *" : ""}"),
-                  CircleAvatar(radius: 8, backgroundColor: vm.evtType?.color.inContext(context)),
+                  CircleAvatar(radius: 8, backgroundColor: vm.color),
                 ],
               ),
               actions: [
@@ -152,7 +150,7 @@ class EventEditForm extends StatelessWidget {
               vm.changeType(v.id);
             },
             optionBuilder: (context, e) => ListTile(
-              leading: CircleAvatar(radius: 5, backgroundColor: e.color.inContext(context)),
+              leading: CircleAvatar(radius: 5, backgroundColor: app.colorFor(e)),
               title: Text(e.name),
             ),
             searchMode: app.textSearchMode,
@@ -223,77 +221,6 @@ class DTPickerPair extends StatelessWidget {
           child: Text(Fmt.time(ldt?.asLocal)),
         ),
       ],
-    );
-  }
-}
-
-/// Textfield for event types, with dropdown autocomplete.
-@Deprecated("new generic version!")
-class EvtTypeSelectorOld extends StatelessWidget {
-  final List<EvtTypeRec> options;
-  final void Function(EvtTypeRec) onSelected;
-
-  final EvtTypeRec? startOpt;
-  final TextSearchMode searchMode;
-
-  const EvtTypeSelectorOld({
-    super.key,
-    required this.options,
-    required this.startOpt,
-    required this.onSelected,
-    required this.searchMode,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Autocomplete<EvtTypeRec>(
-      // how we filter the options
-      optionsBuilder: (TextEditingValue textEditingValue) {
-        if (textEditingValue.text.isEmpty) {
-          return options;
-        }
-        final query = textEditingValue.text.trim();
-
-        return textSearchFilter<EvtTypeRec>(query, options, searchMode, (r) => r.name);
-      },
-      // what happens when the user selects
-      onSelected: onSelected,
-      // how to turn an option into text in the input field
-      displayStringForOption: (EvtTypeRec option) => option.name,
-      // how each suggestion is rendered in the dropdown list
-      optionsViewBuilder: (context, onSelected, Iterable<EvtTypeRec> filteredOptions) {
-        return Align(
-          alignment: Alignment.topLeft,
-          child: Material(
-            elevation: 4.0,
-            child: SizedBox(
-              height: 200, // scrollable area
-              child: ListView.builder(
-                itemCount: filteredOptions.length,
-                itemBuilder: (context, index) {
-                  final option = filteredOptions.elementAt(index);
-                  return ListTile(
-                    leading: CircleAvatar(radius: 5, backgroundColor: option.color.inContext(context)),
-                    title: Text(option.name),
-                    onTap: () => onSelected(option),
-                  );
-                },
-              ),
-            ),
-          ),
-        );
-      },
-      // customizing the input field
-      fieldViewBuilder: (context, textEditingController, focusNode, onFieldSubmitted) {
-        textEditingController.text = startOpt?.name ?? "";
-
-        return TextFormField(
-          controller: textEditingController,
-          focusNode: focusNode,
-          decoration: const InputDecoration(labelText: 'Type', border: OutlineInputBorder()),
-          onFieldSubmitted: (_) => onFieldSubmitted(),
-        );
-      },
     );
   }
 }

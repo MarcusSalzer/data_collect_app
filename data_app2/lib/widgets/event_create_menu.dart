@@ -132,7 +132,7 @@ class CommonEventsSuggest extends StatelessWidget {
                 evm.addEventByName(name, start: DateTime.now());
               },
               shape: RoundedRectangleBorder(
-                side: BorderSide(color: et?.color.inContext(context) ?? Colors.grey),
+                side: BorderSide(color: app.colorFor(et)),
                 borderRadius: BorderRadiusGeometry.all(Radius.circular(6)),
               ),
             );

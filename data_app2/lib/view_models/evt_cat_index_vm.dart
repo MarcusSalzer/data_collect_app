@@ -28,14 +28,14 @@ class EvtCatIndexVm extends ChangeNotifier {
 
   Future<void> load() async {
     _allItems.clear();
-    _allItems.addAll(await _app.db.categories.all());
+    _allItems.addAll(await _app.db.evtCats.all());
     _idToCount = await refreshCounts();
     notifyListeners();
   }
 
   Future<Map<int, int>> refreshCounts() async {
     // Load evtTypes from DB and count references to categories
-    final evtTypes = await _app.db.eventTypes.all();
+    final evtTypes = await _app.db.evtTypes.all();
 
     // value-count all types with a category
     var counts = valueCounts<int>(evtTypes.map((e) => e.categoryId).removeNulls);

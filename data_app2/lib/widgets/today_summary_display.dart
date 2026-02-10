@@ -33,7 +33,7 @@ class TodaySummaryDisplay extends StatelessWidget {
               SizedBox(height: 10),
               MultiBar.horizontal(
                 sizes: summary.items.map((entry) => entry.duration.inMinutes),
-                colors: summary.items.map((entry) => entry.color.inContext(context)).toList(),
+                colors: summary.items.map((entry) => entry.color).toList(),
               ),
             ],
           ),

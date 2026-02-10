@@ -1,7 +1,7 @@
 import 'package:data_app2/util.dart';
 import 'package:flutter/material.dart';
 
-@Deprecated("Doo much logic here")
+@Deprecated("Too much logic here")
 Future<T?> showConfirmSaveBackDialog<T>(BuildContext context, {required Future<T> Function() saveAction}) {
   return showDialog<T?>(
     context: context,

@@ -1,13 +1,13 @@
 import 'package:data_app2/util/colors.dart';
 import 'package:flutter/material.dart';
 
+@Deprecated("New color system uses ColorSpreadScreen")
 class ColorDemoPage extends StatelessWidget {
   ColorDemoPage({super.key});
 
   static const colorComp = ComputedColors();
 
-  final List<Color> baseHues =
-      colorComp.baseHues().map((c) => c.toColor()).toList();
+  final List<Color> baseHues = colorComp.baseHues().map((c) => c.toColor()).toList();
 
   /// Generate N hue variants around the base color.
   List<Color> generateVariants(Color base, {int count = 5}) {
@@ -65,10 +65,7 @@ class ColorDemoPage extends StatelessWidget {
                         child: Text(
                           "Bkg\nAcc",
                           textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: accent,
-                            fontWeight: FontWeight.bold,
-                          ),
+                          style: TextStyle(color: accent, fontWeight: FontWeight.bold),
                         ),
                       ),
                     ),

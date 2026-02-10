@@ -87,7 +87,7 @@ class EventListTile extends StatelessWidget {
 
     final dur = evt.duration;
     final durTxt = " (${Fmt.durationHmVerbose(dur)})";
-    final typeRec = app.evtTypeManager.resolveById(evt.typeId);
+    final typ = app.evtTypeManager.resolveById(evt.typeId);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -106,7 +106,7 @@ class EventListTile extends StatelessWidget {
             ),
           ),
         ListTile(
-          title: Text("${typeRec?.name}$durTxt", style: TextStyle(color: typeRec?.color.inContext(context))),
+          title: Text("${typ?.name}$durTxt", style: TextStyle(color: app.colorFor(typ))),
           subtitle: Padding(
             padding: const EdgeInsets.only(top: 8),
             child: Row(

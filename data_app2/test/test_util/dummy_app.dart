@@ -24,6 +24,7 @@ Future<AppState> getDummyApp() async {
   final (dir, userDir) = await tmpDirWithSubdir();
 
   final db = DBService(await getTmpIsar());
+  await db.ensureReady();
   final prefsFile = File(p.join((await getTmpDir()).path, "test_prefs.json"));
 
   return AppState(db, AppPrefs(), userDir, prefsFile);

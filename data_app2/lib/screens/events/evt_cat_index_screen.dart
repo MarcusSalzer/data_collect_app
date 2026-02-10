@@ -26,7 +26,7 @@ class _Body extends StatelessWidget {
         }
 
         return SelectionList<EvtCatRec>(
-          colorOf: (c) => const Color.fromARGB(237, 200, 124, 124),
+          colorOf: (c) => c.color,
           countOf: (c) => idToCount?[c.id] ?? 0,
           onTapItem: (rec) {
             Navigator.of(context).push(MaterialPageRoute(builder: (context) => EvtCatDetailScreen(rec))).then((_) {

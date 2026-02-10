@@ -39,10 +39,10 @@ void main() {
     expect(dr.start?.offsetMillis, localOffset.inMilliseconds);
 
     // Save to DB
-    final id = await db.events.create(dr);
+    final id = await db.evts.create(dr);
 
     // Load from DB
-    final loaded = await db.events.getById(id);
+    final loaded = await db.evts.getById(id);
     expect(loaded, isNotNull);
     if (loaded == null) throw Exception("should exist in DB");
 
@@ -84,11 +84,11 @@ void main() {
       );
 
       // Save to DB
-      await db.events.updateAll([lastNight, across, earlyMorning]);
+      await db.evts.updateAll([lastNight, across, earlyMorning]);
 
       // get all events for each day
-      final firstDay = (await db.events.filteredLocalTime(latest: midnight)).toList();
-      final secondDay = (await db.events.filteredLocalTime(earliest: midnight)).toList();
+      final firstDay = (await db.evts.filteredLocalTime(latest: midnight)).toList();
+      final secondDay = (await db.evts.filteredLocalTime(earliest: midnight)).toList();
 
       expect(firstDay.length, 1, reason: "Should be 1 event first day");
       expect(firstDay[0], lastNight);

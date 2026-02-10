@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+@Deprecated("New colors")
 enum ColorKey {
   // item 0: default/base color
   base(light: Colors.grey, dark: Color(0xFFAAAAAA)),
@@ -43,16 +44,22 @@ class ComputedColors {
 
 class ColorEngine {
   static const defaults = {
-    "amber": Colors.amber,
-    "blue": Colors.blue,
-    "cyan": Colors.cyan,
-    "green": Colors.green,
-    "grey": Colors.grey,
-    "orange": Colors.orange,
-    "pink": Colors.pink,
-    "red": Colors.red,
+    "blue": Color(0xFF2196F3),
+    "cyan": Color(0xFF00BCD4),
+    "green": Color(0xFF4CAF50),
+    "grey": Color(0xFF818181),
+    "orange": Color(0xFFFF9800),
+    "pink": Color(0xFFE91E63),
+    "red": Color(0xFFF44336),
   };
-  static const defaultColor = Colors.grey;
+  static const defaultColor = Color(0xFF818181);
+
+  /// center around base
+  static double norm(int index, int count) {
+    final mid = (count - 1) / 2;
+    final offset = index - mid;
+    return offset / (count == 1 ? 1 : mid);
+  }
 
   static Color spread(
     Color base,
@@ -68,12 +75,16 @@ class ColorEngine {
     final norm = offset / (count == 1 ? 1 : mid);
 
     final hueShift = spreadFactor * 20 * norm; // degrees
+    final satShift = spreadFactor * 0.5 / (norm.abs() + 1);
+
     final lightShift = spreadFactor * 0.15 * norm; // lightness
 
-    return hsl
-        .withHue((hsl.hue + hueShift) % 360)
-        .withLightness((hsl.lightness + lightShift).clamp(0.15, 0.85))
-        .toColor();
+    return HSLColor.fromAHSL(
+      1,
+      (hsl.hue + hueShift) % 360, // hue in degrees [0,360]
+      (hsl.saturation + satShift).clamp(0.15, 0.9), // saturation in [0,1] (clamp more to keep color)
+      (hsl.lightness + lightShift).clamp(0.15, 0.85), // lightness in [0,1] (clamp more to keep color)
+    ).toColor();
   }
 }
 

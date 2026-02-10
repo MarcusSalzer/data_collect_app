@@ -1,6 +1,7 @@
 import 'package:data_app2/app_state.dart';
 import 'package:data_app2/data/evt_type.dart';
 import 'package:data_app2/screens/events/multi_evt_type_summary_screen.dart';
+import 'package:data_app2/util/colors.dart';
 import 'package:data_app2/view_models/event_type_index_view_model.dart';
 import 'package:data_app2/screens/events/event_type_detail_screen.dart';
 import 'package:data_app2/screens/events/event_type_overview_screen.dart';
@@ -122,6 +123,7 @@ class DanglingTypeRefsWarningBox extends StatelessWidget {
 }
 
 /// List showing event types.
+@Deprecated("MAYBE use SelectionList instead")
 class EvtTypeList extends StatelessWidget {
   const EvtTypeList({super.key});
 
@@ -147,7 +149,9 @@ class EvtTypeList extends StatelessWidget {
                         selVM.toggle(typeRec.id);
                       },
                     ),
-                    title: Text(typeRec.name, style: TextStyle(color: typeRec.color.inContext(context))),
+
+                    ///TODO COLOR UNLESS DEPRECATED
+                    title: Text(typeRec.name, style: TextStyle(color: ColorEngine.defaultColor)),
                     subtitle: Text(count.toString()),
                     onTap: () {
                       Navigator.of(

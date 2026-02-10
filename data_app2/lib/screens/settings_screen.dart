@@ -1,4 +1,5 @@
 import 'package:data_app2/app_state.dart';
+import 'package:data_app2/screens/color_spread_screen.dart';
 import 'package:data_app2/screens/home_screen.dart';
 import 'package:data_app2/screens/welcome_screen.dart';
 import 'package:data_app2/style.dart';
@@ -10,6 +11,7 @@ import 'package:data_app2/widgets/confirm_dialog.dart';
 import 'package:data_app2/widgets/enum_dropdown_with_description.dart';
 import 'package:data_app2/widgets/two_columns.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:logging/logging.dart';
 import 'package:provider/provider.dart';
 
@@ -131,6 +133,16 @@ class SettingsScreen extends StatelessWidget {
                   onChanged: (v) => app.setTodaySummaryMode(v),
                   descriptionOf: (v) => v.description,
                 ),
+                SettingContainer(
+                  "Color spread",
+                  "Spread colors in categories",
+                  child: TextButton(
+                    onPressed: () {
+                      Navigator.of(context).push(MaterialPageRoute(builder: (_) => ColorSpreadScreen(app)));
+                    },
+                    child: Text(NumberFormat.decimalPercentPattern(decimalDigits: 0).format(app.prefs.colorSpread)),
+                  ),
+                ),
 
                 SizedBox(height: 20),
                 Text("Info", style: TextStyle(fontSize: 20)),
@@ -184,9 +196,9 @@ class SettingsScreen extends StatelessWidget {
                                     onPressed: () async {
                                       Navigator.pop(context);
                                       // delete all from DB
-                                      final cEvent = await app.db.events.forceDeleteAll();
-                                      final cType = await app.db.eventTypes.forceDeleteAll();
-                                      final cCat = await app.db.categories.forceDeleteAll();
+                                      final cEvent = await app.db.evts.forceDeleteAll();
+                                      final cType = await app.db.evtTypes.forceDeleteAll();
+                                      final cCat = await app.db.evtCats.forceDeleteAll();
 
                                       await app.clearPrefs();
 
@@ -225,7 +237,7 @@ class SettingsScreen extends StatelessWidget {
                           title: "Generate dummy data",
                           action: () async {
                             final recs = await dummyEvents(app);
-                            await app.db.events.createAll(recs);
+                            await app.db.evts.createAll(recs);
                             Logger.root.warning("generated dummy data");
                             if (context.mounted) {
                               simpleSnack(context, "open events to refresh!");
@@ -238,6 +250,8 @@ class SettingsScreen extends StatelessWidget {
                   label: Text("Generate dummy data"),
                   icon: Icon(Icons.shuffle),
                 ),
+                // extra padding at bottom of scroll
+                SizedBox(height: 40),
               ],
             ),
           ),

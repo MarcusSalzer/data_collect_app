@@ -14,8 +14,8 @@ void main() {
 
   tearDown(() {
     //clear db and cache
-    app.db.events.forceDeleteAll();
-    app.db.eventTypes.forceDeleteAll();
+    app.db.evts.forceDeleteAll();
+    app.db.evtTypes.forceDeleteAll();
     app.evtTypeManager.clearCache();
   });
 

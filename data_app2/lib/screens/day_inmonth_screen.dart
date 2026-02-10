@@ -45,6 +45,7 @@ class DayInmonthScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final app = Provider.of<AppState>(context, listen: false);
+    final colorSpread = app.prefs.colorSpread;
     return ChangeNotifierProvider<DayInmonthViewModel>(
       create: (context) {
         return DayInmonthViewModel(startDate, monthModel.events)..refresh();
@@ -60,7 +61,7 @@ class DayInmonthScreen extends StatelessWidget {
                     timings: vm.tpe
                         .map((e) => MapEntry(app.evtTypeManager.resolveById(e.key)?.name ?? "?", e.value))
                         .toList(),
-                    colors: vm.tpe.map((e) => app.evtTypeManager.resolveById(e.key)?.color.inContext(context)).toList(),
+                    colors: vm.tpe.map((e) => app.evtTypeManager.colorForId(e.key, colorSpread)).toList(),
                   ),
                   SizedBox(height: 30),
                   Text("Events", style: TextStyle(fontSize: 20)),

@@ -32,7 +32,7 @@ class EventCreateViewVM extends ChangeNotifier {
   /// Add a event of a "known" type, for example by clicking suggestion.
   Future<void> addEventByTypeId(int typeId, {DateTime? start, DateTime? end}) async {
     final draft = EvtDraft.inCurrentTZ(typeId, start: start, end: end);
-    final newId = await _app.db.events.create(draft);
+    final newId = await _app.db.evts.create(draft);
     _events.add(draft.toRec(newId));
     notifyListeners();
   }
@@ -50,14 +50,14 @@ class EventCreateViewVM extends ChangeNotifier {
 
   Future<void> delete(EvtRec event) async {
     final id = event.id;
-    await _app.db.events.forceDelete(id);
+    await _app.db.evts.forceDelete(id);
     _events.remove(event);
     notifyListeners();
   }
 
   /// Save a new or updated event
   Future<EvtRec> updateEvent(EvtRec evt) async {
-    await _app.db.events.update(evt);
+    await _app.db.evts.update(evt);
     notifyListeners();
     // TODO dont return?
     return evt;
@@ -65,7 +65,7 @@ class EventCreateViewVM extends ChangeNotifier {
 
   /// Update in memory list, of reverse chronological events
   Future<void> getLatest() async {
-    _events = (await _app.db.events.latest(_nList)).toList().reversed.toList();
+    _events = (await _app.db.evts.latest(_nList)).toList().reversed.toList();
     notifyListeners();
   }
 
@@ -79,7 +79,7 @@ class EventCreateViewVM extends ChangeNotifier {
 
   /// Count each event type
   Future<void> refreshCounts() async {
-    final evts = await _app.db.events.latest(nFreq);
+    final evts = await _app.db.evts.latest(nFreq);
 
     var counts = valueCounts<int>(evts.map((e) => e.typeId));
 

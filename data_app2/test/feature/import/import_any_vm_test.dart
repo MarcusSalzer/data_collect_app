@@ -52,7 +52,7 @@ void main() {
 
     expect(vm.step, ImportStep.done);
     // new data should be in DB.
-    expect((await app.db.eventTypes.all()).map((e) => e.name).toSet(), {"hello", "world"});
+    expect((await app.db.evtTypes.all()).map((e) => e.name).toSet(), {"hello", "world"});
   });
 
   test('unknown CSV columns results in error', () async {

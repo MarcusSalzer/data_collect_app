@@ -17,8 +17,8 @@ class CompleteExportVm extends ChangeNotifier {
     state = Loading();
     notifyListeners();
 
-    final ce = await _app.db.events.count();
-    final ct = await _app.db.eventTypes.count();
+    final ce = await _app.db.evts.count();
+    final ct = await _app.db.evtTypes.count();
     await Future.delayed(Duration(milliseconds: 400));
 
     if (ce > 0) {

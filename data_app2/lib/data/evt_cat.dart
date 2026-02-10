@@ -33,13 +33,13 @@ class EvtCatDraft extends Draft<EvtCatRec> {
 class EvtCatRec implements Identifiable {
   final String name;
 
-  EvtCatRec(this.id, this.name, this.color);
+  EvtCatRec(this.id, this.name, [this.color = ColorEngine.defaultColor]);
   @override
   final int id;
   final Color color;
 
   @override
   EvtCatDraft toDraft() {
-    return EvtCatDraft(name);
+    return EvtCatDraft(name, color);
   }
 }

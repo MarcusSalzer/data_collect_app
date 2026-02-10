@@ -14,8 +14,8 @@ void main() {
 
   tearDown(() {
     //clear db and cache
-    app.db.events.forceDeleteAll();
-    app.db.eventTypes.forceDeleteAll();
+    app.db.evts.forceDeleteAll();
+    app.db.evtTypes.forceDeleteAll();
     app.evtTypeManager.clearCache();
   });
 
@@ -24,9 +24,9 @@ void main() {
       await app.setAutoLowerCase(false);
 
       await createVm.addEventByName("NEW!");
-      final allEvts = (await app.db.events.all()).toList();
+      final allEvts = (await app.db.evts.all()).toList();
       expect(allEvts.length, 1);
-      expect(app.evtTypeManager.all.length, 1);
+      expect(app.evtTypeManager.allTypes.length, 1);
       final et = app.evtTypeManager.resolveById(allEvts[0].typeId);
       expect(et!.name, "NEW!");
     });
@@ -34,9 +34,9 @@ void main() {
       await app.setAutoLowerCase(true);
 
       await createVm.addEventByName("NEW!");
-      final allEvts = (await app.db.events.all()).toList();
+      final allEvts = (await app.db.evts.all()).toList();
       expect(allEvts.length, 1);
-      expect(app.evtTypeManager.all.length, 1);
+      expect(app.evtTypeManager.allTypes.length, 1);
       final et = app.evtTypeManager.resolveById(allEvts[0].typeId);
       expect(et!.name, "new!");
     });
@@ -46,11 +46,11 @@ void main() {
       await createVm.addEventByName("NEW!");
       await createVm.addEventByName("new!");
       await createVm.addEventByName("nEw!");
-      final allEvts = await app.db.events.all();
+      final allEvts = await app.db.evts.all();
 
       // 3 events, should count as the same type!
       expect(allEvts.length, 3);
-      expect(app.evtTypeManager.all.length, 1);
+      expect(app.evtTypeManager.allTypes.length, 1);
     });
   });
 }

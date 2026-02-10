@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:data_app2/app_state.dart';
 import 'package:data_app2/contracts/edit_vm.dart';
 import 'package:data_app2/data/evt_cat.dart';
@@ -16,7 +18,7 @@ class EvtTypeDetailVm extends EditVm<EvtTypeRec, EvtTypeDraft> {
 
   Map<int, EvtCatRec>? _catsById;
   List<EvtCatRec>? get categories => _catsById?.values.toList();
-  ColorKey get color => draft.color;
+  Color get color => ColorEngine.defaultColor; // TODO both colors?
   EvtCatRec? get currentCategory => _catsById?[draft.categoryId];
 
   // void updateColor(ColorKey newColor) {
@@ -29,14 +31,14 @@ class EvtTypeDetailVm extends EditVm<EvtTypeRec, EvtTypeDraft> {
     notifyListeners();
   }
 
-  void updateCategory(int? catId) {
+  void updateCategory(int catId) {
     draft.categoryId = catId;
     notifyListeners();
   }
 
   /// Load additional needed data (Categories)
   Future<void> load() async {
-    _catsById = Map.fromEntries((await _app.db.categories.all()).map((r) => MapEntry(r.id, r)));
+    _catsById = Map.fromEntries((await _app.db.evtCats.all()).map((r) => MapEntry(r.id, r)));
     notifyListeners();
   }
 
@@ -48,7 +50,7 @@ class EvtTypeDetailVm extends EditVm<EvtTypeRec, EvtTypeDraft> {
     var didDelete = false;
 
     try {
-      didDelete = await _app.db.eventTypes.deleteIfUnreferenced(stored.id);
+      didDelete = await _app.db.evtTypes.deleteIfUnreferenced(stored.id);
       await _app.evtTypeManager.remove(stored.id, stored.name);
     } on DbRefExistsError catch (e) {
       errorMsg = "Category ${e.id} has references, will not delete";
@@ -66,14 +68,14 @@ class EvtTypeDetailVm extends EditVm<EvtTypeRec, EvtTypeDraft> {
     try {
       if (storedId == null) {
         // We are creating a new record
-        final newId = await _app.db.eventTypes.create(draft);
+        final newId = await _app.db.evtTypes.create(draft);
         final newRec = draft.toRec(newId);
         _app.evtTypeManager.add(newRec);
         stored = newRec;
       } else {
         // We are updating a stored record
         final updated = draft.toRec(storedId);
-        await _app.db.eventTypes.update(updated);
+        await _app.db.evtTypes.update(updated);
         _app.evtTypeManager.add(updated);
         stored = updated;
       }

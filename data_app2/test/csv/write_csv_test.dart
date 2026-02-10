@@ -2,22 +2,24 @@ import 'package:data_app2/csv/evt_csv.dart';
 import 'package:data_app2/csv/evt_type_csv.dart';
 import 'package:data_app2/data/evt.dart';
 import 'package:data_app2/data/evt_type.dart';
-import 'package:data_app2/util/colors.dart';
 import 'package:data_app2/event_type_manager.dart';
 import 'package:data_app2/local_datetime.dart';
 import 'package:test/test.dart';
+
+import '../test_util/dummy_data.dart';
 
 /// Dummy function for types
 EvtTypeRec resolveType(int typeId) {
   return EvtTypeRec(typeId, "Type$typeId");
 }
 
-final evtTypeMan = EvtTypeManager(types: [EvtTypeRec(1, "Type1"), EvtTypeRec(2, "Type2")]);
+final evtTypeMan = EvtTypeManager();
 
 void main() {
+  evtTypeMan.reloadFromModels(SimpleDummyData.getDummyEvtTypes(), SimpleDummyData.getDummyEvtCats());
   // test type
-  final typeId = evtTypeMan.all.first.id;
-  final typeName = evtTypeMan.all.first.name;
+  final typeId = evtTypeMan.allTypes.first.id;
+  final typeName = evtTypeMan.allTypes.first.name;
 
   test('write single Event Draft, named types', () {
     // create a new event
@@ -53,10 +55,10 @@ void main() {
   test('write single EventType', () {
     final codec = EvtTypeCsvCodec();
     // create a new event
-    final r = EvtTypeDraft("mytype", ColorKey.blue, null);
+    final r = EvtTypeDraft("mytype", 1);
     final lines = codec.encodeWithHeader([r]).toList();
 
     expect(lines[0], "name,category");
-    expect(lines[1], "mytype,");
+    expect(lines[1], "mytype,1");
   });
 }

@@ -1,53 +1,46 @@
 import 'package:data_app2/contracts/data.dart';
-import 'package:data_app2/util/colors.dart';
+import 'package:data_app2/repos/evt_cat_repo.dart';
 
 class EvtTypeDraft extends Draft<EvtTypeRec> {
-  EvtTypeDraft(this.name, [this.color = ColorKey.base, this.categoryId]);
+  EvtTypeDraft(this.name, [this.categoryId = EvtCatRepo.defaultId]);
 
   // === fields ===
   String name;
-  ColorKey color;
-  int? categoryId;
+  int categoryId;
 
   @override
   String toString() {
-    return "($name, $color)";
+    return "($name, cat: $categoryId)";
   }
 
-  //   EvtTypeDraft copyWith({int? id, String? name, ColorKey? color, int? categoryId}) {
-  //     return EvtTypeDraft(name ?? this.name, color ?? this.color, categoryId ?? this.categoryId);
-  //   }
+  @override
+  bool operator ==(Object other) => other is EvtTypeDraft && name == other.name && categoryId == other.categoryId;
 
   @override
-  bool operator ==(Object other) =>
-      other is EvtTypeDraft && name == other.name && color == other.color && categoryId == other.categoryId;
-
-  @override
-  int get hashCode => Object.hash(name, color, categoryId);
+  int get hashCode => Object.hash(name, categoryId);
 
   @override
   EvtTypeRec toRec(int id) {
-    return EvtTypeRec(id, name, color, categoryId);
+    return EvtTypeRec(id, name, categoryId);
   }
 }
 
 class EvtTypeRec implements Identifiable {
-  EvtTypeRec(this.id, this.name, [this.color = ColorKey.base, this.categoryId]);
+  EvtTypeRec(this.id, this.name, [this.categoryId = EvtCatRepo.defaultId]);
 
   // === fields ===
   final String name;
-  final ColorKey color;
-  final int? categoryId;
+  final int categoryId;
   @override
   final int id;
 
   @override
   String toString() {
-    return "($id, $name, $color, $categoryId)";
+    return "($id, $name, cat: $categoryId)";
   }
 
   @override
   EvtTypeDraft toDraft() {
-    return EvtTypeDraft(name, color, categoryId);
+    return EvtTypeDraft(name, categoryId);
   }
 }

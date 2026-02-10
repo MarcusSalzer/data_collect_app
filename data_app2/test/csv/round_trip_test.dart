@@ -4,7 +4,7 @@ import 'package:test/test.dart';
 void main() {
   test("EvtType drafts", () {
     final codec = EvtTypeCsvCodec();
-    final lines = ["name,category", "hello,", "world,3"];
+    final lines = ["name,category", "hello,1", "world,3"];
     final recs = codec.decode(codec.parseRows(lines));
     final written = codec.encodeWithHeader(recs).toList();
     expect(written, lines);

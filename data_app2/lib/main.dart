@@ -44,10 +44,13 @@ void main() async {
       // first startup, store default prefs
       PrefsIo.store(AppPrefs(), prefsFile);
     }
+    final db = DBService(await initIsar(prefsFile.parent));
+    await db.ensureReady();
+
     runApp(
       MyApp(
         // Need a db. stored next to prefs
-        db: DBService(await initIsar(prefsFile.parent)),
+        db: db,
         prefs: prefs ?? AppPrefs(),
         userStoreDir: await defaultUserStoreDir(),
         // No prefs -> first startup

@@ -113,7 +113,7 @@ class EventDurationTable extends StatelessWidget {
                 child: Row(
                   spacing: 4,
                   children: [
-                    CircleAvatar(radius: 3, backgroundColor: entry.color.inContext(context)),
+                    CircleAvatar(radius: 3, backgroundColor: entry.color),
 
                     Text(entry.name, overflow: TextOverflow.ellipsis),
                   ],
@@ -138,7 +138,7 @@ class EventDurationTable extends StatelessWidget {
             padding: const EdgeInsets.symmetric(vertical: 8.0),
             child: MultiBar.horizontal(
               sizes: summary.items.map((entry) => entry.duration.inMinutes),
-              colors: summary.items.map((entry) => entry.color.inContext(context)).toList(),
+              colors: summary.items.map((entry) => entry.color).toList(),
               thickness: 3,
             ),
           )

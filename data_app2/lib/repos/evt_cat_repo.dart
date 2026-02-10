@@ -8,6 +8,9 @@ import 'package:isar_community/isar.dart';
 
 /// Persist Categories
 class EvtCatRepo extends CrudRepo<EvtCatRec, EvtCatDraft, EventCategory> {
+  // should always exist a "default category", with this id
+  static const defaultId = 1;
+
   EvtCatRepo(super.isar)
     : super(
         draftToIsar: (d) => EventCategory(d.name, d.color.toARGB32()),
@@ -22,6 +25,15 @@ class EvtCatRepo extends CrudRepo<EvtCatRec, EvtCatDraft, EventCategory> {
   get idProp => isar.eventCategorys.where().idProperty();
 
   // === Specific queries... ===
+
+  Future<void> ensureReady() async {
+    await isar.writeTxn(() async {
+      final existing = await coll.get(defaultId);
+      if (existing == null) {
+        coll.put(recToIsar(EvtCatRec(defaultId, "(Misc)")));
+      }
+    });
+  }
 
   /// Delete a category, throws [DbRefExistsError] if it is referenced by some EvtType
   Future<bool> deleteIfUnreferenced(int id) async {

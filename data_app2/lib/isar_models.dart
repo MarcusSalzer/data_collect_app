@@ -54,10 +54,9 @@ class EventType {
   @Index(unique: true)
   String name;
   @Enumerated(EnumType.ordinal)
-  ColorKey color;
-  int? categoryId;
+  int categoryId;
 
-  EventType(this.name, [this.color = ColorKey.base, this.categoryId]);
+  EventType(this.name, [this.categoryId = 1]);
 }
 
 /// A category of event types

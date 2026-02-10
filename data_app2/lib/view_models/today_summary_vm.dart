@@ -29,7 +29,7 @@ class TodaySummaryVm extends ChangeNotifier {
   }
 
   Future<void> refresh() async {
-    final evts = await _app.db.events.filteredLocalTime(
+    final evts = await _app.db.evts.filteredLocalTime(
       earliest: LocalDateTime.fromDateTimeLocalTZ(DateTime.now().startOfDay),
     );
 
@@ -40,7 +40,7 @@ class TodaySummaryVm extends ChangeNotifier {
         todaySummary = SummaryDataList(
           tpe.map((e) {
             final et = _app.evtTypeManager.resolveById(e.key);
-            return SummaryItem(et?.name ?? "other", et?.color ?? ColorKey.base, e.value);
+            return SummaryItem(et?.name ?? "other", _app.colorFor(et), e.value);
           }).toList(),
         );
         break;
@@ -53,7 +53,7 @@ class TodaySummaryVm extends ChangeNotifier {
   }
 
   Future<SummaryDataList> _groupByCategories(List<MapEntry<int, Duration>> byTypeId) async {
-    final categories = await _app.db.categories.all();
+    final categories = await _app.db.evtCats.all();
     final idToCat = Map.fromEntries(categories.map((c) => MapEntry(c.id, c)));
     final byCat = <int?, Duration>{};
 
@@ -66,7 +66,7 @@ class TodaySummaryVm extends ChangeNotifier {
     return SummaryDataList(
       byCat.entries.map((e) {
         final cat = idToCat[e.key];
-        return SummaryItem(cat?.name ?? "unknown", ColorKey.base, e.value);
+        return SummaryItem(cat?.name ?? "unknown", ColorEngine.defaultColor, e.value);
       }).toList(),
     );
   }

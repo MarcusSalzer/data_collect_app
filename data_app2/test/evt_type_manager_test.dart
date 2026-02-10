@@ -1,46 +1,47 @@
 import 'package:data_app2/data/evt_type.dart';
 import 'package:data_app2/db_service.dart';
-import 'package:data_app2/util/colors.dart';
 import 'package:data_app2/event_type_manager.dart';
 import 'package:isar_community/isar.dart';
 import 'package:test/test.dart';
 import 'test_util/dummy_app.dart';
+import 'test_util/dummy_data.dart';
 
-final exampleTypes = [EvtTypeRec(1, "a", ColorKey.amber), EvtTypeRec(2, "b", ColorKey.blue)];
+final exampleTypes = SimpleDummyData.getDummyEvtTypes();
+final exampleCats = SimpleDummyData.getDummyEvtCats();
 void main() {
   group("[in memory]", () {
     test("resolve: get types", () {
-      final repo = EvtTypeManager(types: exampleTypes);
-      expect(repo.resolveById(1), exampleTypes[0]);
-      expect(repo.resolveByName("b"), exampleTypes[1]);
+      final manager = EvtTypeManager()..reloadFromModels(exampleTypes, exampleCats);
+      expect(manager.resolveById(1), exampleTypes[0]);
+      expect(manager.resolveByName(exampleTypes[1].name), exampleTypes[1]);
     });
     test("resolve: missing types -> null", () {
-      final repo = EvtTypeManager(types: exampleTypes);
-      expect(repo.resolveById(3), null);
-      expect(repo.resolveByName("bad"), null);
+      final manager = EvtTypeManager()..reloadFromModels(exampleTypes, exampleCats);
+      expect(manager.resolveById(393), null);
+      expect(manager.resolveByName("thrash dont exist"), null);
     });
 
     test("add: can add and resolve", () {
-      final repo = EvtTypeManager(types: exampleTypes);
+      final manager = EvtTypeManager()..reloadFromModels(exampleTypes, exampleCats);
       final newType = EvtTypeRec(13, "new");
-      repo.add(newType);
+      manager.add(newType);
       // Id should be added
-      expect(repo.resolveById(13), newType);
-      expect(repo.resolveByName("new"), newType);
-      expect(repo.all.length, 3);
+      expect(manager.resolveById(13), newType);
+      expect(manager.resolveByName("new"), newType);
+      expect(manager.allTypes.length, exampleTypes.length + 1);
     });
 
     test("add: should notify", () {
       var notifyCount = 0;
-      final repo = EvtTypeManager(types: exampleTypes);
-      repo.addListener(() {
+      final manager = EvtTypeManager()..reloadFromModels(exampleTypes, exampleCats);
+      manager.addListener(() {
         notifyCount++;
-        expect(repo.all.length, exampleTypes.length + notifyCount);
+        expect(manager.allTypes.length, exampleTypes.length + notifyCount);
       });
       expect(notifyCount, 0);
       final newType = EvtTypeRec(14, "new");
 
-      repo.add(newType);
+      manager.add(newType);
       expect(notifyCount, 1);
     });
   });
@@ -52,7 +53,7 @@ void main() {
     setUp(() async {
       isar = await getTmpIsar();
       db = DBService(isar);
-      manager = EvtTypeManagerPersist(db: db);
+      manager = EvtTypeManagerPersist(db);
     });
 
     tearDown(() async {
@@ -61,9 +62,9 @@ void main() {
     });
 
     test('fill from models objects', () {
-      manager.reloadFromModels(exampleTypes);
+      manager.reloadFromModels(exampleTypes, exampleCats);
 
-      expect(manager.all, exampleTypes);
+      expect(manager.allTypes, exampleTypes);
     });
   });
 }

@@ -1,3 +1,4 @@
+import 'package:data_app2/data/evt_cat.dart';
 import 'package:data_app2/data/evt_type.dart';
 import 'package:data_app2/db_service.dart';
 import 'package:data_app2/util/colors.dart';
@@ -7,65 +8,80 @@ import 'package:logging/logging.dart';
 /// Handle caching/storing and resolves types from id and name etc.
 class EvtTypeManager extends ChangeNotifier {
   // Store both maps for fast lookup
-  Map<String, EvtTypeRec> _byName = {};
-  Map<int, EvtTypeRec> _byId = {};
+  Map<String, EvtTypeRec> _typesByName = {};
+  Map<int, EvtTypeRec> _typesById = {};
+  // also store categories
+  Map<int, EvtCatRec> _catsById = {};
 
   // To look up which how many in each category
   Map<int, int> _catSizes = {};
   // To look up which "position" each type has in its category.
   Map<int, int> _posInCat = {};
 
-  /// optionally fill with types
-  EvtTypeManager({Iterable<EvtTypeRec>? types}) {
-    if (types != null) {
-      _fill(types);
-    }
-  }
-
-  List<EvtTypeRec> get all => _byId.values.toList();
+  List<EvtTypeRec> get allTypes => _typesById.values.toList();
 
   /// Fill the cache and recompute things
   void _fill(Iterable<EvtTypeRec> evtTypes) {
-    _byName = {};
-    _byId = {};
+    _typesByName = {};
+    _typesById = {};
     // Category membership
     _catSizes = {};
     _posInCat = {};
     for (var rec in evtTypes) {
-      _byName[rec.name] = rec;
-      _byId[rec.id] = rec;
+      _typesByName[rec.name] = rec;
+      _typesById[rec.id] = rec;
+
+      // Category stats
+      final catId = rec.categoryId;
+      final pos = _catSizes[catId] ?? 0;
+      _catSizes[catId] = pos + 1;
+      _posInCat[rec.id] = pos;
     }
   }
 
+  Color colorFor(EvtTypeRec? evtType, double spread) {
+    if (evtType == null) {
+      return ColorEngine.defaultColor;
+    }
+    final cat = _catsById[evtType.categoryId];
+    if (cat == null) {
+      return ColorEngine.defaultColor;
+    }
+    return ColorEngine.spread(cat.color, _posInCat[evtType.id] ?? 0, _catSizes[cat.id] ?? 1, spread);
+  }
+
+  Color colorForId(int id, double spread) => colorFor(resolveById(id), spread);
+
   /// Reset cache and fill
-  void reloadFromModels(Iterable<EvtTypeRec> evtTypes) {
+  void reloadFromModels(Iterable<EvtTypeRec> evtTypes, Iterable<EvtCatRec> cats) {
+    _catsById = Map.fromEntries(cats.map((e) => MapEntry(e.id, e)));
     _fill(evtTypes);
     notifyListeners();
   }
 
   /// add a single type
   void add(EvtTypeRec rec) {
-    _byName[rec.name] = rec;
-    _byId[rec.id] = rec;
+    _typesByName[rec.name] = rec;
+    _typesById[rec.id] = rec;
     notifyListeners();
   }
 
   /// Resolve type from cache only, return null if missing.
-  EvtTypeRec? resolveById(int id) => _byId[id];
+  EvtTypeRec? resolveById(int id) => _typesById[id];
 
   /// Resolve type from cache only, return null if missing.
-  EvtTypeRec? resolveByName(String name) => _byName[name];
+  EvtTypeRec? resolveByName(String name) => _typesByName[name];
 
   /// Clear all from cache
   void clearCache() {
-    _byId = {};
-    _byName = {};
+    _typesById = {};
+    _typesByName = {};
     Logger.root.fine("Cleared event type cache");
   }
 
   void remove(int id, String name) {
-    _byName.remove(name);
-    _byId.remove(id);
+    _typesByName.remove(name);
+    _typesById.remove(id);
     notifyListeners();
   }
 }
@@ -73,7 +89,7 @@ class EvtTypeManager extends ChangeNotifier {
 class EvtTypeManagerPersist extends EvtTypeManager {
   final DBService _db;
 
-  EvtTypeManagerPersist({required DBService db, super.types}) : _db = db;
+  EvtTypeManagerPersist(DBService db) : _db = db;
 
   /// Get a type id, trying in priority:
   /// 1. get type-id from cache
@@ -83,7 +99,7 @@ class EvtTypeManagerPersist extends EvtTypeManager {
     if (cached != null) {
       return cached;
     }
-    final fromDB = await _db.eventTypes.getOrCreate(name);
+    final fromDB = await _db.evtTypes.getOrCreate(name);
     add(fromDB);
     // state has updated
     notifyListeners();
@@ -93,7 +109,7 @@ class EvtTypeManagerPersist extends EvtTypeManager {
   /// Delete both from DB and cache
   @override
   Future<bool> remove(int id, String name) async {
-    final didDelete = await _db.eventTypes.forceDelete(id);
+    final didDelete = await _db.evtTypes.forceDelete(id);
     super.remove(id, name);
     return didDelete;
   }
