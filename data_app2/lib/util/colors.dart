@@ -29,8 +29,6 @@ enum ColorKey {
   }
 }
 
-final colorKeysByName = Map.fromEntries(ColorKey.values.map((e) => MapEntry(e.name, e)));
-
 /// Allow nicely distributed groups of colors
 class ComputedColors {
   const ComputedColors();

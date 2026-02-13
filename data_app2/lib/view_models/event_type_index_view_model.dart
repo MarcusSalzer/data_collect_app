@@ -10,6 +10,9 @@ class EventTypeIndexViewModel extends ChangeNotifier {
   LinkedHashMap<int, int>? _idToCount;
   LinkedHashMap<int, int>? get idToCount => _idToCount;
 
+  int countOf(EvtTypeRec rec) => _idToCount?[rec.id] ?? 0;
+  Color colorOf(EvtTypeRec rec) => _app.colorFor(rec);
+
   Iterable<int> danglingTypeRefs = {};
 
   EvtTypeRec? eventType(int id) {

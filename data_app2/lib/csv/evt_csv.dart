@@ -2,7 +2,7 @@ import 'package:data_app2/csv/builtin_schemas.dart';
 import 'package:data_app2/csv/csv_row.dart';
 import 'package:data_app2/csv/csv_schema.dart';
 import 'package:data_app2/data/evt.dart';
-import 'package:data_app2/event_type_manager.dart';
+import 'package:data_app2/evt_type_manager.dart';
 import 'package:data_app2/local_datetime.dart';
 
 class EvtCsvCodec extends CsvCodecRW<EvtDraft> {
@@ -13,8 +13,9 @@ class EvtCsvCodec extends CsvCodecRW<EvtDraft> {
   get schema => CsvSchemasConst.evt;
 
   /// Parse data for LocalDateTime
+  /// p=(utc string and offset in seconds)
   LocalDateTime? _getLdt((String, String)? p) {
-    return (p == null) ? null : LocalDateTime.fromUtcISOAndOffset(utcIso: p.$1, offsetMillis: int.parse(p.$2));
+    return (p == null) ? null : LocalDateTime.fromUtcISOAndOffset(utcIso: p.$1, offsetMillis: int.parse(p.$2) * 1000);
   }
 
   @override

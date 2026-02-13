@@ -8,6 +8,7 @@ import 'package:data_app2/screens/events/event_type_overview_screen.dart';
 import 'package:data_app2/util.dart';
 import 'package:data_app2/view_models/generic_selection_vm.dart';
 import 'package:data_app2/widgets/selection_fab.dart';
+import 'package:data_app2/widgets/selection_list.dart';
 import 'package:data_app2/widgets/selection_search_box.dart';
 import 'package:data_app2/widgets/selection_app_bar.dart';
 import 'package:flutter/material.dart';
@@ -43,11 +44,21 @@ class _Body extends StatelessWidget {
                     },
                     child: Text("recreate missing types"),
                   ),
-                  Expanded(child: EvtTypeList()),
                 ],
               );
             }
-            return EvtTypeList();
+            return SelectionList<EvtTypeRec>(
+              colorOf: indexVM.colorOf,
+              countOf: indexVM.countOf,
+              onTapItem: (r) {
+                Navigator.of(context).push(MaterialPageRoute(builder: (context) => EventTypeOverviewScreen(r.id))).then(
+                  (_) {
+                    // reload data
+                    indexVM.load();
+                  },
+                );
+              },
+            );
           },
         );
       },

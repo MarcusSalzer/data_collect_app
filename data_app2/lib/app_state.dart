@@ -7,7 +7,7 @@ import 'package:data_app2/data/today_summary_data.dart';
 import 'package:data_app2/prefs_io.dart';
 import 'package:data_app2/style.dart';
 import 'package:data_app2/util/enums.dart';
-import 'package:data_app2/event_type_manager.dart';
+import 'package:data_app2/evt_type_manager.dart';
 import 'package:data_app2/util/extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:data_app2/db_service.dart';

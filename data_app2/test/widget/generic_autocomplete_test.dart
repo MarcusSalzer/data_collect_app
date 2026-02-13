@@ -5,7 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   final options = ["abra", "cadabra", "zim", "salabim"];
-  testWidgets("description", (tester) async {
+  testWidgets("render autocomplete widget", (tester) async {
     // track selected values?
     final selections = <String>[];
     // setup

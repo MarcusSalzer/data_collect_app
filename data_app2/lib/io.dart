@@ -99,8 +99,8 @@ class EvtImportSummary {
 
   EvtImportSummary.fromEvtRecs(Iterable<EvtRec> recs) : mode = ImportMode.event {
     for (final r in recs) {
-      final s = r.start?.asLocal;
-      final e = r.end?.asLocal;
+      final s = r.start?.asUtcWithLocalValue;
+      final e = r.end?.asUtcWithLocalValue;
       if (s != null) {
         if (earliest == null || s.isBefore(earliest!)) {
           earliest = s;
@@ -121,8 +121,8 @@ class EvtImportSummary {
 
   EvtImportSummary.fromEvtDrafts(Iterable<EvtDraft> recs) : mode = ImportMode.event {
     for (final r in recs) {
-      final s = r.start?.asLocal;
-      final e = r.end?.asLocal;
+      final s = r.start?.asUtcWithLocalValue;
+      final e = r.end?.asUtcWithLocalValue;
       if (s != null) {
         if (earliest == null || s.isBefore(earliest!)) {
           earliest = s;

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 abstract class EditVm<R extends Identifiable, D extends Draft> extends ChangeNotifier {
   R? stored;
   D draft;
+
   String? errorMsg;
 
   EditVm(this.stored, this.draft);

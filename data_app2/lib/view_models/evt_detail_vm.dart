@@ -8,8 +8,8 @@ import 'package:data_app2/local_datetime.dart';
 import 'package:isar_community/isar.dart';
 
 /// Handle details and editing of a single event
-class EventDetailViewModel extends EditVm<EvtRec, EvtDraft> {
-  EventDetailViewModel(EvtRec stored, this._app) : super(stored, stored.toDraft());
+class EvtDetailVm extends EditVm<EvtRec, EvtDraft> {
+  EvtDetailVm(EvtRec stored, this._app) : super(stored, stored.toDraft());
 
   final AppState _app;
 
@@ -70,7 +70,7 @@ class EventDetailViewModel extends EditVm<EvtRec, EvtDraft> {
 
   /// delete the event from DB
   @override
-  Future<bool> delete() async {
+  delete() async {
     final storedId = stored?.id;
     if (storedId == null) {
       return false;
@@ -78,7 +78,4 @@ class EventDetailViewModel extends EditVm<EvtRec, EvtDraft> {
     final didDelete = await _app.db.evts.forceDelete(storedId);
     return didDelete;
   }
-
-  @override
-  String? get errorMsg => throw UnimplementedError();
 }

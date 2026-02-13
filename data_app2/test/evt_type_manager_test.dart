@@ -1,6 +1,6 @@
 import 'package:data_app2/data/evt_type.dart';
 import 'package:data_app2/db_service.dart';
-import 'package:data_app2/event_type_manager.dart';
+import 'package:data_app2/evt_type_manager.dart';
 import 'package:isar_community/isar.dart';
 import 'package:test/test.dart';
 import 'test_util/dummy_app.dart';

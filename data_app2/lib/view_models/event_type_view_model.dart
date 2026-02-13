@@ -34,13 +34,13 @@ class EventTypeViewModel extends ChangeNotifier {
     _evts = [];
     notifyListeners();
 
-    _evts = (await _app.db.evts.filteredLocalTime(typeIds: [typeId])).toList();
+    _evts = (await _app.db.evts.filteredLocalTimeOld(typeIds: [typeId])).toList();
 
     _totTime = totalEventTime(_evts);
 
     // Events count per weekday
     _perWeekDay = valueCounts(
-      _evts.map((e) => e.start?.asLocal.weekday).removeNulls,
+      _evts.map((e) => e.start?.asUtcWithLocalValue.weekday).removeNulls,
       sorted: true,
       keys: Iterable.generate(7, (i) => i + 1),
     );

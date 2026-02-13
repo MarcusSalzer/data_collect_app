@@ -8,7 +8,7 @@ import 'package:data_app2/data/evt.dart';
 import 'package:data_app2/data/evt_cat.dart';
 import 'package:data_app2/data/evt_type.dart';
 import 'package:data_app2/db_service.dart';
-import 'package:data_app2/event_type_manager.dart';
+import 'package:data_app2/evt_type_manager.dart';
 import 'package:data_app2/prefs_io.dart';
 import 'package:data_app2/util/fmt.dart';
 import 'package:path/path.dart' as p;

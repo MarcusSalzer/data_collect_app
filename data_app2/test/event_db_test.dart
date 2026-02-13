@@ -87,8 +87,8 @@ void main() {
       await db.evts.updateAll([lastNight, across, earlyMorning]);
 
       // get all events for each day
-      final firstDay = (await db.evts.filteredLocalTime(latest: midnight)).toList();
-      final secondDay = (await db.evts.filteredLocalTime(earliest: midnight)).toList();
+      final firstDay = (await db.evts.filteredLocalTimeOld(latest: midnight)).toList();
+      final secondDay = (await db.evts.filteredLocalTimeOld(earliest: midnight)).toList();
 
       expect(firstDay.length, 1, reason: "Should be 1 event first day");
       expect(firstDay[0], lastNight);

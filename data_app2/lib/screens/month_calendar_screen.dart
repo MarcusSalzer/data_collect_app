@@ -1,87 +1,14 @@
 import 'dart:math';
 import 'package:data_app2/app_state.dart';
-import 'package:data_app2/data/evt.dart';
-import 'package:data_app2/data/today_summary_data.dart';
-import 'package:data_app2/util/event_stats_compute.dart';
 import 'package:data_app2/util/extensions.dart';
 import 'package:data_app2/util/fmt.dart';
-import 'package:data_app2/local_datetime.dart';
 import 'package:data_app2/screens/day_inmonth_screen.dart';
+import 'package:data_app2/view_models/month_vm.dart';
 import 'package:data_app2/widgets/events_summary.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:isar_community/isar.dart';
 import 'package:provider/provider.dart';
-
-/// Handle data for showing stats for a month
-class MonthViewModel extends ChangeNotifier {
-  final AppState _app;
-  // TODO; will this work across TZs? testing...
-  DateTime _current = DateTime.now().startOfMonth;
-  SummaryDataList? summary;
-
-  List<DateTime> _days = [];
-  List<EvtRec> _events = [];
-  late Future<void> loadFuture;
-
-  MonthViewModel(this._app) {
-    loadFuture = _loadEvents();
-    _makeDayGrid();
-  }
-
-  DateTime get currentMonth => _current;
-  List<DateTime> get days => _days;
-  List<EvtRec> get events => _events;
-
-  /// load events for current month
-  Future<void> _loadEvents() async {
-    _events.clear(); // remove old data
-
-    _events = (await _app.db.evts.filteredLocalTime(
-      earliest: LocalDateTime.fromDateTimeLocalTZ(_current),
-      latest: LocalDateTime.fromDateTimeLocalTZ(DateUtils.addMonthsToMonthDate(_current, 1)),
-    )).toList();
-
-    // Compute summary frim events
-    summary = SummaryDataList(
-      timePerEvent(_events).map((e) {
-        final et = _app.evtTypeManager.resolveById(e.key);
-        return SummaryItem(et?.name ?? "unknown", _app.colorFor(et), e.value);
-      }).toList(),
-    );
-    // eventsPerDay();
-    notifyListeners();
-  }
-
-  /// Make 6x7 grid of days
-  void _makeDayGrid() {
-    final offset = _current.monthFirstWeekday;
-
-    _days = List.generate(42, (i) => DateUtils.addDaysToDate(_current.startOfMonth, i - offset + 1));
-  }
-
-  /// Move to a new month and reload data
-  void stepMonth(int offset) {
-    _current = DateUtils.addMonthsToMonthDate(currentMonth, offset);
-    _makeDayGrid();
-    notifyListeners();
-    _loadEvents();
-  }
-
-  List<int> eventsPerDay() {
-    final counts = List.filled(_days.length, 0);
-    for (var e in _events) {
-      final startLocal = e.start?.asLocal;
-      if (startLocal == null) continue;
-
-      final idx = startLocal.day;
-      counts[idx]++;
-    }
-    return counts;
-  }
-
-  bool isInMonth(DateTime day) => day.month == _current.month;
-}
 
 class MonthCalendarScreen extends StatefulWidget {
   final AppState appstate;
@@ -103,9 +30,9 @@ class _MonthCalendarScreenState extends State<MonthCalendarScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider<MonthViewModel>(
-      create: (context) => MonthViewModel(widget.appstate),
-      child: Consumer<MonthViewModel>(
+    return ChangeNotifierProvider<MonthVm>(
+      create: (context) => MonthVm(widget.appstate),
+      child: Consumer<MonthVm>(
         builder: (context, model, child) {
           final pages = [CalendarMonthDisplay(model), MonthSummaryDisplay(model)];
           return Scaffold(
@@ -124,7 +51,7 @@ class _MonthCalendarScreenState extends State<MonthCalendarScreen> {
                         },
                         icon: Icon(Icons.keyboard_double_arrow_left),
                       ),
-                      Expanded(child: Center(child: Text(DateFormat("MMMM yyyy").format(model._current)))),
+                      Expanded(child: Center(child: Text(DateFormat("MMMM yyyy").format(model.currentMonth)))),
                       IconButton(
                         onPressed: () {
                           model.stepMonth(1);
@@ -187,7 +114,7 @@ class _MonthCalendarScreenState extends State<MonthCalendarScreen> {
 
 /// event time table and pie chart for a month
 class MonthSummaryDisplay extends StatelessWidget {
-  final MonthViewModel model;
+  final MonthVm model;
 
   const MonthSummaryDisplay(this.model, {super.key});
 
@@ -221,7 +148,7 @@ class MonthSummaryDisplay extends StatelessWidget {
 }
 
 class CalendarMonthDisplay extends StatelessWidget {
-  final MonthViewModel model;
+  final MonthVm model;
 
   const CalendarMonthDisplay(this.model, {super.key});
 
@@ -256,7 +183,7 @@ class CalendarMonthDisplay extends StatelessWidget {
 }
 
 class CalendarGrid extends StatelessWidget {
-  final MonthViewModel model;
+  final MonthVm model;
   const CalendarGrid(this.model, {super.key});
 
   @override
@@ -290,7 +217,7 @@ class CalDayTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final monthModel = Provider.of<MonthViewModel>(context, listen: false);
+    final monthModel = Provider.of<MonthVm>(context, listen: false);
     final color = Colors.red.withAlpha((255 * weight).round());
     // final theme = Theme.of(context);
     var tStyle = TextStyle(fontFamily: "monospace", fontSize: 20);

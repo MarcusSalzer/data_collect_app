@@ -2,6 +2,7 @@ import 'package:data_app2/contracts/crud_repo.dart';
 import 'package:data_app2/data/evt.dart';
 import 'package:data_app2/isar_models.dart';
 import 'package:data_app2/local_datetime.dart';
+import 'package:data_app2/time_range_queries.dart';
 import 'package:isar_community/isar.dart';
 
 class EvtRepo extends CrudRepo<EvtRec, EvtDraft, Event> {
@@ -42,7 +43,50 @@ class EvtRepo extends CrudRepo<EvtRec, EvtDraft, Event> {
   }
 
   /// Get some events.
-  Future<Iterable<EvtRec>> filteredLocalTime({
+  Future<Iterable<EvtRec>> filteredUtcTime({required UtcTimeRange range, Iterable<int>? typeIds}) async {
+    final evts = await isar.txn(() async {
+      final f = coll
+          .where()
+          .optional(typeIds != null, (q) => q.anyOf(typeIds!, (q, int n) => q.typeIdEqualTo(n)))
+          .filter();
+
+      // NO index
+      return (switch (range.overlap) {
+        OverlapMode.fullyInside =>
+          f.startUtcMillisGreaterThan(range.startMs, include: true).endUtcMillisLessThan(range.endMs, include: false),
+        OverlapMode.overlapping =>
+          f.startUtcMillisLessThan(range.endMs, include: false).endUtcMillisGreaterThan(range.startMs, include: true),
+      }).sortByStartUtcMillis().findAll();
+    });
+    return evts.map(fromIsar);
+  }
+
+  /// Get some events.
+  Future<Iterable<EvtRec>> filteredLocalTime({Iterable<int>? typeIds, required LocalTimeRange range}) async {
+    final evts = await isar.txn(() async {
+      final f = coll.where();
+
+      // TODO sort chrono?
+      // uses index
+      return (switch (range.overlap) {
+        OverlapMode.fullyInside =>
+          f
+              .startLocalMillisGreaterThan(range.startMs, include: true)
+              .filter()
+              .endLocalMillisLessThan(range.endMs, include: false),
+        OverlapMode.overlapping =>
+          f
+              .startLocalMillisLessThan(range.endMs, include: false)
+              .filter()
+              .endLocalMillisGreaterThan(range.startMs, include: true),
+      }).optional(typeIds != null, (q) => q.anyOf(typeIds!, (q, int n) => q.typeIdEqualTo(n))).findAll();
+    });
+    return evts.map(fromIsar);
+  }
+
+  /// Get some events.
+  @Deprecated("use new range api")
+  Future<Iterable<EvtRec>> filteredLocalTimeOld({
     Iterable<int>? typeIds,
     LocalDateTime? earliest,
     LocalDateTime? latest,
@@ -60,6 +104,11 @@ class EvtRepo extends CrudRepo<EvtRec, EvtDraft, Event> {
           .findAll(),
     );
     return evts.map(fromIsar);
+  }
+
+  Future<EvtRec?> oldest() async {
+    final i = await isar.txn(() async => await coll.where(sort: Sort.asc).anyStartLocalMillis().findFirst());
+    return (i == null) ? null : fromIsar(i);
   }
 
   /// reverse chronological events

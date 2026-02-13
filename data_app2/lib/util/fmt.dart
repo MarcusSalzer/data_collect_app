@@ -88,8 +88,8 @@ class Fmt {
   /// start and end of event, with placeholders
   static (String, String) eventTimes(EvtRec evt, {useUtc = false}) {
     // get timestamps as UTC or local
-    final start = useUtc ? evt.start?.asUtc : evt.start?.asLocal;
-    final end = useUtc ? evt.end?.asUtc : evt.end?.asLocal;
+    final start = useUtc ? evt.start?.asUtc : evt.start?.asUtcWithLocalValue;
+    final end = useUtc ? evt.end?.asUtc : evt.end?.asUtcWithLocalValue;
 
     final startText = start != null ? DateFormat("HH:mm").format(start) : "__:__";
     final endText = end != null ? DateFormat("HH:mm").format(end) : "__:__";

@@ -5,7 +5,8 @@ import 'package:data_app2/util/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 
-/// Handle caching/storing and resolves types from id and name etc.
+/// Handle caching/storing and resolves from id and name etc.
+/// Keeps both [EvtTypeRec] and [EvtCatRec]
 class EvtTypeManager extends ChangeNotifier {
   // Store both maps for fast lookup
   Map<String, EvtTypeRec> _typesByName = {};
@@ -27,6 +28,11 @@ class EvtTypeManager extends ChangeNotifier {
     // Category membership
     _catSizes = {};
     _posInCat = {};
+
+    // make list and sort by name, to get "stable" order of positions in categories
+    final typeList = evtTypes.toList();
+    typeList.sort((a, b) => a.name.compareTo(b.name));
+
     for (var rec in evtTypes) {
       _typesByName[rec.name] = rec;
       _typesById[rec.id] = rec;
@@ -38,19 +44,6 @@ class EvtTypeManager extends ChangeNotifier {
       _posInCat[rec.id] = pos;
     }
   }
-
-  Color colorFor(EvtTypeRec? evtType, double spread) {
-    if (evtType == null) {
-      return ColorEngine.defaultColor;
-    }
-    final cat = _catsById[evtType.categoryId];
-    if (cat == null) {
-      return ColorEngine.defaultColor;
-    }
-    return ColorEngine.spread(cat.color, _posInCat[evtType.id] ?? 0, _catSizes[cat.id] ?? 1, spread);
-  }
-
-  Color colorForId(int id, double spread) => colorFor(resolveById(id), spread);
 
   /// Reset cache and fill
   void reloadFromModels(Iterable<EvtTypeRec> evtTypes, Iterable<EvtCatRec> cats) {
@@ -65,6 +58,19 @@ class EvtTypeManager extends ChangeNotifier {
     _typesById[rec.id] = rec;
     notifyListeners();
   }
+
+  Color colorFor(EvtTypeRec? evtType, double spread) {
+    if (evtType == null) {
+      return ColorEngine.defaultColor;
+    }
+    final cat = _catsById[evtType.categoryId];
+    if (cat == null) {
+      return ColorEngine.defaultColor;
+    }
+    return ColorEngine.spread(cat.color, _posInCat[evtType.id] ?? 0, _catSizes[cat.id] ?? 1, spread);
+  }
+
+  Color colorForId(int id, double spread) => colorFor(resolveById(id), spread);
 
   /// Resolve type from cache only, return null if missing.
   EvtTypeRec? resolveById(int id) => _typesById[id];

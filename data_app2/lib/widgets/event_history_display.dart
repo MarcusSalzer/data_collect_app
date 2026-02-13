@@ -3,7 +3,7 @@ import 'package:data_app2/data/evt.dart';
 import 'package:data_app2/util/enums.dart';
 import 'package:data_app2/util/extensions.dart';
 import 'package:data_app2/util/fmt.dart';
-import 'package:data_app2/screens/events/event_detail_screen.dart';
+import 'package:data_app2/screens/events/evt_detail_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -50,8 +50,8 @@ class EventHistoryDisplay extends StatelessWidget {
     if (i == 0) {
       doHeading = true;
     } else {
-      final cur = evts[i].start?.asLocal;
-      final pre = evts[i - 1].start?.asLocal;
+      final cur = evts[i].start?.asUtcWithLocalValue;
+      final pre = evts[i - 1].start?.asUtcWithLocalValue;
       switch (headingMode) {
         case GroupFreq.day:
           doHeading = cur?.day != pre?.day;
@@ -67,7 +67,7 @@ class EventHistoryDisplay extends StatelessWidget {
       }
     }
 
-    return doHeading ? Fmt.verboseDate(evts[i].start?.asLocal, f: headingMode) : null;
+    return doHeading ? Fmt.verboseDate(evts[i].start?.asUtcWithLocalValue, f: headingMode) : null;
   }
 }
 
@@ -82,8 +82,10 @@ class EventListTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final app = Provider.of<AppState>(context, listen: false);
     final (startText, endText) = Fmt.eventTimes(evt);
-    final wdStart = Fmt.dayAbbr(evt.start?.asLocal);
-    final wdEnd = (evt.end?.asLocal.day != evt.start?.asLocal.day) ? Fmt.dayAbbr(evt.end?.asLocal) : null;
+    final wdStart = Fmt.dayAbbr(evt.start?.asUtcWithLocalValue);
+    final wdEnd = (evt.end?.asUtcWithLocalValue.day != evt.start?.asUtcWithLocalValue.day)
+        ? Fmt.dayAbbr(evt.end?.asUtcWithLocalValue)
+        : null;
 
     final dur = evt.duration;
     final durTxt = " (${Fmt.durationHmVerbose(dur)})";
@@ -130,7 +132,7 @@ class EventListTile extends StatelessWidget {
   }
 
   void _openDetail(BuildContext context) {
-    Navigator.of(context).push(MaterialPageRoute(builder: (context) => EventDetailScreen(evt))).then((_) {
+    Navigator.of(context).push(MaterialPageRoute(builder: (context) => EvtDetailScreen(evt))).then((_) {
       // When the detail view is popped, data might have changed
       reloadAction();
     });

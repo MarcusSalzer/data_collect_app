@@ -1,5 +1,7 @@
 import 'package:data_app2/app_state.dart';
+import 'package:data_app2/daily_evt_summary_service.dart';
 import 'package:data_app2/screens/color_spread_screen.dart';
+import 'package:data_app2/screens/daily_fingerprint_screen.dart';
 import 'package:data_app2/screens/home_screen.dart';
 import 'package:data_app2/screens/welcome_screen.dart';
 import 'package:data_app2/style.dart';
@@ -7,9 +9,9 @@ import 'package:data_app2/util/dummy_data.dart';
 import 'package:data_app2/util.dart';
 import 'package:data_app2/util/enums.dart';
 import 'package:data_app2/util/extensions.dart';
+import 'package:data_app2/util/fmt.dart';
 import 'package:data_app2/widgets/confirm_dialog.dart';
 import 'package:data_app2/widgets/enum_dropdown_with_description.dart';
-import 'package:data_app2/widgets/two_columns.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:logging/logging.dart';
@@ -91,19 +93,16 @@ class SettingsScreen extends StatelessWidget {
               spacing: 8,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                TwoColumns(
-                  flex: (3, 5),
-                  rows: [
-                    (
-                      Text("Lowercase inputs"),
-                      Switch(
-                        value: app.autoLowerCase,
-                        onChanged: (value) {
-                          app.setAutoLowerCase(value);
-                        },
-                      ),
-                    ),
-                  ],
+                Text("Behavior", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
+                SettingContainer(
+                  "Lowercase inputs",
+                  "Automatically make inputs lowercase.",
+                  child: Switch(
+                    value: app.autoLowerCase,
+                    onChanged: (value) {
+                      app.setAutoLowerCase(value);
+                    },
+                  ),
                 ),
                 EnumDropdownWithDescription<LogLevel>(
                   label: "Log level",
@@ -119,13 +118,6 @@ class SettingsScreen extends StatelessWidget {
                   onChanged: app.setSearchMode,
                   descriptionOf: (v) => v.description,
                 ),
-                EnumDropdownWithDescription<ColorSchemeMode>(
-                  label: "Color Scheme",
-                  value: app.prefs.colorSchemeMode,
-                  options: ColorSchemeMode.values,
-                  onChanged: (v) => app.setColorScheme(v),
-                  descriptionOf: (v) => v.description,
-                ),
                 EnumDropdownWithDescription<SummaryMode>(
                   label: "Today's summary",
                   value: app.prefs.summaryMode,
@@ -134,11 +126,44 @@ class SettingsScreen extends StatelessWidget {
                   descriptionOf: (v) => v.description,
                 ),
                 SettingContainer(
+                  "Day starts at",
+                  "Timestamps between local midnight and the provided time will count to the previous day.",
+                  child: DropdownButton<int>(
+                    value: app.prefs.dayStartsH,
+                    items: List.generate(
+                      6,
+                      (i) => DropdownMenuItem(
+                        value: i,
+                        child: Text(Fmt.durationHm(Duration(hours: i))),
+                      ),
+                    ),
+                    onChanged: (v) => app.updatePrefs(app.prefs.copyWith(dayStartsH: v)),
+                  ),
+                ),
+                Text("Aesthetics", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
+                EnumDropdownWithDescription<ColorSchemeMode>(
+                  label: "Color Scheme",
+                  value: app.prefs.colorSchemeMode,
+                  options: ColorSchemeMode.values,
+                  onChanged: (v) => app.setColorScheme(v),
+                  descriptionOf: (v) => v.description,
+                ),
+                SettingContainer(
                   "Color spread",
                   "Spread colors in categories",
                   child: TextButton(
                     onPressed: () {
-                      Navigator.of(context).push(MaterialPageRoute(builder: (_) => ColorSpreadScreen(app)));
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => ColorSpreadScreen(
+                            initVal: app.prefs.colorSpread,
+                            saveAction: (v) async {
+                              await app.updatePrefs(app.prefs.copyWith(colorSpread: v));
+                              return true;
+                            },
+                          ),
+                        ),
+                      );
                     },
                     child: Text(NumberFormat.decimalPercentPattern(decimalDigits: 0).format(app.prefs.colorSpread)),
                   ),
@@ -161,6 +186,17 @@ class SettingsScreen extends StatelessWidget {
                   ],
                 ),
                 SizedBox(height: 10),
+                TextButton.icon(
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) =>
+                            DailySummaryScreen(db: app.db, summaryService: DailyEvtSummaryService(app.evtTypeManager)),
+                      ),
+                    );
+                  },
+                  label: Text("Daily summary fingerprint"),
+                ),
                 TextButton.icon(
                   onPressed: () {
                     showLicensePage(context: context);

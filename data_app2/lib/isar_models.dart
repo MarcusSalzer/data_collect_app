@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:data_app2/style.dart';
-import 'package:data_app2/util/colors.dart';
 import 'package:data_app2/util/enums.dart';
 import 'package:isar_community/isar.dart';
 
@@ -16,7 +15,6 @@ class Preferences {
   ColorSchemeMode colorSchemeMode;
   // input normalization preferences
   bool autoLowerCase;
-  // where to export data?
 
   // logging
   @Enumerated(EnumType.ordinal)
@@ -34,6 +32,7 @@ class Preferences {
 @collection
 class Event {
   Id id = Isar.autoIncrement;
+  @Index()
   int typeId;
 
   // start and end times are optional

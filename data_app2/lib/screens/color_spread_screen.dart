@@ -1,12 +1,12 @@
-import 'package:data_app2/app_state.dart';
 import 'package:data_app2/util/colors.dart';
 import 'package:data_app2/widgets/edit_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 class ColorSpreadScreen extends StatefulWidget {
-  final AppState app;
-  const ColorSpreadScreen(this.app, {super.key});
+  final double initVal;
+  final Future<bool> Function(double) saveAction;
+  const ColorSpreadScreen({required this.initVal, required this.saveAction, super.key});
 
   @override
   State<ColorSpreadScreen> createState() {
@@ -16,19 +16,21 @@ class ColorSpreadScreen extends StatefulWidget {
 
 class _ColorSpreadScreenState extends State<ColorSpreadScreen> {
   bool _isDirty = false;
-  late double value;
+  late double value; // updates on slider
+  late double savedVal; // updates on save
   @override
   void initState() {
     super.initState();
-    value = widget.app.prefs.colorSpread;
+    value = widget.initVal;
+    savedVal = widget.initVal;
   }
 
   /// Only setState if isDirty changes
   void _onChange(double v) {
     value = v;
-    if (_isDirty && v == widget.app.prefs.colorSpread) {
+    if (_isDirty && v == savedVal) {
       setState(() => _isDirty = false);
-    } else if (!_isDirty && v != widget.app.prefs.colorSpread) {
+    } else if (!_isDirty && v != savedVal) {
       setState(() => _isDirty = true);
     }
   }
@@ -39,24 +41,27 @@ class _ColorSpreadScreenState extends State<ColorSpreadScreen> {
       title: "Color spread",
       isDirty: _isDirty,
       saveAction: () async {
-        await widget.app.updatePrefs(widget.app.prefs.copyWith(colorSpread: value));
-        return true;
+        final ok = await widget.saveAction(value);
+        if (ok) {
+          setState(() => _isDirty = false);
+        }
+        return ok;
       },
-      body: ColorSpreadPicker(initValue: widget.app.prefs.colorSpread, onEdited: _onChange),
+      body: _ColorSpreadPicker(initValue: value, onEdited: _onChange),
     );
   }
 }
 
-class ColorSpreadPicker extends StatefulWidget {
-  const ColorSpreadPicker({super.key, required this.initValue, required this.onEdited});
+class _ColorSpreadPicker extends StatefulWidget {
+  const _ColorSpreadPicker({required this.initValue, required this.onEdited});
   final ValueChanged<double> onEdited;
   final double initValue;
 
   @override
-  State<ColorSpreadPicker> createState() => _ColorSpreadPickerState();
+  State<_ColorSpreadPicker> createState() => _ColorSpreadPickerState();
 }
 
-class _ColorSpreadPickerState extends State<ColorSpreadPicker> {
+class _ColorSpreadPickerState extends State<_ColorSpreadPicker> {
   late double _spreadFactor;
   final nVariants = 5; // Number of color variants to display
 
@@ -70,26 +75,6 @@ class _ColorSpreadPickerState extends State<ColorSpreadPicker> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Row(
-          children: [
-            SizedBox(
-              width: 80,
-              child: Text(NumberFormat.decimalPercentPattern(decimalDigits: 0).format(_spreadFactor)),
-            ),
-            Expanded(
-              child: Slider(
-                divisions: 10,
-                value: _spreadFactor,
-                onChanged: (value) {
-                  setState(() {
-                    _spreadFactor = value;
-                    widget.onEdited(value);
-                  });
-                },
-              ),
-            ),
-          ],
-        ),
         Expanded(
           child: Column(
             mainAxisSize: MainAxisSize.max,
@@ -115,6 +100,29 @@ class _ColorSpreadPickerState extends State<ColorSpreadPicker> {
                   ),
                 )
                 .toList(),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 32),
+          child: Row(
+            children: [
+              SizedBox(
+                width: 80,
+                child: Text(NumberFormat.decimalPercentPattern(decimalDigits: 0).format(_spreadFactor)),
+              ),
+              Expanded(
+                child: Slider(
+                  divisions: 10,
+                  value: _spreadFactor,
+                  onChanged: (value) {
+                    setState(() {
+                      _spreadFactor = value;
+                      widget.onEdited(value);
+                    });
+                  },
+                ),
+              ),
+            ],
           ),
         ),
       ],

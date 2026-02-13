@@ -2,28 +2,55 @@ import 'package:data_app2/app_state.dart';
 import 'package:data_app2/data/evt.dart';
 import 'package:data_app2/data/evt_type.dart';
 import 'package:data_app2/dialogs/show_confirm_save_back_dialog.dart';
-import 'package:data_app2/view_models/event_detail_view_model.dart';
+import 'package:data_app2/view_models/evt_detail_vm.dart';
 import 'package:data_app2/util/fmt.dart';
 import 'package:data_app2/local_datetime.dart';
 import 'package:data_app2/util.dart';
+import 'package:data_app2/widgets/edit_scaffold.dart';
 import 'package:data_app2/widgets/generic_autocomplete.dart';
 import 'package:data_app2/widgets/two_columns.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class EventDetailScreen extends StatelessWidget {
+class EvtDetailScreen extends StatelessWidget {
   final EvtRec evt;
 
-  const EventDetailScreen(this.evt, {super.key});
+  const EvtDetailScreen(this.evt, {super.key});
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider<EventDetailViewModel>(
+    return ChangeNotifierProvider<EvtDetailVm>(
+      create: (context) => EvtDetailVm(evt, context.read<AppState>()),
+      child: Consumer<EvtDetailVm>(
+        builder: (context, vm, child) => EditScaffoldForVm<EvtRec>(
+          title: "Event",
+          body: SingleChildScrollView(
+            child: Column(
+              spacing: 12,
+              children: [EventEditForm(), if (vm.stored case EvtRec st) EventDetailDisplay(st, vm.evtType)],
+            ),
+          ),
+          vm: vm,
+        ),
+      ),
+    );
+  }
+}
+
+@Deprecated("New uses edit scaffold")
+class EvtDetailScreenOld extends StatelessWidget {
+  final EvtRec evt;
+
+  const EvtDetailScreenOld(this.evt, {super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return ChangeNotifierProvider<EvtDetailVm>(
       create: (context) {
         final app = Provider.of<AppState>(context, listen: false);
-        return EventDetailViewModel(evt, app);
+        return EvtDetailVm(evt, app);
       },
-      child: Consumer<EventDetailViewModel>(
+      child: Consumer<EvtDetailVm>(
         builder: (context, vm, child) => PopScope(
           canPop: !vm.isDirty,
           onPopInvokedWithResult: (didPop, Object? res) async {
@@ -134,7 +161,7 @@ class EventEditForm extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final vm = Provider.of<EventDetailViewModel>(context, listen: false);
+    final vm = Provider.of<EvtDetailVm>(context, listen: false);
     final app = Provider.of<AppState>(context, listen: false);
 
     return TwoColumns(
@@ -179,7 +206,7 @@ class DTPickerPair extends StatelessWidget {
           onPressed: () async {
             final dt = await showDatePicker(context: context, firstDate: DateTime(1970), lastDate: DateTime(2222));
             if (dt != null) {
-              final ogLocal = ldt?.asLocal ?? DateTime.now();
+              final ogLocal = ldt?.asUtcWithLocalValue ?? DateTime.now();
               final newLocal = DateTime(
                 // Update Year Month Day
                 dt.year,
@@ -194,17 +221,17 @@ class DTPickerPair extends StatelessWidget {
               onChange(newLocal);
             }
           },
-          child: Text(Fmt.date(ldt?.asLocal)),
+          child: Text(Fmt.date(ldt?.asUtcWithLocalValue)),
         ),
         TextButton(
           onPressed: () async {
-            final ogLocal = ldt?.asLocal ?? DateTime.now();
+            final ogLocal = ldt?.asUtcWithLocalValue ?? DateTime.now();
             final t = await showTimePicker(
               context: context,
               initialTime: TimeOfDay(hour: ogLocal.hour, minute: ogLocal.minute),
             );
             if (t != null) {
-              final ogLocal = ldt?.asLocal ?? DateTime.now();
+              final ogLocal = ldt?.asUtcWithLocalValue ?? DateTime.now();
 
               final newLocal = DateTime(
                 // Keep original Year Month Day (or now)
@@ -218,7 +245,7 @@ class DTPickerPair extends StatelessWidget {
               onChange(newLocal);
             }
           },
-          child: Text(Fmt.time(ldt?.asLocal)),
+          child: Text(Fmt.time(ldt?.asUtcWithLocalValue)),
         ),
       ],
     );
@@ -265,11 +292,11 @@ class EventDetailDisplay extends StatelessWidget {
         _buildInfoRow('Type', evtType.toString()),
         _buildInfoRow('Duration', Fmt.durationHmVerbose(evt.duration)),
         _subtitle("Start"),
-        _buildInfoRow('Local', Fmt.dtSecond(evt.start?.asLocal)),
+        _buildInfoRow('Local', Fmt.dtSecond(evt.start?.asUtcWithLocalValue)),
         _buildInfoRow('UTC', Fmt.dtSecond(evt.start?.asUtc)),
         _buildInfoRow('TZ offset', Fmt.durationHmVerbose(evt.start?.offset)),
         _subtitle("End"),
-        _buildInfoRow('Local', Fmt.dtSecond(evt.end?.asLocal)),
+        _buildInfoRow('Local', Fmt.dtSecond(evt.end?.asUtcWithLocalValue)),
         _buildInfoRow('UTC', Fmt.dtSecond(evt.end?.asUtc)),
         _buildInfoRow('TZ offset', Fmt.durationHmVerbose(evt.end?.offset)),
       ],

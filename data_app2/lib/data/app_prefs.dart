@@ -21,8 +21,9 @@ class AppPrefs {
   final TextSearchMode textSearchMode;
 
   final bool autoLowerCase;
-
   final double colorSpread;
+  // How many hours after local midnight?
+  final int dayStartsH;
 
   const AppPrefs({
     this.colorSchemeMode = ColorSchemeMode.dark,
@@ -31,6 +32,7 @@ class AppPrefs {
     this.autoLowerCase = false,
     this.textSearchMode = TextSearchMode.starts,
     this.colorSpread = 0.5,
+    this.dayStartsH = 0,
   });
 
   AppPrefs copyWith({
@@ -40,6 +42,7 @@ class AppPrefs {
     bool? autoLowerCase,
     TextSearchMode? textSearchMode,
     double? colorSpread,
+    int? dayStartsH,
   }) {
     return AppPrefs(
       colorSchemeMode: colorSchemeMode ?? this.colorSchemeMode,
@@ -48,6 +51,7 @@ class AppPrefs {
       autoLowerCase: autoLowerCase ?? this.autoLowerCase,
       textSearchMode: textSearchMode ?? this.textSearchMode,
       colorSpread: colorSpread ?? this.colorSpread,
+      dayStartsH: dayStartsH ?? this.dayStartsH,
     );
   }
 

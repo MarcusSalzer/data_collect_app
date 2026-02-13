@@ -1,8 +1,10 @@
 import 'dart:collection';
 import 'package:data_app2/app_state.dart';
 import 'package:data_app2/data/evt.dart';
+import 'package:data_app2/local_datetime.dart';
 import 'package:data_app2/util/stats.dart';
 import 'package:flutter/material.dart';
+import 'package:logging/logging.dart';
 
 const nFreq = 500;
 
@@ -61,6 +63,28 @@ class EventCreateViewVM extends ChangeNotifier {
     notifyListeners();
     // TODO dont return?
     return evt;
+  }
+
+  /// Set event end to now
+  Future<void> stopEvent() async {
+    if (events.isEmpty) {
+      return;
+    }
+    final evt = events.last;
+    if (evt.end != null) {
+      Logger.root.warning("tried to stop an already stopped event");
+      return;
+    }
+    _events.removeLast();
+    // edit
+    final d = evt.toDraft()..end = LocalDateTime.now();
+    final updated = d.toRec(evt.id);
+    // update in DB
+    await _app.db.evts.update(updated);
+
+    // update in in-memory list
+    _events.add(updated);
+    notifyListeners();
   }
 
   /// Update in memory list, of reverse chronological events

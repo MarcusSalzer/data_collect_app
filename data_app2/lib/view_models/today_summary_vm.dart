@@ -29,7 +29,7 @@ class TodaySummaryVm extends ChangeNotifier {
   }
 
   Future<void> refresh() async {
-    final evts = await _app.db.evts.filteredLocalTime(
+    final evts = await _app.db.evts.filteredLocalTimeOld(
       earliest: LocalDateTime.fromDateTimeLocalTZ(DateTime.now().startOfDay),
     );
 

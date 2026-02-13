@@ -20,12 +20,16 @@ Future<Isar> getTmpIsar() async {
   return isar;
 }
 
+Future<DBService> getDummyDb() async {
+  final db = DBService(await getTmpIsar());
+  await db.ensureReady();
+  return db;
+}
+
 Future<AppState> getDummyApp() async {
   final (dir, userDir) = await tmpDirWithSubdir();
 
-  final db = DBService(await getTmpIsar());
-  await db.ensureReady();
   final prefsFile = File(p.join((await getTmpDir()).path, "test_prefs.json"));
 
-  return AppState(db, AppPrefs(), userDir, prefsFile);
+  return AppState(await getDummyDb(), AppPrefs(), userDir, prefsFile);
 }

@@ -63,7 +63,7 @@ class EvtRecOld {
 
   @override
   String toString() {
-    return "Evt($id | type: $typeId | Local: ${start?.asLocal} - ${end?.asLocal} | UTC: ${start?.asUtc} - ${end?.asUtc})";
+    return "Evt($id | type: $typeId | Local: ${start?.asUtcWithLocalValue} - ${end?.asUtcWithLocalValue} | UTC: ${start?.asUtc} - ${end?.asUtc})";
   }
 
   EvtRecOld copyWith({int? id, int? typeId, LocalDateTime? start, LocalDateTime? end}) {

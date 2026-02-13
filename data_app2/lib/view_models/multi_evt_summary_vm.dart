@@ -43,7 +43,7 @@ class MultiEvtSummaryVM extends ChangeNotifier {
 
   /// Load events and compute summary
   Future<void> load() async {
-    final evts = (await _app.db.evts.filteredLocalTime(typeIds: _typeIds)).toList();
+    final evts = (await _app.db.evts.filteredLocalTimeOld(typeIds: _typeIds)).toList();
 
     _evts = evts;
 

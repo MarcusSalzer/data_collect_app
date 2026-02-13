@@ -14,16 +14,16 @@
 - ✅ _26-01-12_ Export event summary, Import/export types. Faster import. Consistent text search. `v0.0.9`
 - ✅ _26-02-02_ Welcome screen, categories, standardized Repos, CSV and domain models. `v0.1.0`
 - ✅ _26-02-06_ JSON-serializable prefs, improved test coverage, Import help screen
-- ❓ Consistent edit screens, category-color system.
-- ❓ Daily summary file, DB change detection `v0.1.1`
+- ✅ _26-02-10_ Consistent edit screens, category-color system. Daily summary `v0.1.1`
+- ❓ "day starts at", better time range filter, test coverage
 
 Maybe:
 
 - ❓ Persistent event filter, can apply globally in app?
-- ❓ event type timeseries stats view, range inclusion setting, user defined "day starts at"
+- ❓ event type timeseries stats view
 - ❓ tabular data, link to event
 - ❓ auto-backup, backup pruning (more compact file format?)
-- ❓ Linting: duplicates, overlapping events
+- ❓ Linting: duplicates, overlapping events, DB change detection
 - ❓ Improved suggestions (recent, dynamic, pinned)
 - ❓ better calendar UI, horizontal page + vertical scroll?
 - ❓ event aggregations. per-day-db? or save to file?

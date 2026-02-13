@@ -80,8 +80,8 @@ class ImportCandidateSummary<T> {
     if (items case List<EvtRec> evts) {
       // counts first and last
       for (final r in evts) {
-        final s = r.start?.asLocal;
-        final e = r.end?.asLocal;
+        final s = r.start?.asUtcWithLocalValue;
+        final e = r.end?.asUtcWithLocalValue;
         if (s != null) {
           if (earliest == null || s.isBefore(earliest!)) {
             earliest = s;

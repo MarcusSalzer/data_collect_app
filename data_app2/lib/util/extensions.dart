@@ -3,27 +3,58 @@ import 'package:logging/logging.dart' show Level;
 
 extension DateOnly on DateTime {
   /// This date, with only year, month, date.
-  DateTime get startOfDay => DateTime(year, month, day);
+  DateTime get startOfDay {
+    return DateTime(year, month, day);
+  }
+
+  DateTime get startOfDayUtc {
+    return DateTime.utc(year, month, day);
+  }
 
   /// Most recent monday
-  DateTime get startOfweek =>
-      DateTime(year, month, day).subtract(Duration(days: weekday - 1));
+  DateTime get startOfweek {
+    return DateTime(year, month, day).subtract(Duration(days: weekday - 1));
+  }
+
+  DateTime get startOfweekUtc {
+    return DateTime.utc(year, month, day).subtract(Duration(days: weekday - 1));
+  }
 
   /// Most recent first day of month
-  DateTime get startOfMonth => DateTime(year, month);
+  DateTime get startOfMonth {
+    return DateTime(year, month);
+  }
+
+  DateTime get startOfMonthUtc {
+    return DateTime.utc(year, month);
+  }
+
+  /// Start of next month
+  DateTime get endOfMonth {
+    return DateTime(year, month + 1);
+  }
+
+  DateTime get endOfMonthUtc {
+    return DateTime.utc(year, month + 1);
+  }
 }
 
 extension Groups on DateTime {
   /// Get the most recent start of a period
   DateTime startOfPeriod(GroupFreq f) {
-    switch (f) {
-      case GroupFreq.day:
-        return startOfDay;
-      case GroupFreq.week:
-        return startOfweek;
-      case GroupFreq.month:
-        return startOfMonth;
-    }
+    return switch (f) {
+      GroupFreq.day => startOfDay,
+      GroupFreq.week => startOfweek,
+      GroupFreq.month => startOfMonth,
+    };
+  }
+
+  DateTime startOfPeriodUtc(GroupFreq f) {
+    return switch (f) {
+      GroupFreq.day => startOfDayUtc,
+      GroupFreq.week => startOfweekUtc,
+      GroupFreq.month => startOfMonthUtc,
+    };
   }
 }
 

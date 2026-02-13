@@ -2,7 +2,7 @@ import 'package:data_app2/csv/evt_csv.dart';
 import 'package:data_app2/csv/evt_type_csv.dart';
 import 'package:data_app2/data/evt.dart';
 import 'package:data_app2/data/evt_type.dart';
-import 'package:data_app2/event_type_manager.dart';
+import 'package:data_app2/evt_type_manager.dart';
 import 'package:data_app2/local_datetime.dart';
 import 'package:test/test.dart';
 

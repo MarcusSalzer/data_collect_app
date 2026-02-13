@@ -42,14 +42,7 @@ class _EventCreateMenuState extends State<EventCreateMenu> {
                         children: [
                           SizedBox(width: 100, child: Text(startTxt)),
                           Expanded(child: Text(app.evtTypeManager.resolveById(evt.typeId)?.name ?? "unknown")),
-                          TextButton.icon(
-                            onPressed: () {
-                              // evt.end = LocalDateTime.now();
-                              // evm.updateEvent(evt);
-                            },
-                            label: Text("stop"),
-                            icon: Icon(Icons.stop),
-                          ),
+                          TextButton.icon(onPressed: evm.stopEvent, label: Text("stop"), icon: Icon(Icons.stop)),
                         ],
                       );
                     } else {

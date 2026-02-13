@@ -1,8 +1,3 @@
-// extension _Pad on int {
-//   String twoDigits() => toString().padLeft(2, '0');
-//   String threeDigits() => toString().padLeft(3, '0');
-// }
-
 class LocalDateTime {
   final int utcMillis; // absolute point in time
   final int localMillis; // = utcMillis + offsetMillis
@@ -17,7 +12,7 @@ class LocalDateTime {
   DateTime get asUtc => DateTime.fromMillisecondsSinceEpoch(utcMillis, isUtc: true);
 
   /// Note: The DateTime object will have [isUtc] true.
-  DateTime get asLocal => DateTime.fromMillisecondsSinceEpoch(localMillis, isUtc: true);
+  DateTime get asUtcWithLocalValue => DateTime.fromMillisecondsSinceEpoch(localMillis, isUtc: true);
 
   factory LocalDateTime.now() {
     final dt = DateTime.now();
@@ -36,6 +31,17 @@ class LocalDateTime {
     final utcMillis = DateTime.parse(utcIso).millisecondsSinceEpoch;
 
     return LocalDateTime(utcMillis, utcMillis + offsetMillis);
+  }
+
+  /// High level construction from Dart built-in classes
+  factory LocalDateTime.fromUtcAndOffset(DateTime utc, Duration offset) {
+    if (!utc.isUtc) {
+      throw AssertionError("Expected UTC datetime");
+    }
+
+    final utcMillis = utc.millisecondsSinceEpoch;
+
+    return LocalDateTime(utcMillis, utcMillis + offset.inMilliseconds);
   }
 
   LocalDateTime copyWith({int? utcMillis, int? localMillis}) {
@@ -58,7 +64,7 @@ class LocalDateTime {
 
   /// Formats an ISO-8601 string, without any timezone suffix.
   String toNaiveIso8601String({bool includeMs = false}) {
-    final dt = asLocal.copyWith(millisecond: includeMs ? null : 0, microsecond: 0);
+    final dt = asUtcWithLocalValue.copyWith(millisecond: includeMs ? null : 0, microsecond: 0);
     final s = dt.toIso8601String();
 
     if (includeMs) {
@@ -83,4 +89,13 @@ class LocalDateTime {
     }
     return LocalDateTime(utcMillis, localMillis);
   }
+
+  /// Create a copy, shifted in both local and UTC
+  LocalDateTime add(Duration duration) {
+    final shiftMillis = duration.inMilliseconds;
+    return LocalDateTime(utcMillis + shiftMillis, localMillis + shiftMillis);
+  }
+
+  /// Create a copy, shifted in both local and UTC
+  LocalDateTime subtract(Duration duration) => add(-duration);
 }

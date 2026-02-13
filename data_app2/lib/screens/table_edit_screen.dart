@@ -6,6 +6,7 @@ import 'package:data_app2/widgets/confirm_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+@Deprecated("not refactored")
 class TableEditScreen extends StatelessWidget {
   final TableProcessor table;
   late final Future<void> _initF;
@@ -59,24 +60,17 @@ class TableEditScreen extends StatelessWidget {
                         ),
                       );
                     },
-                    style: ButtonStyle(
-                      padding: WidgetStatePropertyAll(EdgeInsets.all(8)),
-                    ),
+                    style: ButtonStyle(padding: WidgetStatePropertyAll(EdgeInsets.all(8))),
                     child: Text("Export CSV"),
                   ),
                   MenuItemButton(
                     onPressed: () {
                       showDialog(
                         context: context,
-                        builder: (context) => ConfirmDialog(
-                          title: "Clear all records?",
-                          action: table.truncate,
-                        ),
+                        builder: (context) => ConfirmDialog(title: "Clear all records?", action: table.truncate),
                       );
                     },
-                    style: ButtonStyle(
-                      padding: WidgetStatePropertyAll(EdgeInsets.all(8)),
-                    ),
+                    style: ButtonStyle(padding: WidgetStatePropertyAll(EdgeInsets.all(8))),
                     child: Text("Clear table"),
                   ),
                   MenuItemButton(
@@ -95,9 +89,7 @@ class TableEditScreen extends StatelessWidget {
                         ),
                       );
                     },
-                    style: ButtonStyle(
-                      padding: WidgetStatePropertyAll(EdgeInsets.all(8)),
-                    ),
+                    style: ButtonStyle(padding: WidgetStatePropertyAll(EdgeInsets.all(8))),
                     child: Text("Delete table"),
                   ),
                 ],
@@ -111,12 +103,7 @@ class TableEditScreen extends StatelessWidget {
                 padding: const EdgeInsets.all(8.0),
                 child: TextButton(
                   onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => TableRecordEditScreen(table),
-                      ),
-                    );
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => TableRecordEditScreen(table)));
                   },
                   child: Text("New"),
                 ),
@@ -146,8 +133,7 @@ class TableRecordsList extends StatelessWidget {
           }
           return ListView.builder(
             itemCount: data.length,
-            itemBuilder: (context, index) =>
-                TableRecordListTile(rec: data[index], table: table),
+            itemBuilder: (context, index) => TableRecordListTile(rec: data[index], table: table),
           );
         },
       ),
@@ -156,11 +142,7 @@ class TableRecordsList extends StatelessWidget {
 }
 
 class TableRecordListTile extends StatelessWidget {
-  const TableRecordListTile({
-    super.key,
-    required this.rec,
-    required this.table,
-  });
+  const TableRecordListTile({super.key, required this.rec, required this.table});
 
   final TableProcessor table;
   final TableRecord rec;
@@ -171,12 +153,7 @@ class TableRecordListTile extends StatelessWidget {
       leading: Text(dtFreqFmt(rec.timestamp, table.freq)),
       title: Text(rec.data.values.join(", ")),
       onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => TableRecordEditScreen(table, record: rec),
-          ),
-        );
+        Navigator.push(context, MaterialPageRoute(builder: (context) => TableRecordEditScreen(table, record: rec)));
       },
     );
   }
