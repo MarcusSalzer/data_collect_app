@@ -81,7 +81,7 @@ class DailyEvtSummaryService {
         totalDurSec += d.inSeconds;
       }
 
-      final typName = typeManager.resolveById(e.typeId)?.name ?? "_missing_type_";
+      final typName = typeManager.typeFromId(e.typeId)?.name ?? "_missing_type_";
       final typeHash = fnv1a32(typName);
 
       xorMix ^= _rotl32(typeHash, startSec % 31);

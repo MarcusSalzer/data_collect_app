@@ -19,7 +19,6 @@ class Done<T> extends ProcessState<T> {
 }
 
 class Error<T> extends ProcessState<T> {
-  // TODO: Use title+ descr instead? + extradata..
   final Object error;
   final List<String>? examples;
   const Error(this.error, {this.examples});

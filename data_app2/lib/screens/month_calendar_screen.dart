@@ -11,9 +11,7 @@ import 'package:isar_community/isar.dart';
 import 'package:provider/provider.dart';
 
 class MonthCalendarScreen extends StatefulWidget {
-  final AppState appstate;
-
-  const MonthCalendarScreen(this.appstate, {super.key});
+  const MonthCalendarScreen({super.key});
 
   @override
   State<MonthCalendarScreen> createState() => _MonthCalendarScreenState();
@@ -24,14 +22,14 @@ class _MonthCalendarScreenState extends State<MonthCalendarScreen> {
   int _pageIndex = 0;
 
   @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
   Widget build(BuildContext context) {
+    final dayStartsH = context.select<AppState, int>((a) => a.prefs.dayStartsH);
+
     return ChangeNotifierProvider<MonthVm>(
-      create: (context) => MonthVm(widget.appstate),
+      create: (createCtx) {
+        final app = createCtx.read<AppState>();
+        return MonthVm(Duration(hours: dayStartsH), app.db, app.evtTypeManager)..load();
+      },
       child: Consumer<MonthVm>(
         builder: (context, model, child) {
           final pages = [CalendarMonthDisplay(model), MonthSummaryDisplay(model)];

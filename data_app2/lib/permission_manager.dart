@@ -11,6 +11,7 @@ class PermissionManager {
       return status.isGranted;
     } on MissingPluginException catch (e) {
       // No implementation found for method requestPermissions on channel ??
+      // Happens on linux.
       Logger.root.warning(e);
       return true;
     }

@@ -25,7 +25,6 @@ class EventsStatsView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // final app = Provider.of<AppState>(context);
     return Consumer<EventCreateViewVM>(
       builder: (context, evm, child) {
         if (evm.isLoading) {

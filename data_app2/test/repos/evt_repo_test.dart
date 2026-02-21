@@ -34,6 +34,20 @@ void main() {
   });
 
   group("Filtered UTC", () {
+    test('Sorted by ascending start UTC', () async {
+      /// make data (nonsense timezones)
+      await db.isar.writeTxn(() async {
+        await db.evts.coll.putAll([
+          Event(typeId: 1, startLocalMillis: 100, endLocalMillis: 200, startUtcMillis: 20, endUtcMillis: 30),
+          Event(typeId: 1, startLocalMillis: 110, endLocalMillis: 210, startUtcMillis: 10, endUtcMillis: 40),
+          Event(typeId: 1, startLocalMillis: 110, endLocalMillis: 210, startUtcMillis: 15, endUtcMillis: 40),
+        ]);
+      });
+
+      final evts = await db.evts.filteredUtcTime(range: DbTimeRange(-1000, 1000, OverlapMode.fullyInside));
+      expect(evts.map((e) => e.start?.utcMillis).toList(), [10, 15, 20]);
+    });
+
     group('Low level', () {
       setUpAll(() async {
         await db.evts.forceDeleteAll();
@@ -46,7 +60,7 @@ void main() {
       test('inside (various ranges)', () async {
         /// Query closure
         Future<Iterable<EvtRec>> get(int rs, int re) async =>
-            await db.evts.filteredUtcTime(range: UtcTimeRange(rs, re, OverlapMode.fullyInside));
+            await db.evts.filteredUtcTime(range: DbTimeRange(rs, re, OverlapMode.fullyInside));
 
         // in
         expect((await get(49, 151)).length, 1);
@@ -66,7 +80,7 @@ void main() {
       test('overlap (various ranges)', () async {
         /// Query closure
         Future<Iterable<EvtRec>> get(int rs, int re) async =>
-            await db.evts.filteredUtcTime(range: UtcTimeRange(rs, re, OverlapMode.overlapping));
+            await db.evts.filteredUtcTime(range: DbTimeRange(rs, re, OverlapMode.overlapping));
 
         // in
         expect((await get(49, 151)).length, 1);
@@ -136,7 +150,7 @@ void main() {
           expect(q.toString(), "(1969-12-31 00:00:00.000Z, 1970-01-01 00:00:00.000Z) fullyInside");
           expect(
             q.toDbRange(),
-            UtcTimeRange(DateTime.parse("1969-12-31 00:00:00.000Z").millisecondsSinceEpoch, 0, OverlapMode.fullyInside),
+            DbTimeRange(DateTime.parse("1969-12-31 00:00:00.000Z").millisecondsSinceEpoch, 0, OverlapMode.fullyInside),
           );
 
           final evts = await _getEvtsCheckQuery(db, q);
@@ -160,6 +174,20 @@ void main() {
     });
   });
   group('Filtered LOCAL', () {
+    test('Sorted by ascending start LOCAL', () async {
+      /// make data (nonsense timezones)
+      await db.isar.writeTxn(() async {
+        await db.evts.coll.putAll([
+          Event(typeId: 1, startLocalMillis: 20, endLocalMillis: 200, startUtcMillis: 10, endUtcMillis: 30),
+          Event(typeId: 1, startLocalMillis: 10, endLocalMillis: 210, startUtcMillis: 11, endUtcMillis: 40),
+          Event(typeId: 1, startLocalMillis: 15, endLocalMillis: 210, startUtcMillis: 12, endUtcMillis: 40),
+        ]);
+      });
+
+      final evts = await db.evts.filteredLocalTime(range: DbTimeRange(-1000, 1000, OverlapMode.fullyInside));
+      expect(evts.map((e) => e.start?.localMillis).toList(), [10, 15, 20]);
+    });
+
     group('Low level', () {
       setUpAll(() async {
         await db.evts.forceDeleteAll();
@@ -172,7 +200,7 @@ void main() {
       test('inside (various ranges)', () async {
         /// Query closure
         Future<Iterable<EvtRec>> get(int rs, int re) async =>
-            await db.evts.filteredLocalTime(range: LocalTimeRange(rs, re, OverlapMode.fullyInside));
+            await db.evts.filteredLocalTime(range: DbTimeRange(rs, re, OverlapMode.fullyInside));
 
         // in
         expect((await get(49, 151)).length, 1);
@@ -192,7 +220,7 @@ void main() {
       test('overlap (various ranges)', () async {
         /// Query closure
         Future<Iterable<EvtRec>> get(int rs, int re) async =>
-            await db.evts.filteredLocalTime(range: LocalTimeRange(rs, re, OverlapMode.overlapping));
+            await db.evts.filteredLocalTime(range: DbTimeRange(rs, re, OverlapMode.overlapping));
 
         // in
         expect((await get(49, 151)).length, 1);

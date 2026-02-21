@@ -1,4 +1,4 @@
-import 'package:data_app2/app_state.dart';
+import 'package:data_app2/util/enums.dart';
 import 'package:data_app2/util/stats.dart';
 import 'package:data_app2/util/text_search.dart';
 import 'package:flutter/material.dart';
@@ -8,10 +8,14 @@ typedef IdOf<T> = int? Function(T);
 
 /// Allow selecting things
 class GenericSelectionVm<T> extends ChangeNotifier {
-  GenericSelectionVm({required List<T> Function() source, required this.idOf, required this.textOf, required this.app})
-    : _source = source;
+  GenericSelectionVm({
+    required List<T> Function() source,
+    required this.idOf,
+    required this.textOf,
+    required this.searchMode,
+  }) : _source = source;
 
-  final AppState app;
+  final TextSearchMode searchMode;
   final List<T> Function() _source;
   final IdOf<T> idOf;
   final TextOf<T> textOf;
@@ -49,7 +53,6 @@ class GenericSelectionVm<T> extends ChangeNotifier {
   List<T> get filtered {
     final all = _source();
     if (_query.isEmpty) return all;
-
-    return textSearchFilter<T>(_query, all, app.textSearchMode, textOf).toList();
+    return textSearchFilter<T>(_query, all, searchMode, textOf).toList();
   }
 }

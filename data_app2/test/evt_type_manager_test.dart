@@ -12,13 +12,13 @@ void main() {
   group("[in memory]", () {
     test("resolve: get types", () {
       final manager = EvtTypeManager()..reloadFromModels(exampleTypes, exampleCats);
-      expect(manager.resolveById(1), exampleTypes[0]);
-      expect(manager.resolveByName(exampleTypes[1].name), exampleTypes[1]);
+      expect(manager.typeFromId(1), exampleTypes[0]);
+      expect(manager.typeFromName(exampleTypes[1].name), exampleTypes[1]);
     });
     test("resolve: missing types -> null", () {
       final manager = EvtTypeManager()..reloadFromModels(exampleTypes, exampleCats);
-      expect(manager.resolveById(393), null);
-      expect(manager.resolveByName("thrash dont exist"), null);
+      expect(manager.typeFromId(393), null);
+      expect(manager.typeFromName("thrash dont exist"), null);
     });
 
     test("add: can add and resolve", () {
@@ -26,8 +26,8 @@ void main() {
       final newType = EvtTypeRec(13, "new");
       manager.add(newType);
       // Id should be added
-      expect(manager.resolveById(13), newType);
-      expect(manager.resolveByName("new"), newType);
+      expect(manager.typeFromId(13), newType);
+      expect(manager.typeFromName("new"), newType);
       expect(manager.allTypes.length, exampleTypes.length + 1);
     });
 

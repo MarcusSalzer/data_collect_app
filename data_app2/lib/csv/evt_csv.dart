@@ -21,7 +21,7 @@ class EvtCsvCodec extends CsvCodecRW<EvtDraft> {
   @override
   build(CsvRow r) {
     final typName = r.req("type");
-    final typ = typMan.resolveByName(typName);
+    final typ = typMan.typeFromName(typName);
     if (typ == null) {
       throw FormatException("Unknown type: '$typName'");
     }
@@ -34,7 +34,7 @@ class EvtCsvCodec extends CsvCodecRW<EvtDraft> {
 
   @override
   toRow(d) {
-    final typ = typMan.resolveById(d.typeId);
+    final typ = typMan.typeFromId(d.typeId);
     if (typ == null) {
       throw FormatException("Unknown type: '${d.typeId}'");
     }

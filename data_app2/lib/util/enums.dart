@@ -1,5 +1,5 @@
 /// Datatype for table column
-enum TabularType { int, cat } // TODO Add dec?
+enum TabularType { int, cat }
 
 /// Frequency of table records
 enum TableFreq { free, day, week }
@@ -57,19 +57,6 @@ enum TextSearchMode {
     contains => "Finds options that contain the query.",
     starts => "Finds options that start with the query.",
     wordStarts => "Finds options where a word starts with the query.",
-  };
-}
-
-/// How to aggregate events in time
-enum RangeAggMode {
-  start,
-  end,
-  inside;
-
-  String get description => switch (this) {
-    start => "todo.",
-    end => "todo.",
-    inside => "todo",
   };
 }
 

@@ -10,9 +10,9 @@ class TodaySummaryDisplay extends StatelessWidget {
   Widget build(BuildContext context) {
     final thm = Theme.of(context);
 
-    return Consumer<TodaySummaryVm>(
+    return Consumer<TodaySummaryDisplayVm>(
       builder: (context, vm, child) {
-        final summary = vm.todaySummary;
+        final summary = vm.summaryByType;
         if (summary == null) {
           return Center(child: Text("loading todaySummary"));
         }

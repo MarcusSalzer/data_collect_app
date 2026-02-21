@@ -16,7 +16,7 @@ class EvtDetailVm extends EditVm<EvtRec, EvtDraft> {
   Color get color => _app.colorFor(evtType);
 
   EvtTypeRec? get evtType {
-    return _app.evtTypeManager.resolveById(draft.typeId);
+    return _app.evtTypeManager.typeFromId(draft.typeId);
   }
 
   List<EvtTypeRec> get allTypes => _app.evtTypeManager.allTypes;

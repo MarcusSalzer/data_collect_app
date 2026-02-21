@@ -59,6 +59,7 @@ class EvtTypeManager extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Compute a [Color] for an event type, based on its category
   Color colorFor(EvtTypeRec? evtType, double spread) {
     if (evtType == null) {
       return ColorEngine.defaultColor;
@@ -70,13 +71,16 @@ class EvtTypeManager extends ChangeNotifier {
     return ColorEngine.spread(cat.color, _posInCat[evtType.id] ?? 0, _catSizes[cat.id] ?? 1, spread);
   }
 
-  Color colorForId(int id, double spread) => colorFor(resolveById(id), spread);
+  Color colorForId(int id, double spread) => colorFor(typeFromId(id), spread);
 
-  /// Resolve type from cache only, return null if missing.
-  EvtTypeRec? resolveById(int id) => _typesById[id];
+  /// Resolve type from cache, return null if missing.
+  EvtTypeRec? typeFromId(int id) => _typesById[id];
 
-  /// Resolve type from cache only, return null if missing.
-  EvtTypeRec? resolveByName(String name) => _typesByName[name];
+  /// Resolve type from cache, return null if missing.
+  EvtTypeRec? typeFromName(String name) => _typesByName[name];
+
+  /// Resolve category from cache, return null if missing.
+  EvtCatRec? catFromId(int id) => _catsById[id];
 
   /// Clear all from cache
   void clearCache() {
@@ -101,7 +105,7 @@ class EvtTypeManagerPersist extends EvtTypeManager {
   /// 1. get type-id from cache
   /// 2. get from DB or create and persist new
   Future<EvtTypeRec> resolveOrCreate({required String name}) async {
-    final cached = resolveByName(name);
+    final cached = typeFromName(name);
     if (cached != null) {
       return cached;
     }

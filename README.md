@@ -15,12 +15,12 @@
 - ✅ _26-02-02_ Welcome screen, categories, standardized Repos, CSV and domain models. `v0.1.0`
 - ✅ _26-02-06_ JSON-serializable prefs, improved test coverage, Import help screen
 - ✅ _26-02-10_ Consistent edit screens, category-color system. Daily summary `v0.1.1`
-- ❓ "day starts at", better time range filter, test coverage
+- ❓ "day starts at", better time range filter, test coverage, state consumer cleanup
 
 Maybe:
 
 - ❓ Persistent event filter, can apply globally in app?
-- ❓ event type timeseries stats view
+- ❓ event type stats: timeseries and summary statistics
 - ❓ tabular data, link to event
 - ❓ auto-backup, backup pruning (more compact file format?)
 - ❓ Linting: duplicates, overlapping events, DB change detection

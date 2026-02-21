@@ -27,7 +27,7 @@ void main() {
       final allEvts = (await app.db.evts.all()).toList();
       expect(allEvts.length, 1);
       expect(app.evtTypeManager.allTypes.length, 1);
-      final et = app.evtTypeManager.resolveById(allEvts[0].typeId);
+      final et = app.evtTypeManager.typeFromId(allEvts[0].typeId);
       expect(et!.name, "NEW!");
     });
     test('new type (auto lowercase on)', () async {
@@ -37,7 +37,7 @@ void main() {
       final allEvts = (await app.db.evts.all()).toList();
       expect(allEvts.length, 1);
       expect(app.evtTypeManager.allTypes.length, 1);
-      final et = app.evtTypeManager.resolveById(allEvts[0].typeId);
+      final et = app.evtTypeManager.typeFromId(allEvts[0].typeId);
       expect(et!.name, "new!");
     });
     test('existing type', () async {

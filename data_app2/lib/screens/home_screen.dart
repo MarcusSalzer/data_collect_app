@@ -7,6 +7,7 @@ import 'package:data_app2/screens/events/event_type_index_screen.dart';
 import 'package:data_app2/screens/events/events_screen.dart';
 import 'package:data_app2/screens/settings_screen.dart';
 import 'package:data_app2/util.dart';
+import 'package:data_app2/util/enums.dart';
 import 'package:data_app2/view_models/today_summary_vm.dart';
 import 'package:data_app2/widgets/today_summary_display.dart';
 import 'package:flutter/material.dart';
@@ -17,7 +18,10 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final app = Provider.of<AppState>(context, listen: false);
+    // Subscribe to needed global preferences
+    final dayStartsH = context.select<AppState, int>((a) => a.prefs.dayStartsH);
+    final colorSpread = context.select<AppState, double>((a) => a.prefs.colorSpread);
+    final defaultSummaryMode = context.select<AppState, SummaryMode>((a) => a.prefs.summaryMode);
 
     return Scaffold(
       appBar: AppBar(
@@ -33,8 +37,11 @@ class HomeScreen extends StatelessWidget {
         title: Text("Data app"),
       ),
       body: SingleChildScrollView(
-        child: ChangeNotifierProvider<TodaySummaryVm>(
-          create: (_) => TodaySummaryVm(app)..refresh(),
+        child: ChangeNotifierProvider<TodaySummaryDisplayVm>(
+          create: (createCtx) {
+            final app = createCtx.read<AppState>();
+            return TodaySummaryDisplayVm(Duration(hours: dayStartsH), app.db, app.evtTypeManager, colorSpread)..load();
+          },
           builder: (context, _) => Column(
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
@@ -52,7 +59,7 @@ class HomeScreen extends StatelessWidget {
                     builder: (context) => EventsScreen(),
                     returnCallback: (completion) {
                       // after visiting this route, todays data might have updated
-                      Provider.of<TodaySummaryVm>(context, listen: false).refresh();
+                      Provider.of<TodaySummaryDisplayVm>(context, listen: false).load();
                     },
                   ),
                   HomeNavLink(
@@ -61,7 +68,7 @@ class HomeScreen extends StatelessWidget {
                     builder: (context) => EventTypeIndexScreen(),
                     returnCallback: (completion) {
                       // after visiting this route, todays data might have updated
-                      Provider.of<TodaySummaryVm>(context, listen: false).refresh();
+                      Provider.of<TodaySummaryDisplayVm>(context, listen: false).load();
                     },
                   ),
                   HomeNavLink(
@@ -70,10 +77,10 @@ class HomeScreen extends StatelessWidget {
                     builder: (context) => EvtCatIndexScreen(),
                     returnCallback: (completion) {
                       // after visiting this route, todays data might have updated
-                      Provider.of<TodaySummaryVm>(context, listen: false).refresh();
+                      Provider.of<TodaySummaryDisplayVm>(context, listen: false).load();
                     },
                   ),
-                  HomeNavLink("Calendar", Icons.calendar_month, builder: (context) => MonthCalendarScreen(app)),
+                  HomeNavLink("Calendar", Icons.calendar_month, builder: (context) => MonthCalendarScreen()),
                   // button for dialog -> import screen
                   TextButton.icon(
                     onPressed: () async {

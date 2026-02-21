@@ -4,6 +4,7 @@ import 'package:data_app2/data/evt.dart';
 import 'package:data_app2/data/evt_cat.dart';
 import 'package:data_app2/data/evt_type.dart';
 import 'package:data_app2/local_datetime.dart';
+import 'package:data_app2/util/colors.dart';
 
 /// Boring, non-specific test data
 class TestDummyData {
@@ -15,7 +16,10 @@ class TestDummyData {
 
   static EvtTypeDraft makeEvtTypeDraft(int i) => EvtTypeDraft('type $i');
 
-  static EvtCatDraft makeEvtCatDraft(int i) => EvtCatDraft('cat $i');
+  static EvtCatDraft makeEvtCatDraft(int i) {
+    final colors = ColorEngine.defaults.values.toList();
+    return EvtCatDraft('cat $i', colors[i % colors.length]);
+  }
 }
 
 /// Specific test data in relation to

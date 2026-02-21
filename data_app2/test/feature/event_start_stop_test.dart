@@ -14,7 +14,7 @@ void main() {
     final vm = EventCreateViewVM(app);
 
     await vm.addEventByName('TestEvent1232');
-    final typ = app.evtTypeManager.resolveByName('TestEvent1232');
+    final typ = app.evtTypeManager.typeFromName('TestEvent1232');
     expect(typ, isNotNull);
     final loaded = (await app.db.evts.latest(1)).first;
     expect(loaded.typeId, typ!.id);

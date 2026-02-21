@@ -43,7 +43,7 @@ class EvtRepo extends CrudRepo<EvtRec, EvtDraft, Event> {
   }
 
   /// Get some events.
-  Future<Iterable<EvtRec>> filteredUtcTime({required UtcTimeRange range, Iterable<int>? typeIds}) async {
+  Future<Iterable<EvtRec>> filteredUtcTime({required DbTimeRange range, Iterable<int>? typeIds}) async {
     final evts = await isar.txn(() async {
       final f = coll
           .where()
@@ -62,25 +62,35 @@ class EvtRepo extends CrudRepo<EvtRec, EvtDraft, Event> {
   }
 
   /// Get some events.
-  Future<Iterable<EvtRec>> filteredLocalTime({Iterable<int>? typeIds, required LocalTimeRange range}) async {
+  Future<Iterable<EvtRec>> filteredLocalTime({Iterable<int>? typeIds, required DbTimeRange range}) async {
     final evts = await isar.txn(() async {
       final f = coll.where();
 
-      // TODO sort chrono?
       // uses index
       return (switch (range.overlap) {
-        OverlapMode.fullyInside =>
-          f
-              .startLocalMillisGreaterThan(range.startMs, include: true)
-              .filter()
-              .endLocalMillisLessThan(range.endMs, include: false),
-        OverlapMode.overlapping =>
-          f
-              .startLocalMillisLessThan(range.endMs, include: false)
-              .filter()
-              .endLocalMillisGreaterThan(range.startMs, include: true),
-      }).optional(typeIds != null, (q) => q.anyOf(typeIds!, (q, int n) => q.typeIdEqualTo(n))).findAll();
+            OverlapMode.fullyInside =>
+              f
+                  .startLocalMillisGreaterThan(range.startMs, include: true)
+                  .filter()
+                  .endLocalMillisLessThan(range.endMs, include: false),
+            OverlapMode.overlapping =>
+              f
+                  .startLocalMillisLessThan(range.endMs, include: false)
+                  .filter()
+                  .endLocalMillisGreaterThan(range.startMs, include: true),
+          })
+          .optional(typeIds != null, (q) => q.anyOf(typeIds!, (q, int n) => q.typeIdEqualTo(n)))
+          .sortByStartLocalMillis()
+          .findAll();
     });
+    return evts.map(fromIsar);
+  }
+
+  /// Get some events.
+  Future<Iterable<EvtRec>> filteredTypes(Iterable<int> typeIds) async {
+    final evts = await isar.txn(
+      () async => await coll.where().anyOf(typeIds, (q, int n) => q.typeIdEqualTo(n)).findAll(),
+    );
     return evts.map(fromIsar);
   }
 

@@ -21,7 +21,7 @@ class EvtTypeRepo extends CrudRepo<EvtTypeRec, EvtTypeDraft, EventType> {
 
   // === More specific transactions ===
 
-  Future<Iterable<EvtTypeRec>> subset(Set<int> getIds) async {
+  Future<Iterable<EvtTypeRec>> subset(Iterable<int> getIds) async {
     final evtTypes = await isar.txn(() async {
       return await coll.where().anyOf(getIds, (et, q) => et.idEqualTo(q)).findAll();
     });

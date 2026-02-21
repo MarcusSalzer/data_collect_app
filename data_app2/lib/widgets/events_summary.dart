@@ -82,7 +82,7 @@ class MultiBar extends StatelessWidget {
 
 /// A Table showing events, each with a duration
 class EventDurationTable extends StatelessWidget {
-  final SummaryDataList summary;
+  final DurationSummaryList summary;
 
   final String title;
 
@@ -184,7 +184,7 @@ class EventsSummary extends StatelessWidget {
 
   final String title;
 
-  final SummaryDataList summary;
+  final DurationSummaryList summary;
 
   final double listHeight;
 

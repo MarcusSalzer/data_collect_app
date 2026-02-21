@@ -89,7 +89,7 @@ class EventListTile extends StatelessWidget {
 
     final dur = evt.duration;
     final durTxt = " (${Fmt.durationHmVerbose(dur)})";
-    final typ = app.evtTypeManager.resolveById(evt.typeId);
+    final typ = app.evtTypeManager.typeFromId(evt.typeId);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,

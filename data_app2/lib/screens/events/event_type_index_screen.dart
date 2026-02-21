@@ -2,7 +2,7 @@ import 'package:data_app2/app_state.dart';
 import 'package:data_app2/data/evt_type.dart';
 import 'package:data_app2/screens/events/multi_evt_type_summary_screen.dart';
 import 'package:data_app2/util/colors.dart';
-import 'package:data_app2/view_models/event_type_index_view_model.dart';
+import 'package:data_app2/view_models/evt_type_index_vm.dart';
 import 'package:data_app2/screens/events/event_type_detail_screen.dart';
 import 'package:data_app2/screens/events/event_type_overview_screen.dart';
 import 'package:data_app2/util.dart';
@@ -15,10 +15,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class _Body extends StatelessWidget {
-  const _Body();
+  final Color Function(EvtTypeRec) colorOf;
+  const _Body(this.colorOf);
   @override
   Widget build(BuildContext context) {
-    return Consumer<EventTypeIndexViewModel>(
+    return Consumer<EvtTypeIndexVm>(
       builder: (context, indexVM, child) {
         return Builder(
           builder: (context) {
@@ -48,7 +49,7 @@ class _Body extends StatelessWidget {
               );
             }
             return SelectionList<EvtTypeRec>(
-              colorOf: indexVM.colorOf,
+              colorOf: colorOf,
               countOf: indexVM.countOf,
               onTapItem: (r) {
                 Navigator.of(context).push(MaterialPageRoute(builder: (context) => EventTypeOverviewScreen(r.id))).then(
@@ -72,26 +73,33 @@ class EventTypeIndexScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final app = Provider.of<AppState>(context, listen: false);
-
-    // Create both view models.
-
-    final indexVm = EventTypeIndexViewModel(app);
-    final selectionVm = GenericSelectionVm<EvtTypeRec>(
-      source: () => indexVm.itemsSorted ??[ ],
-      idOf: (r) => r.id,
-      textOf: (r) => r.name,
-      app: app,
-    );
-
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (context) => indexVm..load()),
-        ChangeNotifierProvider(create: (context) => selectionVm),
+        ChangeNotifierProvider(
+          create: (ctxCreate) {
+            final app = ctxCreate.read<AppState>();
+            final vm = EvtTypeIndexVm(app.db, app.evtTypeManager);
+            vm.load();
+            return vm;
+          },
+        ),
+        ChangeNotifierProvider(
+          create: (ctxCreate) {
+            final indexVm = ctxCreate.read<EvtTypeIndexVm>();
+            final searchMode = ctxCreate.read<AppState>().prefs.textSearchMode;
+
+            return GenericSelectionVm<EvtTypeRec>(
+              source: () => indexVm.itemsSorted ?? [],
+              idOf: (r) => r.id,
+              textOf: (r) => r.name,
+              searchMode: searchMode,
+            );
+          },
+        ),
       ],
       child: Scaffold(
         appBar: SelectionAppBar<EvtTypeRec>("Event types"),
-        body: _Body(),
+        body: _Body(context.read<AppState>().colorFor),
         floatingActionButton: SelectionFab<EvtTypeRec>(
           // has selection: show summary for selection
           actionSelectedName: "Summary",
@@ -102,7 +110,7 @@ class EventTypeIndexScreen extends StatelessWidget {
             Navigator.of(context).push(MaterialPageRoute(builder: (_) => EventTypeDetailScreen(null))).then((_) {
               if (context.mounted) {
                 // Reload data after possible edits
-                indexVm.load();
+                context.read<EvtTypeIndexVm>().load();
               }
             });
           },
@@ -140,7 +148,7 @@ class EvtTypeList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer2<GenericSelectionVm<EvtTypeRec>, EventTypeIndexViewModel>(
+    return Consumer2<GenericSelectionVm<EvtTypeRec>, EvtTypeIndexVm>(
       builder: (context, selVM, dataVM, _) {
         final evtTypes = selVM.filtered;
         return Column(
@@ -161,7 +169,6 @@ class EvtTypeList extends StatelessWidget {
                       },
                     ),
 
-                    ///TODO COLOR UNLESS DEPRECATED
                     title: Text(typeRec.name, style: TextStyle(color: ColorEngine.defaultColor)),
                     subtitle: Text(count.toString()),
                     onTap: () {

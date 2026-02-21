@@ -1,12 +1,12 @@
 // Tricky things....
 
 import 'package:data_app2/local_datetime.dart';
-import 'package:data_app2/util/dummy_data.dart';
 import 'package:data_app2/util/enums.dart';
 import 'package:data_app2/util/extensions.dart';
 
 /// How does the DB look at time?
-sealed class DbTimeRange {
+/// Can be applied to LOCAL or UTC timelines
+class DbTimeRange {
   final int startMs;
   final int endMs;
   final OverlapMode overlap;
@@ -16,28 +16,10 @@ sealed class DbTimeRange {
   String toString() {
     return "($startMs, $endMs, ${overlap.name})";
   }
-}
-
-/// Applies to UTC millis
-class UtcTimeRange extends DbTimeRange {
-  const UtcTimeRange(super.startMs, super.endMs, super.overlap);
 
   @override
   bool operator ==(Object other) {
-    return other is UtcTimeRange && other.startMs == startMs && other.endMs == endMs && other.overlap == overlap;
-  }
-
-  @override
-  int get hashCode => Object.hash(startMs, endMs, overlap);
-}
-
-/// Applies to LOCAL millis
-class LocalTimeRange extends DbTimeRange {
-  const LocalTimeRange(super.start, super.end, super.overlap);
-
-  @override
-  bool operator ==(Object other) {
-    return other is LocalTimeRange && other.startMs == startMs && other.endMs == endMs && other.overlap == overlap;
+    return other is DbTimeRange && other.startMs == startMs && other.endMs == endMs && other.overlap == overlap;
   }
 
   @override
@@ -70,13 +52,13 @@ class UtcTimeRangeQuery extends TimeRangeQuery {
     GroupFreq.month => DateTime.utc(_start.year, _start.month + 1),
   };
   @override
-  UtcTimeRange toDbRange() {
+  DbTimeRange toDbRange() {
     // Do not proceed if not utc time
     if (!referenceUtc.isUtc) {
       throw AssertionError("Expects UTC time");
     }
 
-    return UtcTimeRange(_start.millisecondsSinceEpoch, _end.millisecondsSinceEpoch, overlapMode);
+    return DbTimeRange(_start.millisecondsSinceEpoch, _end.millisecondsSinceEpoch, overlapMode);
   }
 
   @override
@@ -116,8 +98,8 @@ class LocalTimeRangeQuery extends TimeRangeQuery {
   toString() => "($_start, $_end) ${overlapMode.name}";
 
   @override
-  LocalTimeRange toDbRange() {
-    return LocalTimeRange(_startMillis, _endMillis, overlapMode);
+  DbTimeRange toDbRange() {
+    return DbTimeRange(_startMillis, _endMillis, overlapMode);
   }
 
   @override

@@ -1,6 +1,7 @@
 import 'package:data_app2/app_state.dart';
 import 'package:data_app2/data/evt_cat.dart';
 import 'package:data_app2/screens/events/evt_cat_detail_screen.dart';
+import 'package:data_app2/util/enums.dart';
 import 'package:data_app2/view_models/evt_cat_index_vm.dart';
 import 'package:data_app2/view_models/generic_selection_vm.dart';
 import 'package:data_app2/widgets/selection_app_bar.dart';
@@ -54,7 +55,7 @@ class EvtCatIndexScreen extends StatelessWidget {
       source: () => indexVm.itemsSorted ?? [],
       idOf: (r) => r.id,
       textOf: (r) => r.name,
-      app: app,
+      searchMode: context.select<AppState, TextSearchMode>((app) => app.prefs.textSearchMode),
     );
 
     return MultiProvider(

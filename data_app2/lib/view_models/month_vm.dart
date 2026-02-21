@@ -1,57 +1,48 @@
-import 'package:data_app2/app_state.dart';
+import 'dart:collection';
+
 import 'package:data_app2/data/evt.dart';
-import 'package:data_app2/data/today_summary_data.dart';
-import 'package:data_app2/local_datetime.dart';
 import 'package:data_app2/time_range_queries.dart';
 import 'package:data_app2/util/enums.dart';
-import 'package:data_app2/util/event_stats_compute.dart';
 import 'package:data_app2/util/extensions.dart';
+import 'package:data_app2/view_models/duration_summary_display_vm.dart';
 import 'package:flutter/material.dart';
-import 'package:logging/logging.dart';
 
 /// Handle data for showing stats for a month
-class MonthVm extends ChangeNotifier {
-  final AppState _app;
+class MonthVm extends DurationSummaryDisplayVm {
+  @override
+  LocalTimeRangeQuery get rangeQuery => LocalTimeRangeQuery(
+    ref: _current,
+    dayOffset: dayStart,
+    unit: GroupFreq.month,
+    overlapMode: OverlapMode.fullyInside,
+  );
+
   DateTime _current = DateTime.now().startOfMonth;
-  SummaryDataList? summary;
 
   List<DateTime> _days = [];
-  List<EvtRec> _events = [];
-  late Future<void> loadFuture;
+  List<EvtRec>? _events;
 
-  MonthVm(this._app) {
-    loadFuture = _loadEvents();
-    _makeDayGrid();
-  }
+  MonthVm(super.dayStart, super.db, super.typeManager, super.colorSpread);
 
   DateTime get currentMonth => _current;
   List<DateTime> get days => _days;
-  List<EvtRec> get events => _events;
+
+  UnmodifiableListView<EvtRec>? get events {
+    final evts = _events;
+    if (evts == null) return null;
+    return UnmodifiableListView(evts);
+  }
 
   /// load events for current month
-  Future<void> _loadEvents() async {
-    _events.clear(); // remove old data
-
-    // create a query to apply on stored local timestamps.
-    final q = LocalTimeRangeQuery(
-      ref: _current,
-      dayOffset: Duration(hours: _app.prefs.dayStartsH),
-      unit: GroupFreq.month,
-      overlapMode: OverlapMode.fullyInside,
-    );
-
-    Logger.root.info("Month view query: $q");
-
-    _events = (await _app.db.evts.filteredLocalTime(range: q.toDbRange())).toList();
+  @override
+  Future<void> load() async {
+    final evts = (await db.evts.filteredLocalTime(range: rangeQuery.toDbRange())).toList();
 
     // Compute summary from events
-    summary = SummaryDataList(
-      timePerEvent(_events).map((e) {
-        final et = _app.evtTypeManager.resolveById(e.key);
-        return SummaryItem(et?.name ?? "unknown", _app.colorFor(et), e.value);
-      }).toList(),
-    );
-    // eventsPerDay();
+    refreshSummary(evts);
+
+    // remember events
+    _events = evts;
     notifyListeners();
   }
 
@@ -67,12 +58,15 @@ class MonthVm extends ChangeNotifier {
     _current = DateUtils.addMonthsToMonthDate(currentMonth, offset);
     _makeDayGrid();
     notifyListeners();
-    _loadEvents();
+    load();
   }
 
-  List<int> eventsPerDay() {
+  List<int>? eventsPerDay() {
+    final evts = _events;
+    if (evts == null) return null;
+
     final counts = List.filled(_days.length, 0);
-    for (var e in _events) {
+    for (var e in evts) {
       final startLocal = e.start?.asUtcWithLocalValue;
       if (startLocal == null) continue;
 

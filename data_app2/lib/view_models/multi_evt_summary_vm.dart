@@ -10,7 +10,6 @@ import 'package:flutter/material.dart';
 class MultiEvtSummaryVM extends ChangeNotifier {
   final AppState _app;
   final Iterable<int> _typeIds;
-  final List<EvtTypeRec> _typeRecs; // resolved from typeIds
   int get nTypes => _typeIds.length;
   // aggregation frequency
   GroupFreq _freq = GroupFreq.month; // default for initial summary
@@ -18,36 +17,36 @@ class MultiEvtSummaryVM extends ChangeNotifier {
 
   ProcessState<SummaryWithPeriodAggs> state = Loading();
 
+  // loaded after:
   List<EvtRec>? _evts;
+  List<EvtTypeRec>? _typeRecs;
 
-  //TODO  get subset without nullable??
-  MultiEvtSummaryVM(this._typeIds, this._app)
-    : _typeRecs = _typeIds
-          .map((i) => _app.evtTypeManager.resolveById(i) ?? EvtTypeRec(-1, "Unknown"))
-          .toList() // resolve type ids and set to unknown if missing
-          ;
+  MultiEvtSummaryVM(this._typeIds, this._app);
   void setFreq(GroupFreq? f) {
     if (f == null) return;
 
     _freq = f;
     final evts = _evts;
-    if (evts != null) {
-      state = Ready(computeSummary(evts));
+    final types = _typeRecs;
+    if (evts != null && types != null) {
+      state = Ready(computeSummary(evts, types));
     }
     notifyListeners();
   }
 
-  SummaryWithPeriodAggs computeSummary(List<EvtRec> evts) {
-    return SummaryWithPeriodAggs(computeAggs(evts, _typeRecs, _freq), _typeRecs, _freq, evts.length);
+  SummaryWithPeriodAggs computeSummary(List<EvtRec> evts, List<EvtTypeRec> types) {
+    return SummaryWithPeriodAggs(computeAggs(evts, types, _freq), types, _freq, evts.length);
   }
 
-  /// Load events and compute summary
+  /// Load events and types and compute summary
   Future<void> load() async {
-    final evts = (await _app.db.evts.filteredLocalTimeOld(typeIds: _typeIds)).toList();
+    final types = (await _app.db.evtTypes.subset(_typeIds)).toList();
+    final evts = (await _app.db.evts.filteredTypes(_typeIds)).toList();
 
     _evts = evts;
+    _typeRecs = types;
 
-    state = Ready(computeSummary(evts));
+    state = Ready(computeSummary(evts, types));
     notifyListeners();
   }
 }

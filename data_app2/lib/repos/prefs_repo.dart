@@ -2,6 +2,7 @@ import 'package:data_app2/isar_models.dart';
 import 'package:isar_community/isar.dart';
 
 /// For accessing App preference data
+@Deprecated("JSON instead")
 class PrefsRepo {
   final Isar _isar;
 

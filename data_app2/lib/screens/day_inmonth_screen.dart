@@ -30,7 +30,7 @@ class DayInmonthScreen extends StatelessWidget {
                 children: [
                   EventPieChart(
                     timings: vm.tpe
-                        .map((e) => MapEntry(app.evtTypeManager.resolveById(e.key)?.name ?? "?", e.value))
+                        .map((e) => MapEntry(app.evtTypeManager.typeFromId(e.key)?.name ?? "?", e.value))
                         .toList(),
                     colors: vm.tpe.map((e) => app.evtTypeManager.colorForId(e.key, colorSpread)).toList(),
                   ),

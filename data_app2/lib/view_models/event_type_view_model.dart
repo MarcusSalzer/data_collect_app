@@ -6,7 +6,6 @@ import 'package:data_app2/util/stats.dart';
 import 'package:flutter/material.dart';
 
 /// Show overview of an event type.
-/// TODO refactor to avoid null id?
 class EventTypeViewModel extends ChangeNotifier {
   final int typeId;
   final AppState _app;
@@ -20,7 +19,7 @@ class EventTypeViewModel extends ChangeNotifier {
   Map<int, int> _perWeekDay = {};
 
   /// Get the [EvtTypeRec] or a temporary "error message"-type
-  EvtTypeRec get type => _app.evtTypeManager.resolveById(typeId) ?? EvtTypeRec(-1, "[ERROR: not found]");
+  EvtTypeRec get type => _app.evtTypeManager.typeFromId(typeId) ?? EvtTypeRec(-1, "[ERROR: not found]");
   List<EvtRec> get evts => _evts;
   bool get isLoading => _isLoading;
   Duration get totTime => _totTime;
@@ -34,7 +33,7 @@ class EventTypeViewModel extends ChangeNotifier {
     _evts = [];
     notifyListeners();
 
-    _evts = (await _app.db.evts.filteredLocalTimeOld(typeIds: [typeId])).toList();
+    _evts = (await _app.db.evts.filteredTypes([typeId])).toList();
 
     _totTime = totalEventTime(_evts);
 

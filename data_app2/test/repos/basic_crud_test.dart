@@ -7,13 +7,13 @@ import 'package:data_app2/db_service.dart';
 import 'package:data_app2/isar_models.dart';
 import 'package:test/test.dart';
 
-import 'test_util/dummy_app.dart';
-import 'test_util/dummy_data.dart';
+import '../test_util/dummy_app.dart';
+import '../test_util/dummy_data.dart';
 
 void runCrudRepoTests<R extends Identifiable, D extends Draft<R>, I>({
   required CrudRepo<R, D, I> Function() repo,
   required D Function(int seed) makeDraft,
-  required void Function(R actual, R match) expectEqual, //NOTE: should call expect()
+  required void Function(R actual, R match) expectEqual, // NOTE: should call expect()
 }) {
   late CrudRepo<R, D, I> r;
 
@@ -36,13 +36,13 @@ void runCrudRepoTests<R extends Identifiable, D extends Draft<R>, I>({
   });
 
   test('all() returns inserted items', () async {
-    final ids = <int>[];
+    final ids = <int>{};
 
     for (var i = 0; i < 3; i++) {
       ids.add(await r.create(makeDraft(i)));
     }
 
-    expect((await r.all()).toList().length, ids.length);
+    expect((await r.all()).map((e) => e.id).toSet(), ids);
   });
 
   test('can clear everything', () async {
@@ -57,7 +57,7 @@ void main() {
   late DBService db;
 
   setUpAll(() async {
-    db = DBService(await getTmpIsar());
+    db = await getDummyDb();
   });
 
   group('EvtRepo', () {
@@ -84,8 +84,8 @@ void main() {
       makeDraft: TestDummyData.makeEvtCatDraft,
       expectEqual: (a, b) {
         expect(a.id, b.id);
-        expect(a.color, b.color);
         expect(a.name, b.name);
+        expect(a.color, b.color);
       },
     );
   });

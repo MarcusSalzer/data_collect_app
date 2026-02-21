@@ -41,7 +41,7 @@ class _EventCreateMenuState extends State<EventCreateMenu> {
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
                           SizedBox(width: 100, child: Text(startTxt)),
-                          Expanded(child: Text(app.evtTypeManager.resolveById(evt.typeId)?.name ?? "unknown")),
+                          Expanded(child: Text(app.evtTypeManager.typeFromId(evt.typeId)?.name ?? "unknown")),
                           TextButton.icon(onPressed: evm.stopEvent, label: Text("stop"), icon: Icon(Icons.stop)),
                         ],
                       );
@@ -116,7 +116,7 @@ class CommonEventsSuggest extends StatelessWidget {
           spacing: 6,
           runSpacing: 6,
           children: evm.eventSuggestions().map((s) {
-            final et = app.evtTypeManager.resolveById(s);
+            final et = app.evtTypeManager.typeFromId(s);
             final name = et?.name ?? "unknown";
             return ActionChip(
               label: Text(name),

@@ -1,22 +1,25 @@
 import 'dart:collection';
-import 'package:data_app2/app_state.dart';
 import 'package:data_app2/data/evt_type.dart';
+import 'package:data_app2/db_service.dart';
+import 'package:data_app2/evt_type_manager.dart';
 import 'package:data_app2/util/stats.dart';
 import 'package:flutter/material.dart';
 
-class EventTypeIndexViewModel extends ChangeNotifier {
-  final AppState _app;
+class EvtTypeIndexVm extends ChangeNotifier {
+  final DBService _db;
+  final EvtTypeManagerPersist _typeManager;
+
+  EvtTypeIndexVm(this._db, this._typeManager);
 
   LinkedHashMap<int, int>? _idToCount;
   LinkedHashMap<int, int>? get idToCount => _idToCount;
 
   int countOf(EvtTypeRec rec) => _idToCount?[rec.id] ?? 0;
-  Color colorOf(EvtTypeRec rec) => _app.colorFor(rec);
 
   Iterable<int> danglingTypeRefs = {};
 
   EvtTypeRec? eventType(int id) {
-    return _app.evtTypeManager.resolveById(id);
+    return _typeManager.typeFromId(id);
   }
 
   List<EvtTypeRec>? get itemsSorted {
@@ -26,7 +29,7 @@ class EventTypeIndexViewModel extends ChangeNotifier {
     }
 
     // Copy list of all types
-    final types = [..._app.evtTypeManager.allTypes];
+    final types = [..._typeManager.allTypes];
 
     // Sort by descending (zeros at end)
     types.sort((a, b) {
@@ -39,21 +42,19 @@ class EventTypeIndexViewModel extends ChangeNotifier {
     return types;
   }
 
-  EventTypeIndexViewModel(this._app);
-
   Future<void> load() async {
     // refresh types and categories
-    final (t, c) = await _app.db.allTypesAndCats();
-    _app.evtTypeManager.reloadFromModels(t, c);
+    final (t, c) = await _db.allTypesAndCats();
+    _typeManager.reloadFromModels(t, c);
     // Check for dangling type references
-    danglingTypeRefs = await _app.db.danglingTypeRefs();
+    danglingTypeRefs = await _db.danglingTypeRefs();
     await refreshCounts();
     notifyListeners();
   }
 
   /// Count each event type
   Future<void> refreshCounts() async {
-    final evts = await _app.db.evts.all();
+    final evts = await _db.evts.all();
 
     var counts = valueCounts<int>(evts.map((e) => e.typeId));
 
@@ -61,7 +62,7 @@ class EventTypeIndexViewModel extends ChangeNotifier {
   }
 
   Future<List<int>> recreateDanglingTypes() async {
-    final created = await _app.evtTypeManager.fillDanglingTypeRefs();
+    final created = await _typeManager.fillDanglingTypeRefs();
     await load(); // also reload
     return created;
   }
