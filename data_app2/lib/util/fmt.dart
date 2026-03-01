@@ -54,7 +54,7 @@ class Fmt {
   /// Time HH:mm, or placeholder
   static String time(DateTime? dt) {
     if (dt == null) {
-      return ("__-__-__");
+      return ("__:__");
     }
     return DateFormat("HH:mm").format(dt);
   }

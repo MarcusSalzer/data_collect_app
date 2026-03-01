@@ -38,7 +38,7 @@ class EvtTypeRepo extends CrudRepo<EvtTypeRec, EvtTypeDraft, EventType> {
   /// Get if exists, otherwise make a new
   Future<EvtTypeRec> getOrCreate(String name) async {
     return await isar.writeTxn(() async {
-      final existing = await isar.eventTypes.filter().nameEqualTo(name).findFirst();
+      final existing = await isar.eventTypes.where().nameEqualTo(name).findFirst();
       if (existing != null) {
         return fromIsar(existing);
       } else {

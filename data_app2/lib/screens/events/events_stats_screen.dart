@@ -1,5 +1,5 @@
 import 'package:data_app2/app_state.dart';
-import 'package:data_app2/view_models/event_create_vm.dart';
+import 'package:data_app2/view_models/event_create_vm_old.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -12,8 +12,8 @@ class EventsStatsScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(title: Text("Stats")),
-      body: ChangeNotifierProvider<EventCreateViewVM>(
-        create: (_) => EventCreateViewVM(appState),
+      body: ChangeNotifierProvider<EventCreateViewVMOld>(
+        create: (_) => EventCreateViewVMOld(appState),
         child: EventsStatsView(),
       ),
     );
@@ -25,7 +25,7 @@ class EventsStatsView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<EventCreateViewVM>(
+    return Consumer<EventCreateViewVMOld>(
       builder: (context, evm, child) {
         if (evm.isLoading) {
           return Center(child: Text("Loading events..."));

@@ -41,11 +41,7 @@ Future<Iterable<EvtDraft>> dummyEvents(AppState app) async {
       pos = pos.subtract(dur);
       final name = ev.name;
 
-      final r = EvtDraft.inCurrentTZ(
-        (await app.evtTypeManager.resolveOrCreate(name: name)).id,
-        start: start,
-        end: end,
-      );
+      final r = EvtDraft.inCurrentTZ((await app.evtTypeManager.fromNameOrCreate(name)).id, start: start, end: end);
       recs.add(r);
     }
   }

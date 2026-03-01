@@ -1,5 +1,6 @@
 import 'package:data_app2/view_models/today_summary_vm.dart';
 import 'package:data_app2/widgets/events_summary.dart';
+import 'package:data_app2/widgets/summary_mode_segm_button.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -10,35 +11,33 @@ class TodaySummaryDisplay extends StatelessWidget {
   Widget build(BuildContext context) {
     final thm = Theme.of(context);
 
-    return Consumer<TodaySummaryDisplayVm>(
-      builder: (context, vm, child) {
-        final summary = vm.summaryByType;
-        if (summary == null) {
-          return Center(child: Text("loading todaySummary"));
-        }
-        if (summary.items.isEmpty) {
-          return const Center(child: Text("No events today"));
-        }
-        return Container(
-          padding: EdgeInsets.all(12),
-          margin: EdgeInsets.all(8),
-          decoration: ShapeDecoration(
-            color: thm.colorScheme.primaryContainer,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(1))),
+    final vm = context.watch<TodaySummaryDisplayVm>();
+    print("building tsd");
+
+    final summary = vm.activeSummary;
+    if (summary == null) {
+      return Center(child: Text("loading todaySummary"));
+    }
+    if (summary.items.isEmpty) {
+      return const Center(child: Text("No events today"));
+    }
+    return Container(
+      padding: EdgeInsets.all(12),
+      decoration: ShapeDecoration(
+        color: thm.colorScheme.primaryContainer,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(1))),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          EventDurationTable(summary, SummaryModeSegmButton(vm)),
+          SizedBox(height: 10),
+          MultiBar(
+            sizes: summary.items.map((entry) => entry.duration.inMinutes),
+            colors: summary.items.map((entry) => entry.color).toList(),
           ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              EventDurationTable(summary, title: "Tracked today"),
-              SizedBox(height: 10),
-              MultiBar.horizontal(
-                sizes: summary.items.map((entry) => entry.duration.inMinutes),
-                colors: summary.items.map((entry) => entry.color).toList(),
-              ),
-            ],
-          ),
-        );
-      },
+        ],
+      ),
     );
   }
 }

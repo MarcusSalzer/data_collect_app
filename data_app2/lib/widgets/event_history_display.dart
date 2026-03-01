@@ -7,6 +7,7 @@ import 'package:data_app2/screens/events/evt_detail_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+@Deprecated("EvtHistoryList is a simplified version")
 class EventHistoryDisplay extends StatelessWidget {
   final List<EvtRec> evts;
   final GroupFreq? headingMode;
@@ -32,7 +33,7 @@ class EventHistoryDisplay extends StatelessWidget {
         itemCount: evts.length,
         reverse: reverse,
         itemBuilder: (context, i) {
-          return EventListTile(evt: evts[i], heading: _getHeading(i), reloadAction: reloadAction);
+          return _EventListTileOld(evt: evts[i], heading: _getHeading(i), reloadAction: reloadAction);
         },
         shrinkWrap: !isScrollable,
         physics: isScrollable
@@ -71,8 +72,8 @@ class EventHistoryDisplay extends StatelessWidget {
   }
 }
 
-class EventListTile extends StatelessWidget {
-  const EventListTile({super.key, required this.evt, this.heading, required this.reloadAction});
+class _EventListTileOld extends StatelessWidget {
+  const _EventListTileOld({required this.evt, this.heading, required this.reloadAction});
 
   final EvtRec evt;
   final String? heading;

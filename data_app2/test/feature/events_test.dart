@@ -1,15 +1,15 @@
 import 'package:data_app2/app_state.dart';
-import 'package:data_app2/view_models/event_create_vm.dart';
+import 'package:data_app2/view_models/event_create_vm_old.dart';
 import 'package:test/test.dart';
 import '../test_util/dummy_app.dart';
 
 void main() {
   late final AppState app;
-  late final EventCreateViewVM createVm;
+  late final EventCreateViewVMOld createVm;
 
   setUpAll(() async {
     app = await getDummyApp();
-    createVm = EventCreateViewVM(app);
+    createVm = EventCreateViewVMOld(app);
   });
 
   tearDown(() {

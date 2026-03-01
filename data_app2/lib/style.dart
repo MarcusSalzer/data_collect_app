@@ -27,13 +27,11 @@ enum ColorSchemeMode {
 }
 
 /// Contains the actual theme data, that can be selected by the color scheme preference
+/// TODO: add colorful themes, or a "dynamic theme"
 class AppThemes {
   static final ThemeData light = ThemeData(
     brightness: Brightness.light,
-    colorScheme: ColorScheme.fromSeed(
-      seedColor: Colors.blue,
-      brightness: Brightness.light,
-    ),
+    colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue, brightness: Brightness.light),
     useMaterial3: true,
   );
 
@@ -52,10 +50,13 @@ class AppThemes {
     scaffoldBackgroundColor: Colors.black,
     colorScheme: const ColorScheme.dark(
       surface: Colors.black,
-      onSurface: Color.fromARGB(255, 226, 226, 226),
+      onSurface: Color(0xFFE2E2E2),
       brightness: Brightness.dark,
-      primaryContainer: Color.fromARGB(255, 18, 18, 18),
-      onPrimaryContainer: Color.fromARGB(255, 208, 205, 205),
+      inversePrimary: Color.fromARGB(255, 20, 19, 20),
+      primaryContainer: Color.fromARGB(255, 8, 8, 8),
+      onPrimaryContainer: Color(0xFFD0CDCD),
+      secondaryContainer: Color(0xFF242424),
+      onSecondaryContainer: Color(0xFFE8E4E4),
     ),
     useMaterial3: true,
   );

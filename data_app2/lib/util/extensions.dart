@@ -1,3 +1,5 @@
+import 'dart:collection';
+
 import 'package:data_app2/util/enums.dart';
 import 'package:logging/logging.dart' show Level;
 
@@ -149,3 +151,7 @@ extension ToLogging on LogLevel {
 //     }
 //   }
 // }
+
+extension View<T> on List<T> {
+  UnmodifiableListView<T> get unmodifiable => UnmodifiableListView(this);
+}

@@ -121,14 +121,15 @@ class EvtRepo extends CrudRepo<EvtRec, EvtDraft, Event> {
     return (i == null) ? null : fromIsar(i);
   }
 
-  /// reverse chronological events
+  /// latest events (chronological order)
   Future<Iterable<EvtRec>> latest(int? count) async {
     return (await isar.txn(
       () async => await coll
+          // Desc to get latest -> reverse back later
           .where(sort: Sort.desc)
           .anyStartLocalMillis()
           .optional(count != null, (q) => q.limit(count!))
           .findAll(),
-    )).map(fromIsar);
+    )).reversed.map(fromIsar);
   }
 }

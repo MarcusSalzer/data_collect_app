@@ -1,3 +1,5 @@
+import 'dart:collection';
+
 import 'package:data_app2/app_state.dart';
 import 'package:data_app2/data/evt.dart';
 import 'package:data_app2/time_range_queries.dart';
@@ -9,7 +11,7 @@ import 'package:logging/logging.dart';
 class DayInmonthVm extends ChangeNotifier {
   final AppState _app;
   final DateTime dt;
-  final List<EvtRec> monthEvts;
+  final UnmodifiableListView<EvtRec> monthEvts;
   List<EvtRec> todayEvts = [];
   List<MapEntry<int, Duration>> tpe = [];
   DayInmonthVm(this.dt, this._app, this.monthEvts);
@@ -35,6 +37,5 @@ class DayInmonthVm extends ChangeNotifier {
   Future<void> load() async {
     await Future.delayed(Duration(seconds: 1));
     refresh();
-    // TODO reload month!?
   }
 }

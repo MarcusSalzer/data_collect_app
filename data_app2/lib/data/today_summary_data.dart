@@ -48,4 +48,6 @@ class DurationSummaryList<T> {
   DurationSummaryList(this.items);
 
   Duration get trackedTime => items.fold(Duration.zero, (p, c) => p + c.duration);
+
+  bool get isEmpty => items.isEmpty;
 }

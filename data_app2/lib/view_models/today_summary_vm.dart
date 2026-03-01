@@ -4,7 +4,7 @@ import 'package:data_app2/view_models/duration_summary_display_vm.dart';
 
 /// Manage state for today-summary
 class TodaySummaryDisplayVm extends DurationSummaryDisplayVm {
-  TodaySummaryDisplayVm(super.dayStart, super.db, super.typeManager, super.colorSpread);
+  TodaySummaryDisplayVm(super.dayStart, super.db, super.typeManager, super.colorSpread, super._summaryMode);
 
   @override
   get rangeQuery => LocalTimeRangeQuery(
@@ -16,7 +16,9 @@ class TodaySummaryDisplayVm extends DurationSummaryDisplayVm {
 
   @override
   Future<void> load() async {
+    // load events
     final evts = await db.evts.filteredLocalTime(range: rangeQuery.toDbRange());
+    // NOTE: this assumes the type cache is filled!
     refreshSummary(evts);
 
     notifyListeners();

@@ -1,3 +1,5 @@
+import 'dart:collection';
+
 import 'package:data_app2/data/evt.dart';
 import 'package:data_app2/data/evt_cat.dart';
 import 'package:data_app2/data/evt_type.dart';
@@ -5,7 +7,9 @@ import 'package:data_app2/data/today_summary_data.dart';
 import 'package:data_app2/db_service.dart';
 import 'package:data_app2/evt_type_manager.dart';
 import 'package:data_app2/time_range_queries.dart';
+import 'package:data_app2/util/enums.dart';
 import 'package:data_app2/util/event_stats_compute.dart';
+import 'package:data_app2/util/extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 
@@ -16,12 +20,53 @@ abstract class DurationSummaryDisplayVm extends ChangeNotifier {
   final EvtTypeManager typeManager;
   final double colorSpread;
 
-  DurationSummaryDisplayVm(this.dayStart, this.db, this.typeManager, this.colorSpread);
+  DurationSummaryDisplayVm(this.dayStart, this.db, this.typeManager, this.colorSpread, this._summaryMode) {
+    typeManager.addListener(_onTypesChanged);
+  }
 
+  @override
+  void dispose() {
+    typeManager.removeListener(_onTypesChanged);
+    super.dispose();
+  }
+
+  List<EvtRec>? _evts;
   DurationSummaryList<EvtTypeRec>? _summaryByType;
-  DurationSummaryList<EvtTypeRec>? get summaryByType => _summaryByType;
 
-  DurationSummaryList<EvtCatRec>? get summaryByCat {
+  /// Computed from type-summary, but remembered
+  DurationSummaryList<EvtCatRec>? _summaryByCat;
+
+  // allow choosing which summary to show
+  SummaryMode _summaryMode;
+  SummaryMode get summaryMode => _summaryMode;
+
+  UnmodifiableListView<EvtRec>? get eventList => _evts?.unmodifiable;
+
+  void setSummaryMode(SummaryMode value) {
+    if (_summaryMode == value) return;
+    _summaryMode = value;
+    notifyListeners();
+  }
+
+  void toggleSummaryLevel() {
+    _summaryMode = _summaryMode == SummaryMode.type ? SummaryMode.category : SummaryMode.type;
+    notifyListeners();
+  }
+
+  /// Unified getter the UI can consume
+  DurationSummaryList<dynamic>? get activeSummary {
+    switch (_summaryMode) {
+      case SummaryMode.type:
+        return _summaryByType;
+      case SummaryMode.category:
+        // compute if needed
+        _summaryByCat ??= _computeSummaryByCat();
+        return _summaryByCat;
+    }
+  }
+
+  /// Group the typeSummary and return that
+  DurationSummaryList<EvtCatRec>? _computeSummaryByCat() {
     final byType = _summaryByType;
     if (byType == null) return null;
 
@@ -73,7 +118,21 @@ abstract class DurationSummaryDisplayVm extends ChangeNotifier {
   /// Subclass implements a query to load
   LocalTimeRangeQuery get rangeQuery;
 
-  /// sublcass loads events and calls [refreshSummary].
-  /// might do extra loading or remember events
-  Future<void> load();
+  Future<void> load() async {
+    final evts = (await db.evts.filteredLocalTime(range: rangeQuery.toDbRange())).toList();
+
+    // Compute summary from events
+    refreshSummary(evts);
+
+    // remember events
+    _evts = evts;
+    notifyListeners();
+  }
+
+  void _onTypesChanged() {
+    final evts = _evts;
+    if (evts != null && typeManager.isReady) {
+      refreshSummary(evts);
+    }
+  }
 }

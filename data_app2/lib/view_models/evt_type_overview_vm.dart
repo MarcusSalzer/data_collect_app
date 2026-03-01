@@ -6,8 +6,8 @@ import 'package:data_app2/util/stats.dart';
 import 'package:flutter/material.dart';
 
 /// Show overview of an event type.
-class EventTypeViewModel extends ChangeNotifier {
-  final int typeId;
+class EvtTypeOverviewVm extends ChangeNotifier {
+  final EvtTypeRec type;
   final AppState _app;
 
   // Stored once and reused
@@ -19,21 +19,19 @@ class EventTypeViewModel extends ChangeNotifier {
   Map<int, int> _perWeekDay = {};
 
   /// Get the [EvtTypeRec] or a temporary "error message"-type
-  EvtTypeRec get type => _app.evtTypeManager.typeFromId(typeId) ?? EvtTypeRec(-1, "[ERROR: not found]");
   List<EvtRec> get evts => _evts;
   bool get isLoading => _isLoading;
   Duration get totTime => _totTime;
   Map<int, int> get perWeekDay => _perWeekDay;
 
-  EventTypeViewModel(this.typeId, this._app) : color = _app.evtTypeManager.colorForId(typeId, _app.prefs.colorSpread) {
-    load();
-  }
+  EvtTypeOverviewVm(this.type, this._app) : color = _app.evtTypeManager.colorFor(type, _app.prefs.colorSpread);
+
   Future<void> load() async {
     _isLoading = true;
     _evts = [];
     notifyListeners();
 
-    _evts = (await _app.db.evts.filteredTypes([typeId])).toList();
+    _evts = (await _app.db.evts.filteredTypes([type.id])).toList();
 
     _totTime = totalEventTime(_evts);
 

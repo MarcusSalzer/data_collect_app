@@ -3,6 +3,7 @@ import 'dart:collection';
 import 'package:data_app2/data/evt.dart';
 import 'package:data_app2/data/evt_cat.dart';
 import 'package:data_app2/data/evt_type.dart';
+import 'package:data_app2/db_service.dart';
 import 'package:data_app2/local_datetime.dart';
 import 'package:data_app2/util/colors.dart';
 
@@ -20,6 +21,31 @@ class TestDummyData {
     final colors = ColorEngine.defaults.values.toList();
     return EvtCatDraft('cat $i', colors[i % colors.length]);
   }
+}
+
+Future<({List<int> catIds, List<int> evtIds, List<int> typeIds})> fillDbWithDummyData(
+  DBService db, {
+  int nCats = 3,
+  int nTypes = 5,
+  int nEvts = 20,
+}) async {
+  // ---- Categories ----
+  final catDrafts = List.generate(nCats, TestDummyData.makeEvtCatDraft);
+  final catIds = await db.evtCats.createAll(catDrafts);
+
+  // ---- Types (each linked to a valid category) ----
+  final typeDrafts = List.generate(
+    nTypes,
+    (i) => TestDummyData.makeEvtTypeDraft(i)..categoryId = catIds[i % catIds.length],
+  );
+
+  final typeIds = await db.evtTypes.createAll(typeDrafts);
+
+  // ---- Events (each linked to a valid type) ----
+  final evtDrafts = List.generate(nEvts, (i) => TestDummyData.makeEvtDraft(i)..typeId = typeIds[i % typeIds.length]);
+
+  final evtIds = await db.evts.createAll(evtDrafts);
+  return (evtIds: evtIds, typeIds: typeIds, catIds: catIds);
 }
 
 /// Specific test data in relation to

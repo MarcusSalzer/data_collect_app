@@ -1,25 +1,27 @@
 import 'package:data_app2/app_state.dart';
-import 'package:data_app2/view_models/event_create_vm.dart';
+import 'package:data_app2/view_models/event_create_vm_old.dart';
 import 'package:data_app2/util/fmt.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class EventCreateMenu extends StatefulWidget {
-  const EventCreateMenu({super.key});
+@Deprecated("New cleaned up version")
+class EventCreateMenuOld extends StatefulWidget {
+  const EventCreateMenuOld({super.key});
 
   @override
-  State<EventCreateMenu> createState() => _EventCreateMenuState();
+  State<EventCreateMenuOld> createState() => _EventCreateMenuOldState();
 }
 
-class _EventCreateMenuState extends State<EventCreateMenu> {
+@Deprecated("New cleaned up version")
+class _EventCreateMenuOldState extends State<EventCreateMenuOld> {
   final _formKey = GlobalKey<FormState>();
   final _nameTec = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
-    final evtModelprov = Provider.of<EventCreateViewVM>(context, listen: false);
+    final evtModelprov = Provider.of<EventCreateViewVMOld>(context, listen: false);
     final app = Provider.of<AppState>(context, listen: false);
-    return Consumer<EventCreateViewVM>(
+    return Consumer<EventCreateViewVMOld>(
       builder: (context, evm, child) {
         if (evm.isLoading) {
           return Center(child: Text("Loading events..."));
@@ -102,6 +104,7 @@ class _EventCreateMenuState extends State<EventCreateMenu> {
   }
 }
 
+@Deprecated("New cleaned up version")
 class CommonEventsSuggest extends StatelessWidget {
   const CommonEventsSuggest({super.key});
 
@@ -110,7 +113,7 @@ class CommonEventsSuggest extends StatelessWidget {
     // final thm = Theme.of(context);
     final app = Provider.of<AppState>(context, listen: false);
 
-    return Consumer<EventCreateViewVM>(
+    return Consumer<EventCreateViewVMOld>(
       builder: (context, evm, child) {
         return Wrap(
           spacing: 6,

@@ -1,4 +1,5 @@
 import 'package:data_app2/app_state.dart';
+import 'package:data_app2/data/app_prefs.dart';
 import 'package:data_app2/dialogs/import_something_dialog.dart';
 import 'package:data_app2/permission_manager.dart';
 import 'package:data_app2/screens/events/evt_cat_index_screen.dart';
@@ -7,7 +8,6 @@ import 'package:data_app2/screens/events/event_type_index_screen.dart';
 import 'package:data_app2/screens/events/events_screen.dart';
 import 'package:data_app2/screens/settings_screen.dart';
 import 'package:data_app2/util.dart';
-import 'package:data_app2/util/enums.dart';
 import 'package:data_app2/view_models/today_summary_vm.dart';
 import 'package:data_app2/widgets/today_summary_display.dart';
 import 'package:flutter/material.dart';
@@ -18,10 +18,8 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Subscribe to needed global preferences
-    final dayStartsH = context.select<AppState, int>((a) => a.prefs.dayStartsH);
-    final colorSpread = context.select<AppState, double>((a) => a.prefs.colorSpread);
-    final defaultSummaryMode = context.select<AppState, SummaryMode>((a) => a.prefs.summaryMode);
+    // Subscribe to global prefs
+    final prefs = context.select<AppState, AppPrefs>((a) => a.prefs);
 
     return Scaffold(
       appBar: AppBar(
@@ -40,7 +38,13 @@ class HomeScreen extends StatelessWidget {
         child: ChangeNotifierProvider<TodaySummaryDisplayVm>(
           create: (createCtx) {
             final app = createCtx.read<AppState>();
-            return TodaySummaryDisplayVm(Duration(hours: dayStartsH), app.db, app.evtTypeManager, colorSpread)..load();
+            return TodaySummaryDisplayVm(
+              Duration(hours: prefs.dayStartsH),
+              app.db,
+              app.evtTypeManager,
+              prefs.colorSpread,
+              prefs.summaryMode,
+            )..load();
           },
           builder: (context, _) => Column(
             mainAxisAlignment: MainAxisAlignment.start,

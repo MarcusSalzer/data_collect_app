@@ -1,3 +1,4 @@
+import 'package:data_app2/data/value_object.dart';
 import 'package:data_app2/style.dart';
 import 'package:data_app2/util/enums.dart';
 import 'package:json_annotation/json_annotation.dart';
@@ -7,7 +8,7 @@ part 'app_prefs.g.dart';
 /// Represent preferences in memory.
 /// Immutable for consistent updates.
 @JsonSerializable()
-class AppPrefs {
+class AppPrefs extends ValueObject {
   @JsonKey(defaultValue: ColorSchemeMode.dark)
   final ColorSchemeMode colorSchemeMode;
 
@@ -58,4 +59,7 @@ class AppPrefs {
   factory AppPrefs.fromJson(Map<String, dynamic> json) => _$AppPrefsFromJson(json);
 
   Map<String, dynamic> toJson() => _$AppPrefsToJson(this);
+
+  @override
+  get props => [colorSchemeMode, logLevel, summaryMode, autoLowerCase, textSearchMode, colorSpread, dayStartsH];
 }

@@ -1,6 +1,3 @@
-import 'dart:collection';
-
-import 'package:data_app2/data/evt.dart';
 import 'package:data_app2/time_range_queries.dart';
 import 'package:data_app2/util/enums.dart';
 import 'package:data_app2/util/extensions.dart';
@@ -17,56 +14,43 @@ class MonthVm extends DurationSummaryDisplayVm {
     overlapMode: OverlapMode.fullyInside,
   );
 
-  DateTime _current = DateTime.now().startOfMonth;
+  DateTime _current;
 
-  List<DateTime> _days = [];
-  List<EvtRec>? _events;
+  List<DateTime> _days;
 
-  MonthVm(super.dayStart, super.db, super.typeManager, super.colorSpread);
+  MonthVm(this._current, super.dayStart, super.db, super.typeManager, super.colorSpread, super._summaryMode)
+    : _days = _makeDayGrid(_current);
 
   DateTime get currentMonth => _current;
   List<DateTime> get days => _days;
 
-  UnmodifiableListView<EvtRec>? get events {
-    final evts = _events;
-    if (evts == null) return null;
-    return UnmodifiableListView(evts);
-  }
+  /// Make a list of days. It will have length (35, 42 or (very rarely) 28)
+  static List<DateTime> _makeDayGrid(DateTime ref) {
+    final firstDay = ref.startOfMonth;
+    final offset = ref.monthFirstWeekday; // 0–6
+    final daysInMonth = DateUtils.getDaysInMonth(firstDay.year, firstDay.month);
 
-  /// load events for current month
-  @override
-  Future<void> load() async {
-    final evts = (await db.evts.filteredLocalTime(range: rangeQuery.toDbRange())).toList();
+    final totalCells = offset + daysInMonth;
+    final weeks = (totalCells / 7).ceil();
+    final cellCount = weeks * 7;
 
-    // Compute summary from events
-    refreshSummary(evts);
-
-    // remember events
-    _events = evts;
-    notifyListeners();
-  }
-
-  /// Make 6x7 grid of days
-  void _makeDayGrid() {
-    final offset = _current.monthFirstWeekday;
-
-    _days = List.generate(42, (i) => DateUtils.addDaysToDate(_current.startOfMonth, i - offset + 1));
+    return List.generate(cellCount, (i) => DateUtils.addDaysToDate(firstDay, i - offset + 1));
   }
 
   /// Move to a new month and reload data
-  void stepMonth(int offset) {
+  Future<void> stepMonth(int offset) async {
     _current = DateUtils.addMonthsToMonthDate(currentMonth, offset);
-    _makeDayGrid();
+    _days = _makeDayGrid(_current);
+    await load();
     notifyListeners();
-    load();
   }
 
   List<int>? eventsPerDay() {
-    final evts = _events;
-    if (evts == null) return null;
+    final events = eventList;
+    if (events == null) return null;
 
     final counts = List.filled(_days.length, 0);
-    for (var e in evts) {
+    for (var e in events) {
       final startLocal = e.start?.asUtcWithLocalValue;
       if (startLocal == null) continue;
 

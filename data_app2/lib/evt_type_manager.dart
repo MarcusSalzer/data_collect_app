@@ -19,6 +19,10 @@ class EvtTypeManager extends ChangeNotifier {
   // To look up which "position" each type has in its category.
   Map<int, int> _posInCat = {};
 
+  // to help subscribing too updates
+  bool _ready = false;
+  bool get isReady => _ready;
+
   List<EvtTypeRec> get allTypes => _typesById.values.toList();
 
   /// Fill the cache and recompute things
@@ -49,11 +53,12 @@ class EvtTypeManager extends ChangeNotifier {
   void reloadFromModels(Iterable<EvtTypeRec> evtTypes, Iterable<EvtCatRec> cats) {
     _catsById = Map.fromEntries(cats.map((e) => MapEntry(e.id, e)));
     _fill(evtTypes);
+    _ready = true;
     notifyListeners();
   }
 
   /// add a single type
-  void add(EvtTypeRec rec) {
+  void addType(EvtTypeRec rec) {
     _typesByName[rec.name] = rec;
     _typesById[rec.id] = rec;
     notifyListeners();
@@ -104,13 +109,13 @@ class EvtTypeManagerPersist extends EvtTypeManager {
   /// Get a type id, trying in priority:
   /// 1. get type-id from cache
   /// 2. get from DB or create and persist new
-  Future<EvtTypeRec> resolveOrCreate({required String name}) async {
+  Future<EvtTypeRec> fromNameOrCreate(String name) async {
     final cached = typeFromName(name);
     if (cached != null) {
       return cached;
     }
     final fromDB = await _db.evtTypes.getOrCreate(name);
-    add(fromDB);
+    addType(fromDB);
     // state has updated
     notifyListeners();
     return fromDB;

@@ -7,6 +7,7 @@ import 'package:data_app2/prefs_io.dart';
 import 'package:data_app2/screens/home_screen.dart';
 import 'package:data_app2/app_state.dart';
 import 'package:data_app2/screens/welcome_screen.dart';
+import 'package:data_app2/style.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:logging/logging.dart';
@@ -101,15 +102,19 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Global state and methods in AppState.
+    // Use select/watch/read, and maybe Consumer where appropriate.
     return ChangeNotifierProvider<AppState>(
       create: (_) => AppState(db, prefs, userStoreDir, prefsFile),
-      child: Consumer<AppState>(
-        builder: (context, app, child) => MaterialApp(
-          title: 'data collect',
-          theme: app.prefs.colorSchemeMode.theme,
-          // Start at "welcome" or "home"
-          home: showWelcome ? const WelcomeScreen() : const HomeScreen(),
-        ),
+      child: Builder(
+        builder: (context) {
+          return MaterialApp(
+            title: 'data collect app',
+            theme: context.select<AppState, ColorSchemeMode>((a) => a.prefs.colorSchemeMode).theme,
+            // Start at "welcome" or "home"
+            home: showWelcome ? const WelcomeScreen() : const HomeScreen(),
+          );
+        },
       ),
     );
   }

@@ -8,7 +8,9 @@ import 'package:logging/logging.dart';
 
 const nFreq = 500;
 
-class EventCreateViewVM extends ChangeNotifier {
+/// Event creation logic
+@Deprecated("New version has cleaner dependecies")
+class EventCreateViewVMOld extends ChangeNotifier {
   final AppState _app;
   final int? _nList; // default null -> all
 
@@ -19,7 +21,7 @@ class EventCreateViewVM extends ChangeNotifier {
   List<EvtRec> get events => _events;
   Map<int, int> get evtFreqs => _evtFreqs;
 
-  EventCreateViewVM(AppState appState) : _app = appState, _nList = 50 {
+  EventCreateViewVMOld(AppState appState) : _app = appState, _nList = 50 {
     load();
   }
 
@@ -46,7 +48,7 @@ class EventCreateViewVM extends ChangeNotifier {
       name = name.toLowerCase();
     }
 
-    final typ = await _app.evtTypeManager.resolveOrCreate(name: name);
+    final typ = await _app.evtTypeManager.fromNameOrCreate(name);
     await addEventByTypeId(typ.id, start: start, end: end);
   }
 
@@ -61,7 +63,6 @@ class EventCreateViewVM extends ChangeNotifier {
   Future<EvtRec> updateEvent(EvtRec evt) async {
     await _app.db.evts.update(evt);
     notifyListeners();
-    // TODO dont return?
     return evt;
   }
 

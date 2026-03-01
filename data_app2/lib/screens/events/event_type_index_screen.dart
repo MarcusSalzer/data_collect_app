@@ -4,7 +4,7 @@ import 'package:data_app2/screens/events/multi_evt_type_summary_screen.dart';
 import 'package:data_app2/util/colors.dart';
 import 'package:data_app2/view_models/evt_type_index_vm.dart';
 import 'package:data_app2/screens/events/event_type_detail_screen.dart';
-import 'package:data_app2/screens/events/event_type_overview_screen.dart';
+import 'package:data_app2/screens/events/evt_type_overview_screen.dart';
 import 'package:data_app2/util.dart';
 import 'package:data_app2/view_models/generic_selection_vm.dart';
 import 'package:data_app2/widgets/selection_fab.dart';
@@ -52,12 +52,10 @@ class _Body extends StatelessWidget {
               colorOf: colorOf,
               countOf: indexVM.countOf,
               onTapItem: (r) {
-                Navigator.of(context).push(MaterialPageRoute(builder: (context) => EventTypeOverviewScreen(r.id))).then(
-                  (_) {
-                    // reload data
-                    indexVM.load();
-                  },
-                );
+                Navigator.of(context).push(MaterialPageRoute(builder: (context) => EvtTypeOverviewScreen(r))).then((_) {
+                  // reload data
+                  indexVM.load();
+                });
               },
             );
           },
@@ -174,7 +172,7 @@ class EvtTypeList extends StatelessWidget {
                     onTap: () {
                       Navigator.of(
                         context,
-                      ).push(MaterialPageRoute(builder: (context) => EventTypeOverviewScreen(typeRec.id))).then((_) {
+                      ).push(MaterialPageRoute(builder: (context) => EvtTypeOverviewScreen(typeRec))).then((_) {
                         // reload data
                         dataVM.load();
                       });

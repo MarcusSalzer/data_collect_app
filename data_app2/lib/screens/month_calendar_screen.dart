@@ -1,10 +1,11 @@
 import 'dart:math';
 import 'package:data_app2/app_state.dart';
+import 'package:data_app2/data/app_prefs.dart';
 import 'package:data_app2/util/extensions.dart';
-import 'package:data_app2/util/fmt.dart';
 import 'package:data_app2/screens/day_inmonth_screen.dart';
 import 'package:data_app2/view_models/month_vm.dart';
 import 'package:data_app2/widgets/events_summary.dart';
+import 'package:data_app2/widgets/summary_mode_segm_button.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:isar_community/isar.dart';
@@ -17,51 +18,69 @@ class MonthCalendarScreen extends StatefulWidget {
   State<MonthCalendarScreen> createState() => _MonthCalendarScreenState();
 }
 
+/// Stateful widget handles page control (VM only for month and summary business)
 class _MonthCalendarScreenState extends State<MonthCalendarScreen> {
   final PageController _pageViewController = PageController();
   int _pageIndex = 0;
 
   @override
   Widget build(BuildContext context) {
-    final dayStartsH = context.select<AppState, int>((a) => a.prefs.dayStartsH);
+    // Subscribe to global prefs
+    final prefs = context.select<AppState, AppPrefs>((a) => a.prefs);
 
     return ChangeNotifierProvider<MonthVm>(
       create: (createCtx) {
+        // this does rebuild when AppState changes
+        // unecessary, yes, but doesn't happen often.
         final app = createCtx.read<AppState>();
-        return MonthVm(Duration(hours: dayStartsH), app.db, app.evtTypeManager)..load();
+        return MonthVm(
+          DateTime.now().startOfMonth,
+          Duration(hours: prefs.dayStartsH),
+          app.db,
+          app.evtTypeManager,
+          prefs.colorSpread,
+          prefs.summaryMode,
+        )..load();
       },
-      child: Consumer<MonthVm>(
-        builder: (context, model, child) {
-          final pages = [CalendarMonthDisplay(model), MonthSummaryDisplay(model)];
-          return Scaffold(
-            appBar: AppBar(
-              title: Text("Calendar"),
-              bottom: PreferredSize(
-                preferredSize: Size(double.infinity, 45),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      IconButton(
-                        onPressed: () {
-                          model.stepMonth(-1);
-                        },
-                        icon: Icon(Icons.keyboard_double_arrow_left),
-                      ),
-                      Expanded(child: Center(child: Text(DateFormat("MMMM yyyy").format(model.currentMonth)))),
-                      IconButton(
-                        onPressed: () {
-                          model.stepMonth(1);
-                        },
-                        icon: Icon(Icons.keyboard_double_arrow_right),
-                      ),
-                    ],
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text("Calendar"),
+          bottom: PreferredSize(
+            preferredSize: Size(double.infinity, 50),
+            child: Consumer<MonthVm>(
+              builder: (_, vm, _) => Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  IconButton(
+                    onPressed: () {
+                      vm.stepMonth(-1);
+                    },
+                    icon: Icon(Icons.keyboard_double_arrow_left),
                   ),
-                ),
+                  Expanded(child: Center(child: Text(DateFormat("MMMM yyyy").format(vm.currentMonth)))),
+                  IconButton(
+                    onPressed: () {
+                      vm.stepMonth(1);
+                    },
+                    icon: Icon(Icons.keyboard_double_arrow_right),
+                  ),
+                ],
               ),
             ),
-            body: Column(
+          ),
+        ),
+        body: Consumer<MonthVm>(
+          builder: (context, vm, child) {
+            final summary = vm.activeSummary;
+            if (summary == null) {
+              return Center(child: Text("loading..."));
+            }
+
+            final pages = [
+              CalendarMonthDisplay(vm),
+              EventDurationTable(summary, SummaryModeSegmButton(vm), height: 350, includeBar: true),
+            ];
+            return Column(
               children: [
                 Expanded(
                   child: PageView(
@@ -98,50 +117,15 @@ class _MonthCalendarScreenState extends State<MonthCalendarScreen> {
                   ],
                 ),
               ],
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }
 
   void _updatePage(int index) {
     _pageViewController.animateToPage(index, duration: const Duration(milliseconds: 100), curve: Curves.easeInOut);
-  }
-}
-
-/// event time table and pie chart for a month
-class MonthSummaryDisplay extends StatelessWidget {
-  final MonthVm model;
-
-  const MonthSummaryDisplay(this.model, {super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    if (model.events.isEmpty) {
-      return Center(child: Text("No events in ${Fmt.monthName(model.currentMonth)}"));
-    }
-    final summary = model.summary;
-    if (summary == null) {
-      return Center(child: Text("loading..."));
-    }
-    return Column(
-      children: [
-        EventsSummary(title: Fmt.monthName(model.currentMonth), summary: summary, listHeight: 350),
-        // Expanded(
-        //   child: Padding(
-        //     padding: const EdgeInsets.all(8.0),
-        //     child: EventPieChart(
-        //       timings: groupLastEntries(model.tpe, n: 16)
-        //           .map((g) => MapEntry(g.key.toString(), g.value))
-        //           .toList(),
-        //       colors: Colors.primaries,
-        //       nTitles: 5,
-        //     ),
-        //   ),
-        // ),
-      ],
-    );
   }
 }
 
@@ -152,10 +136,11 @@ class CalendarMonthDisplay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final events = model.eventList;
+    if (events == null) return Text("Loading");
+
     return Center(
       child: Container(
-        color: Colors.white10,
-        margin: EdgeInsets.all(4),
         padding: EdgeInsets.all(4),
         constraints: BoxConstraints(maxWidth: 500),
         child: Column(
@@ -172,7 +157,7 @@ class CalendarMonthDisplay extends StatelessWidget {
               child: CalendarGrid(model),
             ),
             Divider(),
-            Text("Events: ${model.events.length}"),
+            Text("Events: ${events.length}"),
           ],
         ),
       ),
@@ -187,6 +172,8 @@ class CalendarGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final evtCounts = model.eventsPerDay();
+    if (evtCounts == null) return Text("loading");
+
     final maxCount = evtCounts.fold(1, (p, c) => max(p, c));
     return GridView.builder(
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 7),
@@ -229,7 +216,9 @@ class CalDayTile extends StatelessWidget {
     return InkWell(
       onTap: active
           ? () {
-              Navigator.of(context).push(MaterialPageRoute(builder: (context) => DayInmonthScreen(dt, monthModel)));
+              Navigator.of(
+                context,
+              ).push(MaterialPageRoute(builder: (context) => DayInmonthScreen(dt, monthModel.eventList)));
             }
           : null,
       child: Container(
