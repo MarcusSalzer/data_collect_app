@@ -14,6 +14,12 @@
 *.g.dart
 libisar.so
 
+# For now: android details
+android/app/src/main/res
+
+# test stuff
+coverage/
+
 # Symbolication related
 app.*.symbols
 

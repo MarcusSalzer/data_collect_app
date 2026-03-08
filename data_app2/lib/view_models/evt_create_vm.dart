@@ -13,6 +13,9 @@ const nLoad = 500;
 
 /// Event creation logic
 class EvtCreateVm extends ChangeNotifier {
+  EvtCreateVm(this._db, this._typeManager, this._autoLowerCase)
+    : _suggestEngine = FrequencySuggestionEngine(_typeManager);
+
   final DBService _db;
   final EvtTypeManagerPersist _typeManager;
   final bool _autoLowerCase;
@@ -22,6 +25,21 @@ class EvtCreateVm extends ChangeNotifier {
   /// Loaded events. CHRONOLOGICALLY SORTED
   List<EvtRec> _evts = [];
   UnmodifiableListView<EvtRec> get evts => _evts.unmodifiable;
+
+  /// Stored suggestions. These do not need to reload on each edit.
+  Iterable<EvtTypeRec>? _suggestions;
+
+  /// Get cached suggestions or recompute
+  /// Only recompute when necessary, to prevent jumpy UI.
+  Iterable<EvtTypeRec> get suggestions {
+    final c = _suggestions;
+    if (c != null) return c;
+
+    // recompute and cache
+    final newSuggestions = _suggestEngine.get(_evts);
+    _suggestions = newSuggestions;
+    return newSuggestions;
+  }
 
   /// Get last event, if not stopped
   EvtRec? get current {
@@ -41,14 +59,16 @@ class EvtCreateVm extends ChangeNotifier {
     return typ;
   }
 
-  EvtCreateVm(this._db, this._typeManager, this._autoLowerCase)
-    : _suggestEngine = FrequencySuggestionEngine(_typeManager);
+  void refreshSuggestions() {
+    _suggestions = _suggestEngine.get(_evts);
+    notifyListeners();
+  }
 
   /// update latest-list and eventcounts
   Future<void> load() async {
-    await Future.delayed(Duration(milliseconds: 400));
     final evts = (await _db.evts.latest(nLoad)).toList();
     _evts = evts;
+    _suggestions = _suggestEngine.get(_evts);
     isReady = true;
     notifyListeners();
   }
@@ -89,10 +109,6 @@ class EvtCreateVm extends ChangeNotifier {
     // update in in-memory list
     _evts[_evts.length - 1] = updated;
     notifyListeners();
-  }
-
-  Iterable<EvtTypeRec> get suggestions {
-    return _suggestEngine.get(_evts);
   }
 
   Color colorFor(EvtTypeRec rec, double spread) {

@@ -1,0 +1,1 @@
+time flutter test --coverage

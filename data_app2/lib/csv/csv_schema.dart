@@ -70,21 +70,6 @@ abstract class CsvCodecRW<T> extends CsvCodecWrite<T> {
     }
   }
 
-  Iterable<CsvRow> parseRows(Iterable<String> linesWithHeader) sync* {
-    final fileCols = linesWithHeader.first.split(sep);
-
-    for (final (i, line) in linesWithHeader.skip(1).indexed) {
-      // trim leading/trailing whitespace!
-      final values = line.split(sep).map((v) => v.trim());
-      try {
-        yield CsvRow(Map.fromIterables(fileCols, values));
-      } on FormatException catch (e) {
-        // Rethrow as a CSV error, with row information
-        throw CsvFormatError(row: i, message: e.message);
-      }
-    }
-  }
-
   /// for converting rows to data objects.
   Iterable<T> decode(Iterable<CsvRow> rows) sync* {
     for (final (i, row) in rows.indexed) {
@@ -95,17 +80,19 @@ abstract class CsvCodecRW<T> extends CsvCodecWrite<T> {
       }
     }
   }
+}
 
-  /// not needed?
-  Stream<T> decodeAsync(Stream<CsvRow> rows, Future<T> Function(CsvRow) buildAsync) async* {
-    var i = 1;
-    await for (final row in rows) {
-      try {
-        yield await buildAsync(row);
-      } catch (e) {
-        throw CsvFormatError(row: i, message: e.toString());
-      }
-      i++;
+Iterable<CsvRow> parseRows(Iterable<String> linesWithHeader, {String sep = ","}) sync* {
+  final fileCols = linesWithHeader.first.split(sep);
+
+  for (final (i, line) in linesWithHeader.skip(1).indexed) {
+    // trim leading/trailing whitespace!
+    final values = line.split(sep).map((v) => v.trim());
+    try {
+      yield CsvRow(Map.fromIterables(fileCols, values));
+    } on FormatException catch (e) {
+      // Rethrow as a CSV error, with row information
+      throw CsvFormatError(row: i, message: e.message);
     }
   }
 }

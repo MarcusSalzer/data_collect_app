@@ -110,6 +110,7 @@ abstract class DurationSummaryDisplayVm extends ChangeNotifier {
     }
 
     _summaryByType = DurationSummaryList<EvtTypeRec>(results);
+    _summaryByCat = null; // lazy load this later if needed
   }
 
   /// helper to get color
@@ -121,18 +122,21 @@ abstract class DurationSummaryDisplayVm extends ChangeNotifier {
   Future<void> load() async {
     final evts = (await db.evts.filteredLocalTime(range: rangeQuery.toDbRange())).toList();
 
-    // Compute summary from events
-    refreshSummary(evts);
+    // Compute summary from events, or wait for types
+    if (typeManager.isReady) {
+      refreshSummary(evts);
+      notifyListeners();
+    }
 
     // remember events
     _evts = evts;
-    notifyListeners();
   }
 
   void _onTypesChanged() {
     final evts = _evts;
-    if (evts != null && typeManager.isReady) {
+    if (evts != null && evts.isNotEmpty && typeManager.isReady) {
       refreshSummary(evts);
+      notifyListeners();
     }
   }
 }

@@ -3,7 +3,7 @@ import 'package:test/test.dart';
 
 void main() {
   // example: int, string and null
-  final r = CsvRow({"id": "1", "name": "hello", "maybe": null});
+  final r = CsvRow({"id": "1", "name": "hello", "maybe": null, "age": "33"});
 
   group("require", () {
     test('can get string', () {
@@ -41,6 +41,19 @@ void main() {
         () => r.reqInt("name"),
         throwsA(predicate((e) => e is FormatException && e.message.contains("Invalid radix-10 number"))),
       );
+    });
+
+    test("optional pair: null when one missing", () {
+      expect(r.optPair("name", "missingField"), isNull);
+    });
+    test("optional pair: ok", () {
+      expect(r.optPair("name", "id"), ("hello", "1"));
+    });
+    test("optional pair int: null when one missing", () {
+      expect(r.optPairInt("name", "missingField"), isNull);
+    });
+    test("optional pair int: ok", () {
+      expect(r.optPairInt("age", "id"), (33, 1));
     });
   });
 }

@@ -63,33 +63,24 @@ class HomeScreen extends StatelessWidget {
                     builder: (context) => EventsScreen(),
                     returnCallback: (completion) {
                       // after visiting this route, todays data might have updated
-                      Provider.of<TodaySummaryDisplayVm>(context, listen: false).load();
+                      context.read<TodaySummaryDisplayVm>().load();
                     },
                   ),
                   HomeNavLink(
                     "My events",
                     Icons.abc,
                     builder: (context) => EventTypeIndexScreen(),
-                    returnCallback: (completion) {
-                      // after visiting this route, todays data might have updated
-                      Provider.of<TodaySummaryDisplayVm>(context, listen: false).load();
-                    },
                   ),
                   HomeNavLink(
                     "Categories",
                     Icons.category,
                     builder: (context) => EvtCatIndexScreen(),
-                    returnCallback: (completion) {
-                      // after visiting this route, todays data might have updated
-                      Provider.of<TodaySummaryDisplayVm>(context, listen: false).load();
-                    },
                   ),
                   HomeNavLink("Calendar", Icons.calendar_month, builder: (context) => MonthCalendarScreen()),
                   // button for dialog -> import screen
                   TextButton.icon(
                     onPressed: () async {
                       if (await PermissionManager.requestStorage() && context.mounted) {
-                        // TODO include refresh today callback, to pass to the new route?
                         await showImportSomethingDialog(context);
                       } else if (context.mounted) {
                         simpleSnack(context, "needs storage permission");
@@ -98,8 +89,6 @@ class HomeScreen extends StatelessWidget {
                     label: Text("Import data"),
                     icon: Icon(Icons.download),
                   ),
-
-                  // HomeNavLink("Color demo", Icons.palette, builder: (context) => ColorDemoPage()),
                 ],
               ),
             ],

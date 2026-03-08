@@ -13,6 +13,7 @@ class EvtTypeManager extends ChangeNotifier {
   Map<int, EvtTypeRec> _typesById = {};
   // also store categories
   Map<int, EvtCatRec> _catsById = {};
+  Map<String, EvtCatRec> _catsByName = {};
 
   // To look up which how many in each category
   Map<int, int> _catSizes = {};
@@ -24,6 +25,7 @@ class EvtTypeManager extends ChangeNotifier {
   bool get isReady => _ready;
 
   List<EvtTypeRec> get allTypes => _typesById.values.toList();
+  List<EvtCatRec> get allCats => _catsById.values.toList();
 
   /// Fill the cache and recompute things
   void _fill(Iterable<EvtTypeRec> evtTypes) {
@@ -50,9 +52,14 @@ class EvtTypeManager extends ChangeNotifier {
   }
 
   /// Reset cache and fill
-  void reloadFromModels(Iterable<EvtTypeRec> evtTypes, Iterable<EvtCatRec> cats) {
-    _catsById = Map.fromEntries(cats.map((e) => MapEntry(e.id, e)));
-    _fill(evtTypes);
+  void reloadFromModels(Iterable<EvtTypeRec>? evtTypes, Iterable<EvtCatRec>? cats) {
+    if (cats != null) {
+      _catsById = Map.fromEntries(cats.map((e) => MapEntry(e.id, e)));
+      _catsByName = Map.fromEntries(cats.map((e) => MapEntry(e.name, e)));
+    }
+    if (evtTypes != null) {
+      _fill(evtTypes);
+    }
     _ready = true;
     notifyListeners();
   }
@@ -86,6 +93,9 @@ class EvtTypeManager extends ChangeNotifier {
 
   /// Resolve category from cache, return null if missing.
   EvtCatRec? catFromId(int id) => _catsById[id];
+
+  /// Resolve category from cache, return null if missing.
+  EvtCatRec? catFromName(String name) => _catsByName[name];
 
   /// Clear all from cache
   void clearCache() {

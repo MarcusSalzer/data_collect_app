@@ -13,14 +13,4 @@ class TodaySummaryDisplayVm extends DurationSummaryDisplayVm {
     unit: GroupFreq.day,
     overlapMode: OverlapMode.fullyInside,
   );
-
-  @override
-  Future<void> load() async {
-    // load events
-    final evts = await db.evts.filteredLocalTime(range: rangeQuery.toDbRange());
-    // NOTE: this assumes the type cache is filled!
-    refreshSummary(evts);
-
-    notifyListeners();
-  }
 }

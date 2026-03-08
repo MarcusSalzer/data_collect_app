@@ -53,7 +53,7 @@ abstract class CrudRepo<R extends Identifiable, D extends Draft<R>, I> {
     return await isar.writeTxn(() async => await coll.put(draftToIsar(draft)));
   }
 
-  /// create and save new EventTypes
+  /// create and save new
   Future<List<int>> createAll(Iterable<D> drafts) async {
     return await isar.writeTxn(() async => await coll.putAll(drafts.map(draftToIsar).toList()));
   }
@@ -73,21 +73,17 @@ abstract class CrudRepo<R extends Identifiable, D extends Draft<R>, I> {
     return added;
   }
 
-  /// create and save new EventTypes
-  Future<({List<int> addedIds, List<D> skipped})> createIfPossible(Iterable<D> drafts) async {
-    final addedIds = <int>[];
-    final skipped = <D>[];
-
-    await isar.writeTxn(() async {
-      for (var d in drafts) {
-        try {
-          addedIds.add(await coll.put(draftToIsar(d)));
-        } on IsarError {
-          skipped.add(d);
-        }
+  /// create and save new, skipping on fail, for example unique index violated.
+  Future<int> createIfPossible(Iterable<D> drafts) async {
+    var nSkip = 0;
+    for (var d in drafts) {
+      try {
+        await isar.writeTxn(() async => await coll.put(draftToIsar(d)));
+      } on IsarError {
+        nSkip++;
       }
-    });
-    return (addedIds: addedIds, skipped: skipped);
+    }
+    return nSkip;
   }
 
   /// update an item
@@ -100,8 +96,8 @@ abstract class CrudRepo<R extends Identifiable, D extends Draft<R>, I> {
     return await isar.writeTxn(() async => await coll.putAll(recs.map(recToIsar).toList()));
   }
 
-  /// Save Events to database, skip if the id already exists
-  Future<List<int>> putIfNewId(Iterable<R> recs) async {
+  /// Save to database, skip if the id already exists
+  Future<List<int>> createWithIdIfPossible(Iterable<R> recs) async {
     return await isar.writeTxn(() async {
       // NOTE: not reusing allIds() query to prevent nested transactions
       // NOTE: important to use Set, so contains is fast

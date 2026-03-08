@@ -1,3 +1,4 @@
+import 'package:data_app2/csv/csv_schema.dart';
 import 'package:data_app2/csv/evt_csv.dart';
 import 'package:data_app2/data/evt_type.dart';
 import 'package:data_app2/evt_type_manager.dart';
@@ -16,7 +17,7 @@ void main() {
         "7900,phone call,2026-02-10T14:29:20Z,3600,2026-02-10T14:32:44Z,7200",
       ];
 
-      final rows = codec.parseRows(lines).toList();
+      final rows = parseRows(lines).toList();
       expect(rows.length, lines.length - 1); // minus header
 
       final d = codec.decode(rows).first;

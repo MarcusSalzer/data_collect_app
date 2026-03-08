@@ -19,7 +19,8 @@ class EvtCreateMenu extends StatelessWidget {
 /// Create events using the VM
 class _EvtInput extends StatelessWidget {
   final fieldHeight = 60.0; // fixed to prevent Layout shift
-  final timeWidth = 80.0;
+  final timeWidth = 40.0;
+  final timeFontSize = 10.0;
 
   @override
   Widget build(BuildContext context) {
@@ -37,7 +38,13 @@ class _EvtInput extends StatelessWidget {
         ? Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              SizedBox(width: timeWidth, child: Text(Fmt.time(DateTime.now()))),
+              SizedBox(
+                width: timeWidth,
+                child: Text(
+                  Fmt.time(DateTime.now()),
+                  style: TextStyle(fontSize: timeFontSize),
+                ),
+              ),
               Expanded(
                 child: Text("No current event", style: TextStyle(color: Colors.grey)),
               ),
@@ -48,7 +55,10 @@ class _EvtInput extends StatelessWidget {
         : Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              SizedBox(width: timeWidth, child: Text(Fmt.time(cur.start?.asUtcWithLocalValue))),
+              SizedBox(
+                width: timeWidth,
+                child: Text(Fmt.time(cur.start?.asUtcWithLocalValue), style: TextStyle(fontSize: timeFontSize)),
+              ),
               Expanded(child: Text(currentType?.name ?? "unknown")),
               TextButton.icon(onPressed: vm.stopCurrent, label: Text("stop"), icon: Icon(Icons.stop)),
             ],

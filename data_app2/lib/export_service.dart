@@ -44,7 +44,7 @@ class CompleteExportService {
 
     final nType = await _saveCsv<EvtTypeDraft>(
       typMan.allTypes.map((e) => e.toDraft()), // all after reload
-      EvtTypeCsvCodec(),
+      EvtTypeCsvCodec.fromTypeManager(typMan),
       "event_types.csv",
     );
     final nCat = await _saveCsv<EvtCatDraft>(

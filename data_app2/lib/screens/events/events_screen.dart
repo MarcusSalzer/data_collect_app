@@ -1,5 +1,3 @@
-import 'dart:collection';
-
 import 'package:data_app2/app_state.dart';
 import 'package:data_app2/data/app_prefs.dart';
 import 'package:data_app2/data/evt.dart';
@@ -33,11 +31,22 @@ class EventsScreen extends StatelessWidget {
               appBar: AppBar(
                 title: const Text('Events'),
                 actions: [
+                  IconButton(
+                    onPressed: context.read<EvtCreateVm>().refreshSuggestions,
+                    icon: Icon(Icons.refresh),
+                  ),
                   TextButton(
                     onPressed: () async {
-                      Navigator.of(context).push(MaterialPageRoute(builder: (context) => CompleteExportScreen()));
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => CompleteExportScreen(),
+                        ),
+                      );
                     },
-                    child: Padding(padding: const EdgeInsets.all(8.0), child: Text("Export")),
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Text("Export"),
+                    ),
                   ),
                 ],
                 bottom: TabBar(
@@ -103,7 +112,11 @@ class EvtHistoryList extends StatelessWidget {
       child: ListView.builder(
         itemCount: vm.evts.length,
         itemBuilder: (context, i) {
-          return _EventListTile(evt: evts[i], heading: _getHeading(evts, i), reloadAction: vm.load);
+          return _EventListTile(
+            evt: evts[i],
+            heading: _getHeading(evts, i),
+            reloadAction: vm.load,
+          );
         },
       ),
     );
@@ -111,7 +124,11 @@ class EvtHistoryList extends StatelessWidget {
 }
 
 class _EventListTile extends StatelessWidget {
-  const _EventListTile({required this.evt, this.heading, required this.reloadAction});
+  const _EventListTile({
+    required this.evt,
+    this.heading,
+    required this.reloadAction,
+  });
 
   final EvtRec evt;
   final String? heading;
@@ -142,12 +159,18 @@ class _EventListTile extends StatelessWidget {
                 border: Border(top: BorderSide(color: Colors.blueGrey)),
               ),
               child: Center(
-                child: Text(heading ?? "---", style: TextStyle(color: Colors.grey)),
+                child: Text(
+                  heading ?? "---",
+                  style: TextStyle(color: Colors.grey),
+                ),
               ),
             ),
           ),
         ListTile(
-          title: Text("${typ?.name}$durTxt", style: TextStyle(color: app.colorFor(typ))),
+          title: Text(
+            "${typ?.name}$durTxt",
+            style: TextStyle(color: app.colorFor(typ)),
+          ),
           subtitle: Padding(
             padding: const EdgeInsets.only(top: 8),
             child: Row(

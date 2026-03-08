@@ -12,7 +12,6 @@ class TodaySummaryDisplay extends StatelessWidget {
     final thm = Theme.of(context);
 
     final vm = context.watch<TodaySummaryDisplayVm>();
-    print("building tsd");
 
     final summary = vm.activeSummary;
     if (summary == null) {

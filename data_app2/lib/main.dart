@@ -20,6 +20,7 @@ void main() async {
   Logger.root.level = Level.ALL; // temporary default
   Logger.root.onRecord.listen((record) {
     final msg = '${record.level.name}: ${record.time}: ${record.message}';
+    // Simple logging, not perfectly thread safe.
     logFile.writeAsString("$msg\n", mode: FileMode.append);
   });
 

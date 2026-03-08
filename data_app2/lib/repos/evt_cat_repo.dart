@@ -26,11 +26,12 @@ class EvtCatRepo extends CrudRepo<EvtCatRec, EvtCatDraft, EventCategory> {
 
   // === Specific queries... ===
 
+  /// Make sure the default category exists.
   Future<void> ensureReady() async {
     await isar.writeTxn(() async {
       final existing = await coll.get(defaultId);
       if (existing == null) {
-        coll.put(recToIsar(EvtCatRec(defaultId, "(Misc)")));
+        await coll.put(recToIsar(EvtCatRec(defaultId, "(Misc)")));
       }
     });
   }

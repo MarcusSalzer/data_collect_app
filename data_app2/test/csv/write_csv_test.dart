@@ -53,12 +53,13 @@ void main() {
   // EVENT TYPES
 
   test('write single EventType', () {
-    final codec = EvtTypeCsvCodec();
+    final codec = EvtTypeCsvCodec.fromTypeManager(evtTypeMan);
+    final cat = evtTypeMan.allCats.last;
     // create a new event
-    final r = EvtTypeDraft("mytype", 1);
+    final r = EvtTypeDraft("mytype", cat.id);
     final lines = codec.encodeWithHeader([r]).toList();
 
     expect(lines[0], "name,category");
-    expect(lines[1], "mytype,1");
+    expect(lines[1], "mytype,${cat.name}");
   });
 }

@@ -37,7 +37,7 @@ class ImportAnyVm extends ChangeNotifier {
       if (role == ImportFileRole.events) {
         _codec = EvtCsvCodec(typMan: _app.evtTypeManager);
       } else if (role == ImportFileRole.eventTypes) {
-        _codec = EvtTypeCsvCodec();
+        _codec = EvtTypeCsvCodec.fromTypeManager(_app.evtTypeManager);
       } else if (role == ImportFileRole.eventCats) {
         _codec = EvtCatCsvCodec();
       }
@@ -54,7 +54,7 @@ class ImportAnyVm extends ChangeNotifier {
     }
 
     try {
-      final rows = cod.parseRows(await File(filePath).readAsLines());
+      final rows = parseRows(await File(filePath).readAsLines());
       if (cod is EvtCsvCodec) {
         // Events
         await _app.db.evts.createAll(cod.decode(rows));
