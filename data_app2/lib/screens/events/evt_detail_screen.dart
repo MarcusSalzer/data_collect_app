@@ -206,7 +206,7 @@ class DTPickerPair extends StatelessWidget {
           onPressed: () async {
             final dt = await showDatePicker(context: context, firstDate: DateTime(1970), lastDate: DateTime(2222));
             if (dt != null) {
-              final ogLocal = ldt?.asUtcWithLocalValue ?? DateTime.now();
+              final ogLocal = ldt?.asLocal ?? DateTime.now();
               final newLocal = DateTime(
                 // Update Year Month Day
                 dt.year,
@@ -221,17 +221,17 @@ class DTPickerPair extends StatelessWidget {
               onChange(newLocal);
             }
           },
-          child: Text(Fmt.date(ldt?.asUtcWithLocalValue)),
+          child: Text(Fmt.date(ldt?.asLocal)),
         ),
         TextButton(
           onPressed: () async {
-            final ogLocal = ldt?.asUtcWithLocalValue ?? DateTime.now();
+            final ogLocal = ldt?.asLocal ?? DateTime.now();
             final t = await showTimePicker(
               context: context,
               initialTime: TimeOfDay(hour: ogLocal.hour, minute: ogLocal.minute),
             );
             if (t != null) {
-              final ogLocal = ldt?.asUtcWithLocalValue ?? DateTime.now();
+              final ogLocal = ldt?.asLocal ?? DateTime.now();
 
               final newLocal = DateTime(
                 // Keep original Year Month Day (or now)
@@ -245,7 +245,7 @@ class DTPickerPair extends StatelessWidget {
               onChange(newLocal);
             }
           },
-          child: Text(Fmt.time(ldt?.asUtcWithLocalValue)),
+          child: Text(Fmt.time(ldt?.asLocal)),
         ),
       ],
     );
@@ -292,11 +292,11 @@ class EventDetailDisplay extends StatelessWidget {
         _buildInfoRow('Type', evtType.toString()),
         _buildInfoRow('Duration', Fmt.durationHmVerbose(evt.duration)),
         _subtitle("Start"),
-        _buildInfoRow('Local', Fmt.dtSecond(evt.start?.asUtcWithLocalValue)),
+        _buildInfoRow('Local', Fmt.dtSecond(evt.start?.asLocal)),
         _buildInfoRow('UTC', Fmt.dtSecond(evt.start?.asUtc)),
         _buildInfoRow('TZ offset', Fmt.durationHmVerbose(evt.start?.offset)),
         _subtitle("End"),
-        _buildInfoRow('Local', Fmt.dtSecond(evt.end?.asUtcWithLocalValue)),
+        _buildInfoRow('Local', Fmt.dtSecond(evt.end?.asLocal)),
         _buildInfoRow('UTC', Fmt.dtSecond(evt.end?.asUtc)),
         _buildInfoRow('TZ offset', Fmt.durationHmVerbose(evt.end?.offset)),
       ],

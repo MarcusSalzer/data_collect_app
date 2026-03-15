@@ -37,7 +37,7 @@ class EvtTypeOverviewVm extends ChangeNotifier {
 
     // Events count per weekday
     _perWeekDay = valueCounts(
-      _evts.map((e) => e.start?.asUtcWithLocalValue.weekday).removeNulls,
+      _evts.map((e) => e.start?.asLocal.weekday).removeNulls,
       sorted: true,
       keys: Iterable.generate(7, (i) => i + 1),
     );

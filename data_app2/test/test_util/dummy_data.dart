@@ -119,12 +119,13 @@ class SpecificEvtsFactory {
     );
   }
 
+  /// Event at [shift] from zero, and a length
   EvtDraft relative({required bool isLocal, required Duration shift, Duration length = const Duration(hours: 4)}) {
     final ref = isLocal ? zeroLocal : zeroUtc;
     return EvtDraft(
       typeIds["relative"]!,
       start: ref.add(shift),
-      end: ref.add(shift + length), // close to border
+      end: ref.add(shift + length),
     );
   }
 

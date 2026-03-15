@@ -26,12 +26,12 @@ void main() {
       expect(d.start, LocalDateTime.fromUtcISOAndOffset(utcIso: "2026-02-10T14:29:20Z", offsetMillis: 3_600_000));
       expect(d.start?.asUtc.hour, 14);
       expect(d.start?.offsetMillis, 3_600_000);
-      expect(d.start?.asUtcWithLocalValue.hour, 15);
+      expect(d.start?.asLocal.hour, 15);
 
       expect(d.end, LocalDateTime.fromUtcISOAndOffset(utcIso: "2026-02-10T14:32:44Z", offsetMillis: 7_200_000));
       expect(d.end?.asUtc.hour, 14);
       expect(d.end?.offsetMillis, 7_200_000);
-      expect(d.end?.asUtcWithLocalValue.hour, 16);
+      expect(d.end?.asLocal.hour, 16);
 
       // duration should be utc
       expect(d.duration, Duration(minutes: 3, seconds: 24));

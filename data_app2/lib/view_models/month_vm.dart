@@ -51,7 +51,7 @@ class MonthVm extends DurationSummaryDisplayVm {
 
     final counts = List.filled(_days.length, 0);
     for (var e in events) {
-      final startLocal = e.start?.asUtcWithLocalValue;
+      final startLocal = e.start?.asLocal;
       if (startLocal == null) continue;
 
       final idx = startLocal.day;

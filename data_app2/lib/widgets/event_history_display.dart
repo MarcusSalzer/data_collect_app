@@ -51,8 +51,8 @@ class EventHistoryDisplay extends StatelessWidget {
     if (i == 0) {
       doHeading = true;
     } else {
-      final cur = evts[i].start?.asUtcWithLocalValue;
-      final pre = evts[i - 1].start?.asUtcWithLocalValue;
+      final cur = evts[i].start?.asLocal;
+      final pre = evts[i - 1].start?.asLocal;
       switch (headingMode) {
         case GroupFreq.day:
           doHeading = cur?.day != pre?.day;
@@ -68,7 +68,7 @@ class EventHistoryDisplay extends StatelessWidget {
       }
     }
 
-    return doHeading ? Fmt.verboseDate(evts[i].start?.asUtcWithLocalValue, f: headingMode) : null;
+    return doHeading ? Fmt.verboseDate(evts[i].start?.asLocal, f: headingMode) : null;
   }
 }
 
@@ -83,10 +83,8 @@ class _EventListTileOld extends StatelessWidget {
   Widget build(BuildContext context) {
     final app = Provider.of<AppState>(context, listen: false);
     final (startText, endText) = Fmt.eventTimes(evt);
-    final wdStart = Fmt.dayAbbr(evt.start?.asUtcWithLocalValue);
-    final wdEnd = (evt.end?.asUtcWithLocalValue.day != evt.start?.asUtcWithLocalValue.day)
-        ? Fmt.dayAbbr(evt.end?.asUtcWithLocalValue)
-        : null;
+    final wdStart = Fmt.dayAbbr(evt.start?.asLocal);
+    final wdEnd = (evt.end?.asLocal.day != evt.start?.asLocal.day) ? Fmt.dayAbbr(evt.end?.asLocal) : null;
 
     final dur = evt.duration;
     final durTxt = " (${Fmt.durationHmVerbose(dur)})";

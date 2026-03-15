@@ -31,13 +31,13 @@ class EvtDetailVm extends EditVm<EvtRec, EvtDraft> {
 
   /// update start time
   void changeStartLocalTZ(DateTime dt) {
-    draft.start = LocalDateTime.fromDateTimeLocalTZ(dt);
+    draft.start = LocalDateTime.fromLocal(dt);
     notifyListeners();
   }
 
   /// update end time
   void changeEndLocalTZ(DateTime dt) {
-    draft.end = LocalDateTime.fromDateTimeLocalTZ(dt);
+    draft.end = LocalDateTime.fromLocal(dt);
     notifyListeners();
   }
 

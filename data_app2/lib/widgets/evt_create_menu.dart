@@ -57,7 +57,7 @@ class _EvtInput extends StatelessWidget {
             children: [
               SizedBox(
                 width: timeWidth,
-                child: Text(Fmt.time(cur.start?.asUtcWithLocalValue), style: TextStyle(fontSize: timeFontSize)),
+                child: Text(Fmt.time(cur.start?.asLocal), style: TextStyle(fontSize: timeFontSize)),
               ),
               Expanded(child: Text(currentType?.name ?? "unknown")),
               TextButton.icon(onPressed: vm.stopCurrent, label: Text("stop"), icon: Icon(Icons.stop)),

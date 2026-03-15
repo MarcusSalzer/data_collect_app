@@ -40,8 +40,8 @@ class EvtDraft extends EvtBase implements Draft<EvtRec> {
 
   /// Create a record in the current local timezone
   EvtDraft.inCurrentTZ(this.typeId, {required DateTime? start, required DateTime? end})
-    : start = (start == null) ? null : LocalDateTime.fromDateTimeLocalTZ(start),
-      end = (end == null) ? null : LocalDateTime.fromDateTimeLocalTZ(end) {
+    : start = (start == null) ? null : LocalDateTime.fromLocal(start),
+      end = (end == null) ? null : LocalDateTime.fromLocal(end) {
     if (start != null && start.isUtc) {
       throw ArgumentError("expects local time");
     }

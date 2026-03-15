@@ -43,7 +43,7 @@ class EvtRepo extends CrudRepo<EvtRec, EvtDraft, Event> {
   }
 
   /// Get some events.
-  Future<Iterable<EvtRec>> filteredUtcTime({required DbTimeRange range, Iterable<int>? typeIds}) async {
+  Future<Iterable<EvtRec>> filteredUtcTime(UtcDbTimeRange range, {Iterable<int>? typeIds}) async {
     final evts = await isar.txn(() async {
       final f = coll
           .where()
@@ -62,7 +62,10 @@ class EvtRepo extends CrudRepo<EvtRec, EvtDraft, Event> {
   }
 
   /// Get some events.
-  Future<Iterable<EvtRec>> filteredLocalTime({Iterable<int>? typeIds, required DbTimeRange range}) async {
+  Future<Iterable<EvtRec>> filteredLocalTime(
+    LocalDbTimeRange range, {
+    Iterable<int>? typeIds,
+  }) async {
     final evts = await isar.txn(() async {
       final f = coll.where();
 

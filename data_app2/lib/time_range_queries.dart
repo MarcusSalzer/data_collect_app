@@ -6,7 +6,7 @@ import 'package:data_app2/util/extensions.dart';
 
 /// How does the DB look at time?
 /// Can be applied to LOCAL or UTC timelines
-class DbTimeRange {
+sealed class DbTimeRange {
   final int startMs;
   final int endMs;
   final OverlapMode overlap;
@@ -16,10 +16,26 @@ class DbTimeRange {
   String toString() {
     return "($startMs, $endMs, ${overlap.name})";
   }
+}
+
+class UtcDbTimeRange extends DbTimeRange {
+  UtcDbTimeRange(super.startMs, super.endMs, super.overlap);
 
   @override
   bool operator ==(Object other) {
-    return other is DbTimeRange && other.startMs == startMs && other.endMs == endMs && other.overlap == overlap;
+    return other is UtcDbTimeRange && other.startMs == startMs && other.endMs == endMs && other.overlap == overlap;
+  }
+
+  @override
+  int get hashCode => Object.hash(startMs, endMs, overlap);
+}
+
+class LocalDbTimeRange extends DbTimeRange {
+  LocalDbTimeRange(super.startMs, super.endMs, super.overlap);
+
+  @override
+  bool operator ==(Object other) {
+    return other is LocalDbTimeRange && other.startMs == startMs && other.endMs == endMs && other.overlap == overlap;
   }
 
   @override
@@ -41,24 +57,24 @@ sealed class TimeRangeQuery {
 }
 
 class UtcTimeRangeQuery extends TimeRangeQuery {
-  final DateTime referenceUtc; // must be isUtc = true
+  final DateTime ref; // must be isUtc = true
 
-  const UtcTimeRangeQuery({required this.referenceUtc, required super.unit, required super.overlapMode});
+  const UtcTimeRangeQuery({required this.ref, required super.unit, required super.overlapMode});
 
-  DateTime get _start => referenceUtc.startOfPeriodUtc(unit);
+  DateTime get _start => ref.startOfPeriodUtc(unit);
   DateTime get _end => switch (unit) {
     GroupFreq.day => _start.add(const Duration(days: 1)),
     GroupFreq.week => _start.add(const Duration(days: 7)),
     GroupFreq.month => DateTime.utc(_start.year, _start.month + 1),
   };
   @override
-  DbTimeRange toDbRange() {
+  UtcDbTimeRange toDbRange() {
     // Do not proceed if not utc time
-    if (!referenceUtc.isUtc) {
+    if (!ref.isUtc) {
       throw AssertionError("Expects UTC time");
     }
 
-    return DbTimeRange(_start.millisecondsSinceEpoch, _end.millisecondsSinceEpoch, overlapMode);
+    return UtcDbTimeRange(_start.millisecondsSinceEpoch, _end.millisecondsSinceEpoch, overlapMode);
   }
 
   @override
@@ -75,33 +91,33 @@ class UtcTimeRangeQuery extends TimeRangeQuery {
 
 class LocalTimeRangeQuery extends TimeRangeQuery {
   final DateTime ref; // must NOT be utc (ignores TZ)
-  final Duration dayOffset;
+  final Duration dayOffset; // when the day starts in relation to local 00:00.
 
   DateTime get _start => ref.startOfPeriod(unit).add(dayOffset);
   DateTime get _end => switch (unit) {
-    GroupFreq.day => ref.startOfPeriod(unit).add(const Duration(days: 1)),
-    GroupFreq.week => ref.startOfPeriod(unit).add(const Duration(days: 7)),
-    GroupFreq.month => ref.endOfMonthUtc,
-  }.add(dayOffset);
+    GroupFreq.day => _start.add(const Duration(days: 1)),
+    GroupFreq.week => _start.startOfPeriod(unit).add(const Duration(days: 7)),
+    GroupFreq.month => ref.endOfMonth.add(dayOffset),
+  };
 
-  /// Note: computed through "fake-utc"
-  int get _startMillis => _start.millisecondsSinceEpoch;
-  int get _endMillis => _end.millisecondsSinceEpoch;
+  int get _startMillis => _start.millisecondsSinceEpoch + ref.timeZoneOffset.inMilliseconds;
+  int get _endMillis => _end.millisecondsSinceEpoch + ref.timeZoneOffset.inMilliseconds;
 
   const LocalTimeRangeQuery({
     required this.ref,
     required this.dayOffset,
     required super.unit,
-    required super.overlapMode,
+    super.overlapMode = OverlapMode.fullyInside,
   });
   @override
   toString() => "($_start, $_end) ${overlapMode.name}";
 
   @override
-  DbTimeRange toDbRange() {
-    return DbTimeRange(_startMillis, _endMillis, overlapMode);
+  LocalDbTimeRange toDbRange() {
+    return LocalDbTimeRange(_startMillis, _endMillis, overlapMode);
   }
 
+  /// High level filtering: Is the event considered inside this range?
   @override
   bool accepts(LocalDateTime? evtStart, LocalDateTime? evtEnd) {
     if (evtStart == null) {

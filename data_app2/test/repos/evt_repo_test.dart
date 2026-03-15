@@ -11,8 +11,8 @@ import '../test_util/dummy_data.dart';
 /// Get matching events, and check that retrieved/rejected match accept()
 Future<Iterable<EvtRec>> _getEvtsCheckQuery(DBService db, TimeRangeQuery q) async {
   final evts = switch (q) {
-    UtcTimeRangeQuery() => await db.evts.filteredUtcTime(range: q.toDbRange()),
-    LocalTimeRangeQuery() => await db.evts.filteredLocalTime(range: q.toDbRange()),
+    UtcTimeRangeQuery() => await db.evts.filteredUtcTime(q.toDbRange()),
+    LocalTimeRangeQuery() => await db.evts.filteredLocalTime(q.toDbRange()),
   };
   final includedIds = evts.map((e) => e.id).toSet();
   final rejected = (await db.evts.all()).where((e) => !includedIds.contains(e.id));
@@ -44,7 +44,7 @@ void main() {
         ]);
       });
 
-      final evts = await db.evts.filteredUtcTime(range: DbTimeRange(-1000, 1000, OverlapMode.fullyInside));
+      final evts = await db.evts.filteredUtcTime(UtcDbTimeRange(-1000, 1000, OverlapMode.fullyInside));
       expect(evts.map((e) => e.start?.utcMillis).toList(), [10, 15, 20]);
     });
 
@@ -60,7 +60,7 @@ void main() {
       test('inside (various ranges)', () async {
         /// Query closure
         Future<Iterable<EvtRec>> get(int rs, int re) async =>
-            await db.evts.filteredUtcTime(range: DbTimeRange(rs, re, OverlapMode.fullyInside));
+            await db.evts.filteredUtcTime(UtcDbTimeRange(rs, re, OverlapMode.fullyInside));
 
         // in
         expect((await get(49, 151)).length, 1);
@@ -80,7 +80,7 @@ void main() {
       test('overlap (various ranges)', () async {
         /// Query closure
         Future<Iterable<EvtRec>> get(int rs, int re) async =>
-            await db.evts.filteredUtcTime(range: DbTimeRange(rs, re, OverlapMode.overlapping));
+            await db.evts.filteredUtcTime(UtcDbTimeRange(rs, re, OverlapMode.overlapping));
 
         // in
         expect((await get(49, 151)).length, 1);
@@ -111,22 +111,22 @@ void main() {
         });
         test('day (fully inside)', () async {
           final q = UtcTimeRangeQuery(
-            referenceUtc: factory.zeroUtcDt.add(Duration(days: 1)),
+            ref: factory.zeroUtcDt.add(Duration(days: 1)),
             unit: GroupFreq.day,
             overlapMode: OverlapMode.fullyInside,
           );
-          final evts = await db.evts.filteredUtcTime(range: q.toDbRange());
+          final evts = await db.evts.filteredUtcTime(q.toDbRange());
 
           expect(evts.length, 1);
         });
         test('day (overlap)', () async {
           final q = UtcTimeRangeQuery(
-            referenceUtc: factory.zeroUtcDt.add(Duration(days: 1)),
+            ref: factory.zeroUtcDt.add(Duration(days: 1)),
             unit: GroupFreq.day,
             overlapMode: OverlapMode.overlapping,
           );
 
-          final evts = await db.evts.filteredUtcTime(range: q.toDbRange());
+          final evts = await db.evts.filteredUtcTime(q.toDbRange());
 
           /// night before, today, next night
           expect(evts.length, 3);
@@ -143,14 +143,18 @@ void main() {
         });
         test("get before midnight (fully inside)", () async {
           final q = UtcTimeRangeQuery(
-            referenceUtc: factory.zeroUtcDt.subtract(Duration(days: 1)),
+            ref: factory.zeroUtcDt.subtract(Duration(days: 1)),
             unit: GroupFreq.day,
             overlapMode: OverlapMode.fullyInside,
           );
           expect(q.toString(), "(1969-12-31 00:00:00.000Z, 1970-01-01 00:00:00.000Z) fullyInside");
           expect(
             q.toDbRange(),
-            DbTimeRange(DateTime.parse("1969-12-31 00:00:00.000Z").millisecondsSinceEpoch, 0, OverlapMode.fullyInside),
+            UtcDbTimeRange(
+              DateTime.parse("1969-12-31 00:00:00.000Z").millisecondsSinceEpoch,
+              0,
+              OverlapMode.fullyInside,
+            ),
           );
 
           final evts = await _getEvtsCheckQuery(db, q);
@@ -160,7 +164,7 @@ void main() {
 
         test("get before midnight (with overlap)", () async {
           final q = UtcTimeRangeQuery(
-            referenceUtc: factory.zeroUtcDt.subtract(Duration(days: 1)),
+            ref: factory.zeroUtcDt.subtract(Duration(days: 1)),
             unit: GroupFreq.day,
             overlapMode: OverlapMode.overlapping,
           );
@@ -184,7 +188,7 @@ void main() {
         ]);
       });
 
-      final evts = await db.evts.filteredLocalTime(range: DbTimeRange(-1000, 1000, OverlapMode.fullyInside));
+      final evts = await db.evts.filteredLocalTime(LocalDbTimeRange(-1000, 1000, OverlapMode.fullyInside));
       expect(evts.map((e) => e.start?.localMillis).toList(), [10, 15, 20]);
     });
 
@@ -200,7 +204,7 @@ void main() {
       test('inside (various ranges)', () async {
         /// Query closure
         Future<Iterable<EvtRec>> get(int rs, int re) async =>
-            await db.evts.filteredLocalTime(range: DbTimeRange(rs, re, OverlapMode.fullyInside));
+            await db.evts.filteredLocalTime(LocalDbTimeRange(rs, re, OverlapMode.fullyInside));
 
         // in
         expect((await get(49, 151)).length, 1);
@@ -220,7 +224,7 @@ void main() {
       test('overlap (various ranges)', () async {
         /// Query closure
         Future<Iterable<EvtRec>> get(int rs, int re) async =>
-            await db.evts.filteredLocalTime(range: DbTimeRange(rs, re, OverlapMode.overlapping));
+            await db.evts.filteredLocalTime(LocalDbTimeRange(rs, re, OverlapMode.overlapping));
 
         // in
         expect((await get(49, 151)).length, 1);
@@ -236,6 +240,55 @@ void main() {
         expect((await get(151, 2000)).length, 0);
         // before range (touches range start)
         expect((await get(150, 2000)).length, 1);
+      });
+    });
+    group('Using RangeQuery class', () {
+      final ref = DateTime(2026, 3, 14);
+
+      final dayOffset = Duration(minutes: 25);
+
+      setUp(() async {
+        await db.evts.forceDeleteAll();
+        final drafts = [
+          // start between midnight and day start
+          EvtDraft.inCurrentTZ(
+            1,
+            start: ref.add(Duration(seconds: 1)),
+            end: ref.add(Duration(hours: 3)),
+          ),
+          // right after day start
+          EvtDraft.inCurrentTZ(
+            2,
+            start: ref.add(dayOffset + Duration(seconds: 1)),
+            end: ref.add(dayOffset + Duration(hours: 1)),
+          ),
+        ];
+
+        await db.evts.createAll(drafts);
+      });
+      test('day (fully inside)', () async {
+        final q = LocalTimeRangeQuery(
+          ref: ref,
+          dayOffset: dayOffset,
+          unit: GroupFreq.day,
+          overlapMode: OverlapMode.fullyInside,
+        );
+
+        final evts = await db.evts.filteredLocalTime(q.toDbRange());
+
+        expect(evts.length, 1);
+      });
+      test('day (overlap)', () async {
+        final q = LocalTimeRangeQuery(
+          ref: ref,
+          dayOffset: dayOffset,
+          unit: GroupFreq.day,
+          overlapMode: OverlapMode.overlapping,
+        );
+
+        final evts = await db.evts.filteredLocalTime(q.toDbRange());
+
+        expect(evts.length, 2);
       });
     });
   });

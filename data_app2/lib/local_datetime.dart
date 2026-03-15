@@ -1,6 +1,6 @@
 class LocalDateTime {
   final int utcMillis; // absolute point in time
-  final int localMillis; // = utcMillis + offsetMillis
+  final int localMillis; // = utcMillis + offsetMillis (at the original time)
 
   const LocalDateTime(this.utcMillis, this.localMillis);
 
@@ -9,19 +9,34 @@ class LocalDateTime {
 
   Duration get offset => Duration(milliseconds: offsetMillis);
 
+  /// Simply get the UTC-timestamp as a dart DateTime
   DateTime get asUtc => DateTime.fromMillisecondsSinceEpoch(utcMillis, isUtc: true);
 
-  /// Note: The DateTime object will have [isUtc] true.
-  DateTime get asUtcWithLocalValue => DateTime.fromMillisecondsSinceEpoch(localMillis, isUtc: true);
+  /// Represent as if it was in th current local TZ. Milliseconds are shifted.
+  DateTime get asLocal {
+    final viewerOffsetMillis = DateTime.fromMillisecondsSinceEpoch(utcMillis).timeZoneOffset.inMilliseconds;
 
-  factory LocalDateTime.now() {
-    final dt = DateTime.now();
-    return LocalDateTime.fromDateTimeLocalTZ(dt);
+    return DateTime.fromMillisecondsSinceEpoch(
+      localMillis - viewerOffsetMillis,
+    );
   }
 
-  LocalDateTime.fromDateTimeLocalTZ(DateTime dt)
-    : utcMillis = dt.millisecondsSinceEpoch,
-      localMillis = dt.millisecondsSinceEpoch + dt.timeZoneOffset.inMilliseconds;
+  factory LocalDateTime.fromLocal(DateTime dt) {
+    final utcMillis = dt.toUtc().millisecondsSinceEpoch;
+    final offsetMillis = dt.timeZoneOffset.inMilliseconds;
+    final localMillis = utcMillis + offsetMillis;
+
+    return LocalDateTime(utcMillis, localMillis);
+  }
+  factory LocalDateTime.now() {
+    final dt = DateTime.now();
+    return LocalDateTime.fromLocal(dt);
+  }
+
+  /// Create at the current UTC, in some timezone
+  factory LocalDateTime.nowWithOffset(Duration offset) {
+    return LocalDateTime.fromUtcAndOffset(DateTime.now().toUtc(), offset);
+  }
 
   factory LocalDateTime.fromUtcISOAndOffset({required String utcIso, required int offsetMillis}) {
     if (!utcIso.endsWith("Z")) {
@@ -64,14 +79,13 @@ class LocalDateTime {
 
   /// Formats an ISO-8601 string, without any timezone suffix.
   String toNaiveIso8601String({bool includeMs = false}) {
-    final dt = asUtcWithLocalValue.copyWith(millisecond: includeMs ? null : 0, microsecond: 0);
+    final dt = asLocal.copyWith(millisecond: includeMs ? null : 0, microsecond: 0);
     final s = dt.toIso8601String();
 
-    if (includeMs) {
-      return s.replaceFirst("Z", "");
-    } else {
-      return s.replaceFirst(RegExp(r".\d{3}Z$"), "");
+    if (!includeMs) {
+      return s.replaceFirst(RegExp(r".\d{3}$"), "");
     }
+    return s;
   }
 
   @override

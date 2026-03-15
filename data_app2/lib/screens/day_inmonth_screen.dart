@@ -43,7 +43,7 @@ class DayInmonthScreen extends StatelessWidget {
                     colors: vm.tpe.map((e) => app.evtTypeManager.colorForId(e.key, colorSpread)).toList(),
                   ),
                   SizedBox(height: 30),
-                  Text("Events (${vm.tpe.length})", style: TextStyle(fontSize: 20)),
+                  Text("Events", style: TextStyle(fontSize: 20)),
                   EventHistoryDisplay(vm.todayEvts, headingMode: null, isScrollable: false, reloadAction: vm.load),
                 ],
               ),

@@ -8,7 +8,6 @@ import 'package:data_app2/widgets/events_summary.dart';
 import 'package:data_app2/widgets/summary_mode_segm_button.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:isar_community/isar.dart';
 import 'package:provider/provider.dart';
 
 class MonthCalendarScreen extends StatefulWidget {
@@ -198,7 +197,7 @@ class CalDayTile extends StatelessWidget {
 
   final DateTime dt;
   final bool active;
-  final float weight;
+  final double weight;
 
   @override
   Widget build(BuildContext context) {

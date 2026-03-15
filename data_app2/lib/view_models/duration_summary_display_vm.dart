@@ -120,7 +120,7 @@ abstract class DurationSummaryDisplayVm extends ChangeNotifier {
   LocalTimeRangeQuery get rangeQuery;
 
   Future<void> load() async {
-    final evts = (await db.evts.filteredLocalTime(range: rangeQuery.toDbRange())).toList();
+    final evts = (await db.evts.filteredLocalTime(rangeQuery.toDbRange())).toList();
 
     // Compute summary from events, or wait for types
     if (typeManager.isReady) {

@@ -36,7 +36,7 @@ List<PeriodAgg> computeAggs(Iterable<EvtBase> evts, List<EvtTypeRec> typeRecs, G
 
   for (var e in evts) {
     // assume belongs to end time (local)
-    final period = e.end?.asUtcWithLocalValue.startOfPeriod(f);
+    final period = e.end?.asLocal.startOfPeriod(f);
     if (period == null) continue;
     final d = e.duration;
     if (d == null) continue;

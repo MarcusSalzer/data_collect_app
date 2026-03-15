@@ -63,7 +63,7 @@ void main() {
       // should add to end of evts
       final latest = vm.evts.last;
       // should have a start time defined (now)
-      expect(Fmt.time(latest.start?.asUtcWithLocalValue), Fmt.time(t));
+      expect(Fmt.time(latest.start?.asLocal), Fmt.time(t));
 
       // should store
       expect(await db.evts.getById(latest.id), latest);
@@ -85,7 +85,7 @@ void main() {
       // should add to end of evts
       final latest = vm.evts.last;
       // should have a start time defined (now)
-      expect(Fmt.time(latest.start?.asUtcWithLocalValue), Fmt.time(t));
+      expect(Fmt.time(latest.start?.asLocal), Fmt.time(t));
 
       // should store
       expect(await db.evts.getById(latest.id), latest);
@@ -110,7 +110,7 @@ void main() {
       // should add to end of evts
       final latest = vm.evts.last;
       // should have a start time defined (now)
-      expect(Fmt.time(latest.start?.asUtcWithLocalValue), Fmt.time(t));
+      expect(Fmt.time(latest.start?.asLocal), Fmt.time(t));
 
       // should store
       expect(await db.evts.getById(latest.id), latest);
