@@ -1,37 +1,112 @@
 import 'dart:collection';
 
-import 'package:data_app2/app_state.dart';
 import 'package:data_app2/data/evt.dart';
+import 'package:data_app2/data/evt_cat.dart';
+import 'package:data_app2/data/evt_type.dart';
+import 'package:data_app2/data/today_summary_data.dart';
+import 'package:data_app2/evt_type_manager.dart';
 import 'package:data_app2/time_range_queries.dart';
 import 'package:data_app2/util/enums.dart';
-import 'package:data_app2/util/event_stats_compute.dart';
+import 'package:data_app2/util/extensions.dart';
 import 'package:flutter/material.dart';
-import 'package:logging/logging.dart';
 
 class DayInmonthVm extends ChangeNotifier {
-  final AppState _app;
-  final DateTime dt;
-  final UnmodifiableListView<EvtRec> monthEvts;
-  List<EvtRec> todayEvts = [];
+  // synchronous: for starting with already loaded events for a month
+  final UnmodifiableListView<EvtRec>? Function() evtsForMonth;
+
+  /// For when stepping to ane new month
+  final Future<void> Function(DateTime) stepToMonth;
+
+  final EvtTypeManager typeManager;
+
+  // needed prefs
+  final int dayStartsH;
+  final double colorSpread;
+  DayInmonthVm(
+    this.dt,
+    this.summaryMode,
+    this.colorSpread,
+    this.dayStartsH,
+    this.typeManager, {
+    required this.evtsForMonth,
+    required this.stepToMonth,
+  });
+  // --- state ---
+
+  DateTime dt;
+  List<EvtRec>? _dayEvts;
   List<MapEntry<int, Duration>> tpe = [];
-  DayInmonthVm(this.dt, this._app, this.monthEvts);
+  SummaryMode summaryMode;
+  DurationSummaryList<EvtTypeRec>? _summaryByType;
+
+  /// Computed from type-summary, but remembered
+  DurationSummaryList<EvtCatRec>? _summaryByCat;
+
+  List<EvtRec>? get dayEvts => _dayEvts;
+
+  /// Unified getter the UI can consume
+  DurationSummaryList<dynamic>? get activeSummary {
+    switch (summaryMode) {
+      case SummaryMode.type:
+        return _summaryByType;
+      case SummaryMode.category:
+        // compute if needed
+        _summaryByCat ??= _computeSummaryByCat();
+        return _summaryByCat;
+    }
+  }
+
+  /// step to another day (and step month if needed)
+
+  Future<void> stepDay(int step) async {
+    final next = dt.add(Duration(days: step));
+    final nextMonth = next.startOfMonth;
+
+    if (nextMonth != dt.startOfMonth) {
+      await stepToMonth(nextMonth);
+    }
+
+    dt = next;
+    refresh();
+  }
+
+  void setSummaryMode(SummaryMode mode) {
+    summaryMode = mode;
+    notifyListeners();
+  }
 
   void refresh() {
     // create a query to apply on stored local timestamps.
     final q = LocalTimeRangeQuery(
       ref: dt,
-      dayOffset: Duration(hours: _app.prefs.dayStartsH),
+      dayOffset: Duration(hours: dayStartsH),
       unit: GroupFreq.day,
       overlapMode: OverlapMode.fullyInside,
     );
 
-    Logger.root.info("Day view query: $q");
+    final monthEvts = evtsForMonth();
+    if (monthEvts == null) {
+      return;
+    }
+    final dayEvts = monthEvts.where((e) => q.accepts(e.start, e.end)).toList();
+    _dayEvts = dayEvts;
+    _summaryByType = computeSummaryFromEvts(
+      dayEvts,
+      typeManager.typeFromId,
+      (EvtTypeRec r) => typeManager.colorFor(r, colorSpread),
+    );
 
-    todayEvts = monthEvts.where((e) => q.accepts(e.start, e.end)).toList();
-
-    tpe = timePerEvent(todayEvts);
+    _summaryByCat = null; // lazy load this later if needed
 
     notifyListeners();
+  }
+
+  /// Group the typeSummary and return that
+  DurationSummaryList<EvtCatRec>? _computeSummaryByCat() {
+    final byType = _summaryByType;
+    if (byType == null) return null;
+
+    return groupSummaryByType(byType, typeManager.catFromId);
   }
 
   Future<void> load() async {

@@ -1,11 +1,11 @@
 import 'package:data_app2/util/enums.dart';
-import 'package:data_app2/view_models/duration_summary_display_vm.dart';
 import 'package:flutter/material.dart';
 
 class SummaryModeSegmButton extends StatelessWidget {
-  final DurationSummaryDisplayVm vm;
+  final SummaryMode initValue;
+  final void Function(SummaryMode) onSelect;
 
-  const SummaryModeSegmButton(this.vm, {super.key});
+  const SummaryModeSegmButton(this.initValue, this.onSelect, {super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -15,9 +15,9 @@ class SummaryModeSegmButton extends StatelessWidget {
         ButtonSegment(value: SummaryMode.type, label: Text("Type")),
         ButtonSegment(value: SummaryMode.category, label: Text("Category")),
       ],
-      selected: {vm.summaryMode},
+      selected: {initValue},
       onSelectionChanged: (selection) {
-        vm.setSummaryMode(selection.first);
+        onSelect(selection.first);
       },
       showSelectedIcon: false,
     );

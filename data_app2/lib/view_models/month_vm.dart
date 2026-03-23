@@ -45,6 +45,14 @@ class MonthVm extends DurationSummaryDisplayVm {
     notifyListeners();
   }
 
+  /// Move to a new month and reload data
+  Future<void> stepTo(DateTime dt) async {
+    _current = dt.startOfMonth;
+    _days = _makeDayGrid(_current);
+    await load();
+    notifyListeners();
+  }
+
   List<int>? eventsPerDay() {
     final events = eventList;
     if (events == null) return null;

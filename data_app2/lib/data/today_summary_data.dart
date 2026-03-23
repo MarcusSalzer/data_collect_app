@@ -2,8 +2,11 @@
 
 import 'dart:ui';
 
+import 'package:data_app2/data/evt.dart';
 import 'package:data_app2/data/evt_cat.dart';
 import 'package:data_app2/data/evt_type.dart';
+import 'package:data_app2/util/event_stats_compute.dart';
+import 'package:logging/logging.dart';
 
 class TodaySummaryDataByType {
   final List<MapEntry<EvtTypeRec, Duration>> tpe;
@@ -50,4 +53,53 @@ class DurationSummaryList<T> {
   Duration get trackedTime => items.fold(Duration.zero, (p, c) => p + c.duration);
 
   bool get isEmpty => items.isEmpty;
+}
+
+DurationSummaryList<EvtTypeRec> computeSummaryFromEvts(
+  Iterable<EvtRec> evts,
+  EvtTypeRec? Function(int) resolveType,
+  Color Function(EvtTypeRec) resolveColor,
+) {
+  final tpe = timePerEvent(evts, limit: 16);
+
+  final List<TypeDurSummaryItem> results = [];
+
+  for (var MapEntry(key: id, value: d) in tpe) {
+    final et = resolveType(id);
+    if (et == null) {
+      Logger.root.severe("TodaySummaryVm: Could not resolve type $id");
+      continue;
+    }
+    results.add(TypeDurSummaryItem(et, d, resolveColor(et)));
+  }
+
+  return DurationSummaryList<EvtTypeRec>(results);
+}
+
+DurationSummaryList<EvtCatRec> groupSummaryByType(
+  DurationSummaryList<EvtTypeRec> byType,
+  EvtCatRec? Function(int) resolveCat,
+) {
+  final byCatMap = <int, Duration>{};
+
+  // aggregate durations
+  for (var e in byType.items) {
+    byCatMap[e.rec.categoryId] = (byCatMap[e.rec.categoryId] ?? Duration.zero) + e.duration;
+  }
+
+  final List<CatDurSummaryItem> results = [];
+
+  for (var MapEntry(key: id, value: d) in byCatMap.entries) {
+    final cat = resolveCat(id);
+    if (cat == null) {
+      Logger.root.severe("TodaySummaryVm: Could not resolve cat $id");
+      continue;
+    }
+    results.add(CatDurSummaryItem(cat, d));
+  }
+
+  // sort descending
+  results.sort((a, b) => b.duration.compareTo(a.duration));
+
+  return DurationSummaryList(results);
 }

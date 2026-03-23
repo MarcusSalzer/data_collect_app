@@ -43,30 +43,30 @@ class _MonthCalendarScreenState extends State<MonthCalendarScreen> {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: Text("Calendar"),
-          bottom: PreferredSize(
-            preferredSize: Size(double.infinity, 50),
-            child: Consumer<MonthVm>(
-              builder: (_, vm, _) => Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  IconButton(
-                    onPressed: () {
-                      vm.stepMonth(-1);
-                    },
-                    icon: Icon(Icons.keyboard_double_arrow_left),
-                  ),
-                  Expanded(child: Center(child: Text(DateFormat("MMMM yyyy").format(vm.currentMonth)))),
-                  IconButton(
-                    onPressed: () {
-                      vm.stepMonth(1);
-                    },
-                    icon: Icon(Icons.keyboard_double_arrow_right),
-                  ),
-                ],
+          title: Builder(
+            builder: (context) {
+              final cur = context.select<MonthVm, DateTime>((v) => v.currentMonth);
+              return Text(
+                DateFormat("MMMM yyyy").format(cur),
+                style: TextStyle(fontFamily: "monospace"),
+              );
+            },
+          ),
+          // builders in actions give a context where the monthVm is accessible
+          actions: [
+            Builder(
+              builder: (context) => IconButton(
+                onPressed: () => context.read<MonthVm>().stepMonth(-1),
+                icon: Icon(Icons.keyboard_double_arrow_left, size: 30),
               ),
             ),
-          ),
+            Builder(
+              builder: (context) => IconButton(
+                onPressed: () => context.read<MonthVm>().stepMonth(1),
+                icon: Icon(Icons.keyboard_double_arrow_right, size: 30),
+              ),
+            ),
+          ],
         ),
         body: Consumer<MonthVm>(
           builder: (context, vm, child) {
@@ -77,7 +77,12 @@ class _MonthCalendarScreenState extends State<MonthCalendarScreen> {
 
             final pages = [
               CalendarMonthDisplay(vm),
-              EventDurationTable(summary, SummaryModeSegmButton(vm), height: 350, includeBar: true),
+              EventDurationTable(
+                summary,
+                SummaryModeSegmButton(vm.summaryMode, vm.setSummaryMode),
+                height: 350,
+                includeBar: true,
+              ),
             ];
             return Column(
               children: [
@@ -186,6 +191,7 @@ class CalendarGrid extends StatelessWidget {
           active: isActive,
           // use weight for corresponding day if in current month
           weight: isActive ? evtCounts[d.day] / maxCount : 0,
+          monthVm: model,
         );
       },
     );
@@ -193,15 +199,16 @@ class CalendarGrid extends StatelessWidget {
 }
 
 class CalDayTile extends StatelessWidget {
-  const CalDayTile({super.key, required this.dt, required this.active, required this.weight});
+  const CalDayTile({super.key, required this.dt, required this.active, required this.weight, required this.monthVm});
 
   final DateTime dt;
   final bool active;
   final double weight;
 
+  final MonthVm monthVm;
+
   @override
   Widget build(BuildContext context) {
-    final monthModel = Provider.of<MonthVm>(context, listen: false);
     final color = Colors.red.withAlpha((255 * weight).round());
     // final theme = Theme.of(context);
     var tStyle = TextStyle(fontFamily: "monospace", fontSize: 20);
@@ -217,7 +224,11 @@ class CalDayTile extends StatelessWidget {
           ? () {
               Navigator.of(
                 context,
-              ).push(MaterialPageRoute(builder: (context) => DayInmonthScreen(dt, monthModel.eventList)));
+              ).push(
+                MaterialPageRoute(
+                  builder: (context) => DayInmonthScreen(dt, monthVm),
+                ),
+              );
             }
           : null,
       child: Container(

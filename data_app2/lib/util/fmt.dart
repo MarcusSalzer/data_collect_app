@@ -51,6 +51,18 @@ class Fmt {
     }
   }
 
+  static String shortDate(DateTime? dt) {
+    if (dt == null) {
+      return ("___ __");
+    }
+
+    return DateFormat("MMM dd").format(dt);
+  }
+
+  static String weekdayShort(DateTime dt) {
+    return DateFormat("EEE").format(dt);
+  }
+
   /// Time HH:mm, or placeholder
   static String time(DateTime? dt) {
     if (dt == null) {

@@ -29,7 +29,7 @@ class TodaySummaryDisplay extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          EventDurationTable(summary, SummaryModeSegmButton(vm)),
+          EventDurationTable(summary, SummaryModeSegmButton(vm.summaryMode, vm.setSummaryMode)),
           SizedBox(height: 10),
           MultiBar(
             sizes: summary.items.map((entry) => entry.duration.inMinutes),

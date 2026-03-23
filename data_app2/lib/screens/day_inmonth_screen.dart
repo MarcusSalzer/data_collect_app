@@ -1,55 +1,133 @@
-import 'dart:collection';
-
 import 'package:data_app2/app_state.dart';
-import 'package:data_app2/data/evt.dart';
+import 'package:data_app2/data/app_prefs.dart';
+import 'package:data_app2/data/today_summary_data.dart';
 import 'package:data_app2/util/fmt.dart';
 import 'package:data_app2/plots.dart';
 import 'package:data_app2/view_models/day_inmonth_vm.dart';
+import 'package:data_app2/view_models/month_vm.dart';
 import 'package:data_app2/widgets/event_history_display.dart';
+import 'package:data_app2/widgets/events_summary.dart';
+import 'package:data_app2/widgets/summary_mode_segm_button.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class DayInmonthScreen extends StatelessWidget {
   final DateTime startDate;
-  final UnmodifiableListView<EvtRec>? monthEvts;
 
-  const DayInmonthScreen(this.startDate, this.monthEvts, {super.key});
+  final MonthVm monthVm;
+
+  const DayInmonthScreen(this.startDate, this.monthVm, {super.key});
 
   @override
   Widget build(BuildContext context) {
-    final evts = monthEvts;
-
-    if (evts == null) {
-      return Scaffold(body: Center(child: Text("No events")));
-    }
-
-    final app = Provider.of<AppState>(context, listen: false);
-    final colorSpread = app.prefs.colorSpread;
+    final prefs = context.select<AppState, AppPrefs>((a) => a.prefs);
     return ChangeNotifierProvider<DayInmonthVm>(
       create: (context) {
-        return DayInmonthVm(startDate, app, evts)..refresh();
+        final tm = context.read<AppState>().evtTypeManager;
+        return DayInmonthVm(
+          startDate,
+          prefs.summaryMode,
+          prefs.colorSpread,
+          prefs.dayStartsH,
+          tm,
+          evtsForMonth: () => monthVm.eventList,
+          stepToMonth: monthVm.stepTo,
+        )..refresh();
       },
       child: Consumer<DayInmonthVm>(
         builder: (context, vm, child) {
+          final thm = Theme.of(context);
           return Scaffold(
-            appBar: AppBar(title: Text(Fmt.date(vm.dt))),
-            body: SingleChildScrollView(
-              child: Column(
+            appBar: AppBar(
+              title: Row(
+                spacing: 12,
                 children: [
-                  EventPieChart(
-                    timings: vm.tpe
-                        .map((e) => MapEntry(app.evtTypeManager.typeFromId(e.key)?.name ?? "?", e.value))
-                        .toList(),
-                    colors: vm.tpe.map((e) => app.evtTypeManager.colorForId(e.key, colorSpread)).toList(),
+                  Text(
+                    Fmt.weekdayShort(vm.dt),
+                    style: TextStyle(fontFamily: "monospace", color: thm.colorScheme.primary),
                   ),
-                  SizedBox(height: 30),
-                  Text("Events", style: TextStyle(fontSize: 20)),
-                  EventHistoryDisplay(vm.todayEvts, headingMode: null, isScrollable: false, reloadAction: vm.load),
+                  Text(
+                    Fmt.shortDate(vm.dt),
+                    style: TextStyle(fontFamily: "monospace"),
+                  ),
                 ],
+              ),
+              actions: [
+                IconButton(
+                  onPressed: () => vm.stepDay(-1), // step to day before
+                  icon: Icon(Icons.keyboard_double_arrow_left, size: 30),
+                ),
+                IconButton(
+                  onPressed: () => vm.stepDay(1), // step to day after
+                  icon: Icon(Icons.keyboard_double_arrow_right, size: 30),
+                ),
+              ],
+            ),
+            body: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: DefaultTabController(
+                  length: 2,
+                  child: Column(
+                    spacing: 24,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _SummaryTabs(),
+                      TabBar(
+                        tabs: [
+                          Tab(icon: Icon(Icons.pie_chart)),
+                          Tab(icon: Icon(Icons.table_chart)),
+                        ],
+                      ),
+                      SummaryModeSegmButton(vm.summaryMode, vm.setSummaryMode),
+
+                      Text("Events", style: TextStyle(fontSize: 20)),
+                      EventHistoryDisplay(
+                        vm.dayEvts ?? [],
+                        headingMode: null,
+                        isScrollable: false,
+                        reloadAction: vm.load,
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+class _SummaryTabs extends StatelessWidget {
+  final double height = 300.0;
+
+  const _SummaryTabs();
+
+  @override
+  Widget build(BuildContext context) {
+    final summary = context.select<DayInmonthVm, DurationSummaryList?>((v) => v.activeSummary);
+    if (summary == null) {
+      return SizedBox(
+        height: height,
+        child: Center(
+          child: Text("loading"),
+        ),
+      );
+    }
+    return SizedBox(
+      height: 300,
+      child: TabBarView(
+        children: [
+          Center(
+            child: EventPieChart(
+              timings: summary.items.map((e) => MapEntry(e.name, e.duration)).toList(),
+              colors: summary.items.map((e) => e.color).toList(),
+            ),
+          ),
+          EventDurationTable(summary, Text("events")),
+        ],
       ),
     );
   }

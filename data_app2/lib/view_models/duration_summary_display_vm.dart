@@ -8,10 +8,8 @@ import 'package:data_app2/db_service.dart';
 import 'package:data_app2/evt_type_manager.dart';
 import 'package:data_app2/time_range_queries.dart';
 import 'package:data_app2/util/enums.dart';
-import 'package:data_app2/util/event_stats_compute.dart';
 import 'package:data_app2/util/extensions.dart';
 import 'package:flutter/material.dart';
-import 'package:logging/logging.dart';
 
 /// View model for loading and displaying summaries of event durations
 abstract class DurationSummaryDisplayVm extends ChangeNotifier {
@@ -70,51 +68,18 @@ abstract class DurationSummaryDisplayVm extends ChangeNotifier {
     final byType = _summaryByType;
     if (byType == null) return null;
 
-    final byCatMap = <int, Duration>{};
-
-    // aggregate durations
-    for (var e in byType.items) {
-      byCatMap[e.rec.categoryId] = (byCatMap[e.rec.categoryId] ?? Duration.zero) + e.duration;
-    }
-
-    final List<CatDurSummaryItem> results = [];
-
-    for (var MapEntry(key: id, value: d) in byCatMap.entries) {
-      final cat = typeManager.catFromId(id);
-      if (cat == null) {
-        Logger.root.severe("TodaySummaryVm: Could not resolve cat $id");
-        continue;
-      }
-      results.add(CatDurSummaryItem(cat, d));
-    }
-
-    // sort descending
-    results.sort((a, b) => b.duration.compareTo(a.duration));
-
-    return DurationSummaryList(results);
+    return groupSummaryByType(byType, typeManager.catFromId);
   }
 
   /// Recompute the (byType) summary and store it.
   void refreshSummary(Iterable<EvtRec> evts) {
-    final tpe = timePerEvent(evts, limit: 16);
-
-    final List<TypeDurSummaryItem> results = [];
-
-    for (var MapEntry(key: id, value: d) in tpe) {
-      final et = typeManager.typeFromId(id);
-      if (et == null) {
-        Logger.root.severe("TodaySummaryVm: Could not resolve type $id");
-        continue;
-      }
-      results.add(TypeDurSummaryItem(et, d, _colorForType(et)));
-    }
-
-    _summaryByType = DurationSummaryList<EvtTypeRec>(results);
+    _summaryByType = computeSummaryFromEvts(
+      evts,
+      typeManager.typeFromId,
+      (EvtTypeRec r) => typeManager.colorFor(r, colorSpread),
+    );
     _summaryByCat = null; // lazy load this later if needed
   }
-
-  /// helper to get color
-  Color _colorForType(EvtTypeRec r) => typeManager.colorFor(r, colorSpread);
 
   /// Subclass implements a query to load
   LocalTimeRangeQuery get rangeQuery;
@@ -136,7 +101,7 @@ abstract class DurationSummaryDisplayVm extends ChangeNotifier {
     final evts = _evts;
     if (evts != null && evts.isNotEmpty && typeManager.isReady) {
       refreshSummary(evts);
-      notifyListeners();
     }
+    notifyListeners();
   }
 }
