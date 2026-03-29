@@ -3,6 +3,7 @@ import 'package:data_app2/data/evt.dart';
 import 'package:data_app2/isar_models.dart';
 import 'package:data_app2/local_datetime.dart';
 import 'package:data_app2/time_range_queries.dart';
+import 'package:data_app2/util/enums.dart';
 import 'package:isar_community/isar.dart';
 
 class EvtRepo extends CrudRepo<EvtRec, EvtDraft, Event> {
@@ -54,6 +55,8 @@ class EvtRepo extends CrudRepo<EvtRec, EvtDraft, Event> {
       return (switch (range.overlap) {
         OverlapMode.fullyInside =>
           f.startUtcMillisGreaterThan(range.startMs, include: true).endUtcMillisLessThan(range.endMs, include: false),
+        OverlapMode.endInside =>
+          f.endUtcMillisGreaterThan(range.startMs, include: true).endUtcMillisLessThan(range.endMs, include: false),
         OverlapMode.overlapping =>
           f.startUtcMillisLessThan(range.endMs, include: false).endUtcMillisGreaterThan(range.startMs, include: true),
       }).sortByStartUtcMillis().findAll();
@@ -76,6 +79,13 @@ class EvtRepo extends CrudRepo<EvtRec, EvtDraft, Event> {
                   .startLocalMillisGreaterThan(range.startMs, include: true)
                   .filter()
                   .endLocalMillisLessThan(range.endMs, include: false),
+
+            OverlapMode.endInside =>
+              f
+                  .endLocalMillisGreaterThan(range.startMs, include: true)
+                  .filter()
+                  .endLocalMillisLessThan(range.endMs, include: false),
+
             OverlapMode.overlapping =>
               f
                   .startLocalMillisLessThan(range.endMs, include: false)

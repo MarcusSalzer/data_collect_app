@@ -58,10 +58,21 @@ void main() {
       expect(LocalDateTime(0, Duration(minutes: 5).inMilliseconds).asLocal, DateTime.parse("1970-01-01T00:05:00"));
       expect(LocalDateTime(0, -Duration(minutes: 5).inMilliseconds).asLocal, DateTime.parse("1969-12-31T23:55:00"));
     });
-    test('milliseconds are shifted', () {
-      expect(LocalDateTime(0, 0).asLocal.millisecondsSinceEpoch, 0 - DateTime.now().timeZoneOffset.inMilliseconds);
-      expect(LocalDateTime(10, 10).asLocal.millisecondsSinceEpoch, 10 - DateTime.now().timeZoneOffset.inMilliseconds);
-      expect(LocalDateTime(0, 10).asLocal.millisecondsSinceEpoch, 10 - DateTime.now().timeZoneOffset.inMilliseconds);
+    test('milliseconds shift same as Dart DT at same moment', () {
+      expect(
+        LocalDateTime(0, 0).asLocal.millisecondsSinceEpoch,
+        0 - DateTime.fromMillisecondsSinceEpoch(0).timeZoneOffset.inMilliseconds,
+      );
+
+      expect(
+        LocalDateTime(10, 10).asLocal.millisecondsSinceEpoch,
+        10 - DateTime.fromMillisecondsSinceEpoch(10).timeZoneOffset.inMilliseconds,
+      );
+
+      expect(
+        LocalDateTime(0, 10).asLocal.millisecondsSinceEpoch,
+        10 - DateTime.fromMillisecondsSinceEpoch(0).timeZoneOffset.inMilliseconds,
+      );
     });
   });
   group('to string', () {

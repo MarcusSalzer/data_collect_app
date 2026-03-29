@@ -18,12 +18,13 @@ class EventTypeDetailScreen extends StatelessWidget {
     return ChangeNotifierProvider<EvtTypeDetailVm>(
       create: (context) {
         // Create VM and start loading "secondary" data
-        return EvtTypeDetailVm(stored, context.read<AppState>())..load();
+        final app = context.read<AppState>();
+        return EvtTypeDetailVm(stored, app.db, app.evtTypeManager)..load();
       },
       child: Consumer<EvtTypeDetailVm>(
         // prevent pop if has unsaved changes
         builder: (context, vm, _) => EditScaffoldForVm<EvtTypeRec>(
-          title: stored == null ? "New Category" : "Edit Category",
+          title: stored == null ? "New Type" : "Edit Type",
           body: Column(
             children: [
               EditInputs(vm: vm),
@@ -78,7 +79,7 @@ class EditInputs extends StatelessWidget {
                     vm.updateCategory(v.id);
                   },
                   optionBuilder: (context, e) => ListTile(
-                    leading: CircleAvatar(radius: 5, backgroundColor: Colors.white),
+                    leading: CircleAvatar(radius: 5, backgroundColor: e.color),
                     title: Text(e.name),
                   ),
                   searchMode: context.watch<AppState>().textSearchMode,

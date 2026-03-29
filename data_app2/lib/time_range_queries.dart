@@ -3,6 +3,7 @@
 import 'package:data_app2/local_datetime.dart';
 import 'package:data_app2/util/enums.dart';
 import 'package:data_app2/util/extensions.dart';
+import 'package:flutter/material.dart';
 
 /// How does the DB look at time?
 /// Can be applied to LOCAL or UTC timelines
@@ -41,8 +42,6 @@ class LocalDbTimeRange extends DbTimeRange {
   @override
   int get hashCode => Object.hash(startMs, endMs, overlap);
 }
-
-enum OverlapMode { fullyInside, overlapping }
 
 sealed class TimeRangeQuery {
   final GroupFreq unit;
@@ -84,6 +83,7 @@ class UtcTimeRangeQuery extends TimeRangeQuery {
   bool accepts(LocalDateTime evtStart, LocalDateTime evtEnd) {
     return switch (overlapMode) {
       OverlapMode.fullyInside => evtStart.asUtc.isAfter(_start) && evtEnd.asUtc.isBefore(_end),
+      OverlapMode.endInside => evtEnd.asUtc.isAfter(_start) && evtEnd.asUtc.isBefore(_end),
       OverlapMode.overlapping => evtEnd.asUtc.isAfter(_start) && evtStart.asUtc.isBefore(_end),
     };
   }
@@ -95,13 +95,13 @@ class LocalTimeRangeQuery extends TimeRangeQuery {
 
   DateTime get _start => ref.startOfPeriod(unit).add(dayOffset);
   DateTime get _end => switch (unit) {
-    GroupFreq.day => _start.add(const Duration(days: 1)),
-    GroupFreq.week => _start.startOfPeriod(unit).add(const Duration(days: 7)),
-    GroupFreq.month => ref.endOfMonth.add(dayOffset),
+    GroupFreq.day => DateUtils.addDaysToDate(_start, 1).add(dayOffset),
+    GroupFreq.week => DateUtils.addDaysToDate(_start, 7).add(dayOffset),
+    GroupFreq.month => DateUtils.addMonthsToMonthDate(ref, 1).add(dayOffset),
   };
 
-  int get _startMillis => _start.millisecondsSinceEpoch + ref.timeZoneOffset.inMilliseconds;
-  int get _endMillis => _end.millisecondsSinceEpoch + ref.timeZoneOffset.inMilliseconds;
+  int get _startMillis => _start.millisecondsSinceEpoch + _start.timeZoneOffset.inMilliseconds;
+  int get _endMillis => _end.millisecondsSinceEpoch + _end.timeZoneOffset.inMilliseconds;
 
   const LocalTimeRangeQuery({
     required this.ref,
@@ -128,6 +128,7 @@ class LocalTimeRangeQuery extends TimeRangeQuery {
     }
     return switch (overlapMode) {
       OverlapMode.fullyInside => evtStart.localMillis > _startMillis && evtEnd.localMillis <= _endMillis,
+      OverlapMode.endInside => evtEnd.localMillis > _startMillis && evtEnd.localMillis <= _endMillis,
       OverlapMode.overlapping => evtEnd.localMillis > _startMillis && evtStart.localMillis <= _endMillis,
     };
   }

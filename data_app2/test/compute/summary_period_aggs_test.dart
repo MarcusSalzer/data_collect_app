@@ -3,6 +3,7 @@ import 'package:data_app2/data/evt_type.dart';
 import 'package:data_app2/util/enums.dart';
 import 'package:data_app2/util/extensions.dart';
 import 'package:data_app2/util/summary_period_aggs.dart';
+import 'package:flutter/material.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -28,7 +29,7 @@ void main() {
     expect(aggs[0].agg, [Duration(hours: 1), Duration(minutes: 90), Duration.zero]);
 
     // second day
-    expect(aggs[1].dt, t.add(Duration(days: 1)));
+    expect(aggs[1].dt, DateUtils.addDaysToDate(t, 1));
     expect(aggs[1].agg, [Duration.zero, Duration.zero, Duration(minutes: 30)]);
   });
   test("simple with gap (week)", () {
@@ -47,13 +48,12 @@ void main() {
     // first week
     expect(aggs[0].dt, t.startOfweek);
     expect(aggs[0].agg, [Duration(hours: 2), Duration(hours: 1), Duration.zero]);
-
-    // second week
-    expect(aggs[1].dt, t.startOfweek.add(Duration(days: 7)));
+    // second week (NOTE: datutils for DST-safe interval)
+    expect(aggs[1].dt, DateUtils.addDaysToDate(t.startOfweek, 7));
     expect(aggs[1].agg, [Duration.zero, Duration.zero, Duration.zero]);
 
-    // third week
-    expect(aggs[2].dt, t.startOfweek.add(Duration(days: 14)));
+    // third week (NOTE: datutils for DST-safe interval)
+    expect(aggs[2].dt, DateUtils.addDaysToDate(t.startOfweek, 14));
     expect(aggs[2].agg, [Duration.zero, Duration(hours: 3), Duration(hours: 4)]);
   });
 }

@@ -5,7 +5,7 @@ import 'package:data_app2/util/extensions.dart';
 import 'package:data_app2/screens/day_inmonth_screen.dart';
 import 'package:data_app2/view_models/month_vm.dart';
 import 'package:data_app2/widgets/events_summary.dart';
-import 'package:data_app2/widgets/summary_mode_segm_button.dart';
+import 'package:data_app2/widgets/segm_button.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';

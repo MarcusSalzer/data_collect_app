@@ -46,7 +46,8 @@ void main() {
       await app.db.clear();
 
       final evtTypes = [EvtTypeRec(1, "A"), EvtTypeRec(2, "B")];
-      app.evtTypeManager.reloadFromModels(evtTypes, null);
+      final evtCats = [EvtCatRec(1, "catA")];
+      app.evtTypeManager.reloadFromModels(evtTypes, evtCats);
 
       final now = DateTime.now();
       final t = DateTime.utc(now.year, now.month, now.day);

@@ -127,3 +127,80 @@ class EventDurationTable extends StatelessWidget {
     );
   }
 }
+
+/// A Table showing events, each with a duration
+class EventDurationTable2 extends StatelessWidget {
+  final DurationSummaryList summary;
+
+  final Widget title;
+
+  final bool includeBar;
+
+  const EventDurationTable2(this.summary, this.title, {super.key, this.includeBar = false});
+
+  @override
+  Widget build(BuildContext context) {
+    final comps = <Widget>[];
+    for (final entry in summary.items) {
+      comps.add(
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 16),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Flexible(
+                flex: 2,
+                child: Row(
+                  spacing: 4,
+                  children: [
+                    CircleAvatar(radius: 3, backgroundColor: entry.color),
+
+                    Text(entry.name, overflow: TextOverflow.ellipsis),
+                  ],
+                ),
+              ),
+              Flexible(
+                flex: 1,
+                child: Text(
+                  Fmt.durationHmVerbose(entry.duration),
+                  textAlign: TextAlign.right,
+                  style: const TextStyle(fontFamily: 'monospace', fontSize: 14),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    final div = includeBar
+        ? MultiBar(
+            sizes: summary.items.map((entry) => entry.duration.inMinutes),
+            colors: summary.items.map((entry) => entry.color).toList(),
+            thickness: 5,
+          )
+        : Divider(color: Theme.of(context).colorScheme.onPrimaryContainer);
+
+    return Column(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Flexible(flex: 2, child: title),
+            Flexible(
+              flex: 1,
+              child: Text(
+                Fmt.durationHmVerbose(summary.trackedTime),
+                textAlign: TextAlign.right,
+                style: const TextStyle(fontFamily: 'monospace', fontSize: 14, fontWeight: FontWeight.bold),
+              ),
+            ),
+          ],
+        ),
+        div,
+        // Table rows
+        Expanded(child: ListView(itemExtent: 30, children: comps)),
+      ],
+    );
+  }
+}

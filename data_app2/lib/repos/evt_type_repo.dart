@@ -2,6 +2,7 @@ import 'package:data_app2/contracts/crud_repo.dart';
 import 'package:data_app2/data/evt_type.dart';
 import 'package:data_app2/errors/db_ref_exists_error.dart';
 import 'package:data_app2/isar_models.dart';
+import 'package:data_app2/repos/evt_cat_repo.dart';
 import 'package:isar_community/isar.dart';
 
 /// For accessing Event type data
@@ -56,5 +57,21 @@ class EvtTypeRepo extends CrudRepo<EvtTypeRec, EvtTypeDraft, EventType> {
       throw DbRefExistsError(id);
     }
     return await super.forceDelete(id);
+  }
+
+  /// Get all types in a category
+  Future<Iterable<EvtTypeRec>> inCategory(int catId) async {
+    final types = await isar.txn(() async {
+      return await coll.filter().categoryIdEqualTo(catId).findAll();
+    });
+    return types.map(fromIsar);
+  }
+
+  /// Remove category from a type
+  Future<void> unlinkCategory(EvtTypeRec rec) async {
+    await isar.writeTxn(() async {
+      final updated = recToIsar(rec)..categoryId = EvtCatRepo.defaultId;
+      await coll.put(updated);
+    });
   }
 }

@@ -1,11 +1,12 @@
-import 'package:data_app2/app_state.dart';
 import 'package:data_app2/data/evt_cat.dart';
+import 'package:data_app2/db_service.dart';
+import 'package:data_app2/repos/evt_cat_repo.dart';
 import 'package:data_app2/util/stats.dart';
 import 'package:flutter/material.dart';
 
 class EvtCatIndexVm extends ChangeNotifier {
-  EvtCatIndexVm(this._app);
-  final AppState _app;
+  EvtCatIndexVm(this._db);
+  final DBService _db;
 
   // State
   Map<int, int>? _idToCount;
@@ -13,6 +14,8 @@ class EvtCatIndexVm extends ChangeNotifier {
 
   // public
   Map<int, int>? get idToCount => _idToCount;
+
+  bool isDefault(int id) => id == EvtCatRepo.defaultId;
 
   List<EvtCatRec>? get itemsSorted {
     final freqs = _idToCount;
@@ -28,14 +31,14 @@ class EvtCatIndexVm extends ChangeNotifier {
 
   Future<void> load() async {
     _allItems.clear();
-    _allItems.addAll(await _app.db.evtCats.all());
+    _allItems.addAll(await _db.evtCats.all());
     _idToCount = await refreshCounts();
     notifyListeners();
   }
 
   Future<Map<int, int>> refreshCounts() async {
     // Load evtTypes from DB and count references to categories
-    final evtTypes = await _app.db.evtTypes.all();
+    final evtTypes = await _db.evtTypes.all();
 
     // value-count all types with a category
     var counts = valueCounts<int>(evtTypes.map((e) => e.categoryId).removeNulls);

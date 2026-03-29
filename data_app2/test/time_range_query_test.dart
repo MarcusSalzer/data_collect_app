@@ -3,6 +3,7 @@ import 'package:data_app2/local_datetime.dart';
 import 'package:data_app2/time_range_queries.dart';
 import 'package:data_app2/util/enums.dart';
 import 'package:data_app2/util/extensions.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'test_util/dummy_data.dart';
@@ -141,6 +142,12 @@ void main() {
         );
         final r = q.toDbRange();
         final dayStart = DateTime(2026, 3, 12);
+        final dayEnd = DateUtils.addDaysToDate(dayStart, 1);
+
+        // Local query -> should include both TZ-offset and day-offset in millis.
+        expect(r.startMs, dayStart.add(dayStart.timeZoneOffset + dayOffset).millisecondsSinceEpoch);
+        expect(r.endMs, dayEnd.add(dayStart.timeZoneOffset + dayOffset).millisecondsSinceEpoch);
+        expect(r.overlap, q.overlapMode);
       });
       test('week', () {
         final q = LocalTimeRangeQuery(
@@ -151,9 +158,12 @@ void main() {
         final r = q.toDbRange();
 
         final weekStart = DateTime(2026, 3, 9); // monday start (local)
+        final weekEnd = DateUtils.addDaysToDate(weekStart, 7);
 
-        final dtStart = DateTime.fromMillisecondsSinceEpoch(r.startMs);
-        final dtEnd = DateTime.fromMillisecondsSinceEpoch(r.endMs);
+        // Local query -> should include both TZ-offset and day-offset in millis.
+        expect(r.startMs, weekStart.add(weekStart.timeZoneOffset + dayOffset).millisecondsSinceEpoch);
+        expect(r.endMs, weekEnd.add(weekEnd.timeZoneOffset + dayOffset).millisecondsSinceEpoch);
+        expect(r.overlap, q.overlapMode);
       });
       test('month', () {
         final q = LocalTimeRangeQuery(
@@ -164,9 +174,13 @@ void main() {
         final r = q.toDbRange();
 
         final monthStart = DateTime(2026, 3);
+        final monthEnd = DateTime(2026, 4);
 
-        final dtStart = DateTime.fromMillisecondsSinceEpoch(r.startMs);
-        final dtEnd = DateTime.fromMillisecondsSinceEpoch(r.endMs);
+        // Local query -> should include both TZ-offset and day-offset in millis.
+        expect(r.startMs, monthStart.add(monthStart.timeZoneOffset + dayOffset).millisecondsSinceEpoch);
+        final expectedEnd = monthEnd.add(monthEnd.timeZoneOffset + dayOffset).millisecondsSinceEpoch;
+        expect(r.endMs, expectedEnd, reason: "range ends  ${Duration(milliseconds: r.endMs - expectedEnd)} too late");
+        expect(r.overlap, q.overlapMode);
       });
     });
   });

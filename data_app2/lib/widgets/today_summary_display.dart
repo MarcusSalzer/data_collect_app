@@ -1,6 +1,6 @@
 import 'package:data_app2/view_models/today_summary_vm.dart';
 import 'package:data_app2/widgets/events_summary.dart';
-import 'package:data_app2/widgets/summary_mode_segm_button.dart';
+import 'package:data_app2/widgets/segm_button.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 

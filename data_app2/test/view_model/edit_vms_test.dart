@@ -1,7 +1,8 @@
-import 'package:data_app2/app_state.dart';
 import 'package:data_app2/data/evt.dart';
 import 'package:data_app2/data/evt_cat.dart';
 import 'package:data_app2/data/evt_type.dart';
+import 'package:data_app2/db_service.dart';
+import 'package:data_app2/evt_type_manager.dart';
 import 'package:data_app2/repos/evt_cat_repo.dart';
 import 'package:data_app2/view_models/evt_cat_detail_vm.dart';
 import 'package:data_app2/view_models/evt_type_detail_vm.dart';
@@ -10,19 +11,22 @@ import 'package:test/test.dart';
 import '../test_util/dummy_app.dart';
 
 void main() {
-  late final AppState app;
-  setUpAll(() async {
-    app = await getDummyApp();
-  });
-
-  setUp(() async {
-    //clear db between tests
-    await app.db.clear();
-  });
-
   group('evtCats', () {
+    late final DBService db;
+    setUpAll(() async {
+      db = await getDummyDb();
+    });
+
+    setUp(() async {
+      //clear db between tests
+      await db.clear();
+    });
+    tearDownAll(() async {
+      // close DB when done
+      await db.isar.close();
+    });
     test('create', () async {
-      final vm = EvtCatDetailVm(null, app);
+      final vm = EvtCatDetailVm(null, db);
 
       expect(vm.stored, isNull);
       expect(vm.isDirty, true);
@@ -33,56 +37,71 @@ void main() {
       vm.updateName("hello");
       await vm.save();
       // saved
-      expect((await app.db.evtCats.all()).first.name, "hello");
+      expect((await db.evtCats.all()).first.name, "hello");
       expect(vm.isDirty, false);
       expect(vm.errorMsg, isNull);
     });
 
     test('delete', () async {
-      await app.db.evtCats.create(EvtCatDraft("oops"));
-      final rec = (await app.db.evtCats.all()).first;
+      await db.evtCats.create(EvtCatDraft("oops"));
+      final rec = (await db.evtCats.all()).first;
 
-      final vm = EvtCatDetailVm(rec, app);
+      final vm = EvtCatDetailVm(rec, db);
       final didDel = await vm.delete();
 
       // expected state
       expect(didDel, true);
       expect(vm.errorMsg, isNull);
-      expect(await app.db.evtCats.count(), 0);
+      expect(await db.evtCats.count(), 0);
     });
 
     test('does not delete if referenced', () async {
-      await app.db.evtCats.create(EvtCatDraft("ok"));
-      final rec = (await app.db.evtCats.all()).first;
-      await app.db.evtTypes.create(EvtTypeDraft("hmm")..categoryId = rec.id);
+      await db.evtCats.create(EvtCatDraft("ok"));
+      final rec = (await db.evtCats.all()).first;
+      await db.evtTypes.create(EvtTypeDraft("hmm")..categoryId = rec.id);
 
-      final vm = EvtCatDetailVm(rec, app);
+      final vm = EvtCatDetailVm(rec, db);
       final didDel = await vm.delete();
 
       // expected state
       expect(didDel, false);
       expect(vm.isDirty, false);
       expect(vm.errorMsg, contains("will not delete"));
-      expect(await app.db.evtCats.count(), 1);
+      expect(await db.evtCats.count(), 1);
     });
     test('update name & save', () async {
-      await app.db.evtCats.create(EvtCatDraft("oops"));
-      final rec = (await app.db.evtCats.all()).first;
+      await db.evtCats.create(EvtCatDraft("oops"));
+      final rec = (await db.evtCats.all()).first;
 
-      final vm = EvtCatDetailVm(rec, app);
+      final vm = EvtCatDetailVm(rec, db);
       vm.updateName("corrected");
       expect(vm.isDirty, true);
 
       await vm.save();
       expect(vm.isDirty, false);
       expect(vm.errorMsg, isNull);
-      expect((await app.db.evtCats.all()).first.name, "corrected");
+      expect((await db.evtCats.all()).first.name, "corrected");
     });
   });
 
   group('evtTypes', () {
+    late final DBService db;
+    late final EvtTypeManagerPersist typManager;
+    setUpAll(() async {
+      db = await getDummyDb();
+      typManager = EvtTypeManagerPersist(db);
+    });
+
+    setUp(() async {
+      //clear db between tests
+      await db.clear();
+    });
+    tearDownAll(() async {
+      // close DB when done
+      await db.isar.close();
+    });
     test('create', () async {
-      final vm = EvtTypeDetailVm(null, app);
+      final vm = EvtTypeDetailVm(null, db, typManager);
 
       expect(vm.stored, isNull);
       expect(vm.isDirty, true);
@@ -93,57 +112,57 @@ void main() {
       vm.updateName("hello");
       await vm.save();
       // saved
-      expect((await app.db.evtTypes.all()).first.name, "hello");
+      expect((await db.evtTypes.all()).first.name, "hello");
       expect(vm.isDirty, false);
       expect(vm.errorMsg, isNull);
     });
 
     test('delete', () async {
-      await app.db.evtTypes.create(EvtTypeDraft("oops"));
-      final rec = (await app.db.evtTypes.all()).first;
+      await db.evtTypes.create(EvtTypeDraft("oops"));
+      final rec = (await db.evtTypes.all()).first;
 
-      final vm = EvtTypeDetailVm(rec, app);
+      final vm = EvtTypeDetailVm(rec, db, typManager);
       final didDel = await vm.delete();
 
       // expected state
       expect(didDel, true);
-      expect(await app.db.evtTypes.count(), 0);
+      expect(await db.evtTypes.count(), 0);
       expect(vm.errorMsg, isNull);
     });
 
     test('does not delete if referenced', () async {
-      await app.db.evtTypes.create(EvtTypeDraft("ok"));
-      final rec = (await app.db.evtTypes.all()).first;
-      await app.db.evts.create(EvtDraft(rec.id, start: null, end: null));
+      await db.evtTypes.create(EvtTypeDraft("ok"));
+      final rec = (await db.evtTypes.all()).first;
+      await db.evts.create(EvtDraft(rec.id, start: null, end: null));
 
-      final vm = EvtTypeDetailVm(rec, app);
+      final vm = EvtTypeDetailVm(rec, db, typManager);
       final didDel = await vm.delete();
 
       // expected state
       expect(didDel, false);
       expect(vm.isDirty, false);
       expect(vm.errorMsg, contains("will not delete"));
-      expect(await app.db.evtTypes.count(), 1);
+      expect(await db.evtTypes.count(), 1);
     });
     test('update name & save', () async {
-      await app.db.evtTypes.create(EvtTypeDraft("oops"));
-      final rec = (await app.db.evtTypes.all()).first;
+      await db.evtTypes.create(EvtTypeDraft("oops"));
+      final rec = (await db.evtTypes.all()).first;
 
-      final vm = EvtTypeDetailVm(rec, app);
+      final vm = EvtTypeDetailVm(rec, db, typManager);
       vm.updateName("corrected");
       expect(vm.isDirty, true);
 
       await vm.save();
       expect(vm.isDirty, false);
       expect(vm.errorMsg, isNull);
-      expect((await app.db.evtTypes.all()).first.name, "corrected");
+      expect((await db.evtTypes.all()).first.name, "corrected");
     });
     test('update category & save', () async {
-      final catIds = await app.db.evtCats.createAll([EvtCatDraft("cat A"), EvtCatDraft("cat B")]);
-      await app.db.evtTypes.create(EvtTypeDraft("hello"));
-      final rec = (await app.db.evtTypes.all()).first;
+      final catIds = await db.evtCats.createAll([EvtCatDraft("cat A"), EvtCatDraft("cat B")]);
+      await db.evtTypes.create(EvtTypeDraft("hello"));
+      final rec = (await db.evtTypes.all()).first;
 
-      final vm = EvtTypeDetailVm(rec, app);
+      final vm = EvtTypeDetailVm(rec, db, typManager);
       await vm.load();
       expect(vm.categories?.length, 2);
       expect(vm.currentCategory?.id, EvtCatRepo.defaultId);
@@ -155,7 +174,7 @@ void main() {
       await vm.save();
       expect(vm.isDirty, false);
       expect(vm.errorMsg, isNull);
-      expect((await app.db.evtTypes.all()).first.categoryId, catIds[1]);
+      expect((await db.evtTypes.all()).first.categoryId, catIds[1]);
     });
   });
 }

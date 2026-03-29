@@ -41,6 +41,7 @@ class _Body extends StatelessWidget {
   }
 }
 
+@Deprecated("Cat and type on the same screen")
 class EvtCatIndexScreen extends StatelessWidget {
   const EvtCatIndexScreen({super.key});
 
@@ -50,7 +51,7 @@ class EvtCatIndexScreen extends StatelessWidget {
 
     // Create both view models.
 
-    final indexVm = EvtCatIndexVm(app);
+    final indexVm = EvtCatIndexVm(app.db);
     final selectionVm = GenericSelectionVm<EvtCatRec>(
       source: () => indexVm.itemsSorted ?? [],
       idOf: (r) => r.id,

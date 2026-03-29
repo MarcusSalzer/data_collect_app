@@ -27,6 +27,7 @@ class EvtCatRepo extends CrudRepo<EvtCatRec, EvtCatDraft, EventCategory> {
   // === Specific queries... ===
 
   /// Make sure the default category exists.
+  @Deprecated("maybe dont do this, gets duplicate when importing.")
   Future<void> ensureReady() async {
     await isar.writeTxn(() async {
       final existing = await coll.get(defaultId);

@@ -30,12 +30,12 @@ class EventPieChart extends StatelessWidget {
                   radius: 100,
                   title: i < nTitles ? timings[i].key : "",
                   titleStyle: TextStyle(shadows: [Shadow(blurRadius: 3)]),
-                  color: timings[i].key == "other"
-                      ? Colors.grey
-                      : colors[i % colors.length],
-                )
+                  color: timings[i].key == "other" ? Colors.grey : colors[i % colors.length],
+                ),
             ],
           ),
+          duration: Duration(milliseconds: 200),
+          curve: Curves.decelerate,
         ),
       ),
     );

@@ -10,6 +10,7 @@ import 'package:data_app2/time_range_queries.dart';
 import 'package:data_app2/util/enums.dart';
 import 'package:data_app2/util/extensions.dart';
 import 'package:flutter/material.dart';
+import 'package:logging/logging.dart';
 
 /// View model for loading and displaying summaries of event durations
 abstract class DurationSummaryDisplayVm extends ChangeNotifier {
@@ -68,7 +69,12 @@ abstract class DurationSummaryDisplayVm extends ChangeNotifier {
     final byType = _summaryByType;
     if (byType == null) return null;
 
-    return groupSummaryByType(byType, typeManager.catFromId);
+    try {
+      return groupSummaryByCat(byType, typeManager.catFromId);
+    } on StateError catch (e) {
+      Logger.root.severe("$runtimeType: $e");
+      return null;
+    }
   }
 
   /// Recompute the (byType) summary and store it.
@@ -99,9 +105,11 @@ abstract class DurationSummaryDisplayVm extends ChangeNotifier {
 
   void _onTypesChanged() {
     final evts = _evts;
-    if (evts != null && evts.isNotEmpty && typeManager.isReady) {
-      refreshSummary(evts);
+    if (evts != null && evts.isNotEmpty) {
+      if (typeManager.isReady) {
+        refreshSummary(evts);
+      }
+      notifyListeners();
     }
-    notifyListeners();
   }
 }

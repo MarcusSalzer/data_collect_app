@@ -27,9 +27,8 @@ class EvtTypeIndexVm extends ChangeNotifier {
     if (freqs == null) {
       return null;
     }
-
-    // Copy list of all types
-    final types = [..._typeManager.allTypes];
+    // get a fresh list of types.
+    final types = _typeManager.allTypes;
 
     // Sort by descending (zeros at end)
     types.sort((a, b) {

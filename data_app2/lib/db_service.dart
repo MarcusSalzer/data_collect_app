@@ -25,7 +25,7 @@ class DBService {
 
   /// populate necessary default records if missing
   Future<void> ensureReady() async {
-    await evtCats.ensureReady();
+    // await evtCats.ensureReady();
   }
 
   Future<void> clear() async {

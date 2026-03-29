@@ -9,6 +9,7 @@ import 'package:data_app2/time_range_queries.dart';
 import 'package:data_app2/util/enums.dart';
 import 'package:data_app2/util/extensions.dart';
 import 'package:flutter/material.dart';
+import 'package:logging/logging.dart';
 
 class DayInmonthVm extends ChangeNotifier {
   // synchronous: for starting with already loaded events for a month
@@ -37,6 +38,7 @@ class DayInmonthVm extends ChangeNotifier {
   List<EvtRec>? _dayEvts;
   List<MapEntry<int, Duration>> tpe = [];
   SummaryMode summaryMode;
+  RangeSummaryInclusionMode rangeMode = RangeSummaryInclusionMode.fullyInside;
   DurationSummaryList<EvtTypeRec>? _summaryByType;
 
   /// Computed from type-summary, but remembered
@@ -54,6 +56,11 @@ class DayInmonthVm extends ChangeNotifier {
         _summaryByCat ??= _computeSummaryByCat();
         return _summaryByCat;
     }
+  }
+
+  String get summaryLabel {
+    final p1 = (summaryMode == SummaryMode.type) ? "Events" : "Categories";
+    return "$p1 (${rangeMode.description} day)";
   }
 
   /// step to another day (and step month if needed)
@@ -75,13 +82,22 @@ class DayInmonthVm extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// set the range inclusion mode and recompute summary
+  void setRangeMode(RangeSummaryInclusionMode mode) {
+    rangeMode = mode;
+    refresh();
+  }
+
   void refresh() {
     // create a query to apply on stored local timestamps.
     final q = LocalTimeRangeQuery(
       ref: dt,
       dayOffset: Duration(hours: dayStartsH),
       unit: GroupFreq.day,
-      overlapMode: OverlapMode.fullyInside,
+      // uses endsIn in two cases:
+      overlapMode: (rangeMode == RangeSummaryInclusionMode.fullyInside)
+          ? OverlapMode.fullyInside
+          : OverlapMode.endInside,
     );
 
     final monthEvts = evtsForMonth();
@@ -94,6 +110,8 @@ class DayInmonthVm extends ChangeNotifier {
       dayEvts,
       typeManager.typeFromId,
       (EvtTypeRec r) => typeManager.colorFor(r, colorSpread),
+      // only fill in rest if desired
+      total: (rangeMode == RangeSummaryInclusionMode.endsInPlusFill) ? Duration(hours: 24) : null,
     );
 
     _summaryByCat = null; // lazy load this later if needed
@@ -105,8 +123,12 @@ class DayInmonthVm extends ChangeNotifier {
   DurationSummaryList<EvtCatRec>? _computeSummaryByCat() {
     final byType = _summaryByType;
     if (byType == null) return null;
-
-    return groupSummaryByType(byType, typeManager.catFromId);
+    try {
+      return groupSummaryByCat(byType, typeManager.catFromId);
+    } on StateError catch (e) {
+      Logger.root.severe("$runtimeType: $e");
+      return null;
+    }
   }
 
   Future<void> load() async {

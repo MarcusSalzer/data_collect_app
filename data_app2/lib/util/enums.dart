@@ -13,6 +13,22 @@ enum ImportMode { event, tabular }
 /// What are we importing
 enum ImportFileRole { events, eventTypes, eventCats, unknown }
 
+/// How to consider events in a range
+enum OverlapMode { fullyInside, overlapping, endInside }
+
+/// How to summarize events in a range
+enum RangeSummaryInclusionMode {
+  fullyInside,
+  endsIn,
+  endsInPlusFill;
+
+  String get description => switch (this) {
+    RangeSummaryInclusionMode.fullyInside => "within",
+    RangeSummaryInclusionMode.endsIn => "ends in",
+    RangeSummaryInclusionMode.endsInPlusFill => "ends in full",
+  };
+}
+
 /// What to summarize
 enum SummaryMode {
   type,
