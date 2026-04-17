@@ -132,9 +132,7 @@ class _EventTypeCatIndexScreenState extends State<EventTypeCatIndexScreen> with 
         ChangeNotifierProvider(
           create: (ctxCreate) {
             final app = ctxCreate.read<AppState>();
-            final vm = EvtTypeIndexVm(app.db, app.evtTypeManager);
-            vm.load();
-            return vm;
+            return EvtTypeIndexVm(app.db, app.evtTypeManager)..load();
           },
         ),
         ChangeNotifierProvider(

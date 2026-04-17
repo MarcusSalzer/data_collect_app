@@ -16,6 +16,7 @@
 - ✅ _26-02-06_ JSON-serializable prefs, improved test coverage, Import help screen
 - ✅ _26-02-10_ Consistent edit screens, category-color system. Daily summary `v0.1.1`
 - ✅ _26-03-15_ "day starts at", better time range filter, test coverage, state consumer cleanup
+- ❓ locations
 
 Maybe:
 
@@ -28,13 +29,13 @@ Maybe:
 - ❓ better calendar UI, horizontal page + vertical scroll?
 - ❓ event aggregations. per-day-db? or save to file?
 - ❓ bag of activity vector
-- ❓ location data type
 
 ## Known and suspected issues
 
 - is calendar TZ safe?
 - Reduce storage permissions?
 - changing colors does not reload types.
+- are events sorted in "instances"?
 
 ## Overall architecture
 

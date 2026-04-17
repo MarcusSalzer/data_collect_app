@@ -38,7 +38,7 @@ void main() {
     expect(vm.activeSummary, isEmpty);
     expect(nNotify, 1);
     // even if types change, this should not notify, since no evts
-    app.evtTypeManager.addType(EvtTypeRec(133, "newnew"));
+    app.evtTypeManager.upsertType(EvtTypeRec(133, "newnew"));
     expect(nNotify, 1);
   });
   group('with events', () {
@@ -116,7 +116,7 @@ void main() {
       expect(vm.eventList!.length, 1);
       expect(nNotify, 1);
       // even if types change, this should notify
-      app.evtTypeManager.addType(EvtTypeRec(133, "newnew"));
+      app.evtTypeManager.upsertType(EvtTypeRec(133, "newnew"));
       expect(nNotify, 2);
     });
   });

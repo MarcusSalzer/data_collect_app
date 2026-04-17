@@ -43,6 +43,10 @@ class Event {
   int? endLocalMillis;
   int? endUtcMillis;
 
+  // optionally link to a location
+  @Index()
+  int? locationId;
+
   Event({required this.typeId, this.startLocalMillis, this.startUtcMillis, this.endLocalMillis, this.endUtcMillis});
 }
 
@@ -68,6 +72,18 @@ class EventCategory {
   EventCategory(this.name, [this.colorArgb32 = 0]);
 }
 
+@collection
+class Location {
+  Id id = Isar.autoIncrement;
+
+  @Index(unique: true)
+  String name;
+
+  double lat;
+  double lng;
+
+  Location(this.name, this.lat, this.lng);
+}
 // USER-DEFINED TABULAR DATASETS
 
 @collection
@@ -100,7 +116,7 @@ class UserRow {
 /// Initialize DB connection
 Future<Isar> initIsar(Directory dir) async {
   final isar = await Isar.open(
-    [EventSchema, UserTableSchema, UserRowSchema, EventTypeSchema, EventCategorySchema],
+    [EventSchema, UserTableSchema, UserRowSchema, EventTypeSchema, EventCategorySchema, LocationSchema],
     name: "data_app_db",
     directory: dir.path,
   );

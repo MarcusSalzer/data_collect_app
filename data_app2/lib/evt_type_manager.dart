@@ -5,7 +5,7 @@ import 'package:data_app2/util/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
 
-/// Handle caching/storing and resolves from id and name etc.
+/// Handle caching and resolves from id and name etc.
 /// Keeps both [EvtTypeRec] and [EvtCatRec]
 class EvtTypeManager extends ChangeNotifier {
   // Store both maps for fast lookup
@@ -65,7 +65,7 @@ class EvtTypeManager extends ChangeNotifier {
   }
 
   /// add a single type
-  void addType(EvtTypeRec rec) {
+  void upsertType(EvtTypeRec rec) {
     _typesByName[rec.name] = rec;
     _typesById[rec.id] = rec;
     notifyListeners();
@@ -125,7 +125,7 @@ class EvtTypeManagerPersist extends EvtTypeManager {
       return cached;
     }
     final fromDB = await _db.evtTypes.getOrCreate(name);
-    addType(fromDB);
+    upsertType(fromDB);
     // state has updated
     notifyListeners();
     return fromDB;

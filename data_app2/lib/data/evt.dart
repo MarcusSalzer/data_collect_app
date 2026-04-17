@@ -6,6 +6,7 @@ abstract class EvtBase {
   int get typeId;
   LocalDateTime? get start;
   LocalDateTime? get end;
+  int? get locationId;
 
   /// Get event duration (computed from UTC time)
   Duration? get duration {
@@ -35,8 +36,10 @@ class EvtDraft extends EvtBase implements Draft<EvtRec> {
   LocalDateTime? start;
   @override
   LocalDateTime? end;
+  @override
+  int? locationId;
 
-  EvtDraft(this.typeId, {required this.start, required this.end});
+  EvtDraft(this.typeId, {required this.start, required this.end, this.locationId});
 
   /// Create a record in the current local timezone
   EvtDraft.inCurrentTZ(this.typeId, {required DateTime? start, required DateTime? end})
@@ -57,7 +60,7 @@ class EvtDraft extends EvtBase implements Draft<EvtRec> {
 }
 
 class EvtRec extends EvtBase implements Identifiable {
-  const EvtRec(this.id, this.typeId, {required this.start, required this.end});
+  const EvtRec(this.id, this.typeId, {required this.start, required this.end, this.locationId});
 
   @override
   final int id;
@@ -68,7 +71,8 @@ class EvtRec extends EvtBase implements Identifiable {
   final LocalDateTime? start;
   @override
   final LocalDateTime? end;
-
+  @override
+  final int? locationId;
   // EvtRec.inCurrentTZ(this.id, int typeId, {required super.start, required super.end})
   //   : super.inCurrentTZ(typeId: typeId);
 

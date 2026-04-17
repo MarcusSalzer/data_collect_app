@@ -24,7 +24,7 @@ void main() {
     test("add: can add and resolve", () {
       final manager = EvtTypeManager()..reloadFromModels(exampleTypes, exampleCats);
       final newType = EvtTypeRec(13, "new");
-      manager.addType(newType);
+      manager.upsertType(newType);
       // Id should be added
       expect(manager.typeFromId(13), newType);
       expect(manager.typeFromName("new"), newType);
@@ -41,7 +41,7 @@ void main() {
       expect(notifyCount, 0);
       final newType = EvtTypeRec(14, "new");
 
-      manager.addType(newType);
+      manager.upsertType(newType);
       expect(notifyCount, 1);
     });
   });

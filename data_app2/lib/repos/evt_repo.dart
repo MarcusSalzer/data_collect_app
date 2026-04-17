@@ -145,4 +145,11 @@ class EvtRepo extends CrudRepo<EvtRec, EvtDraft, Event> {
           .findAll(),
     )).reversed.map(fromIsar);
   }
+
+  /// All events with location, sorted chronologically
+  Future<Iterable<EvtRec>> allWithLocation() async {
+    return (await isar.txn(
+      () async => await coll.where().locationIdIsNotNull().sortByStartLocalMillis().findAll(),
+    )).map(fromIsar);
+  }
 }

@@ -3,6 +3,7 @@ import 'package:data_app2/data/evt_type.dart';
 import 'package:data_app2/repos/evt_cat_repo.dart';
 import 'package:data_app2/repos/evt_repo.dart';
 import 'package:data_app2/repos/evt_type_repo.dart';
+import 'package:data_app2/repos/location_repo.dart';
 import 'package:data_app2/repos/tabular_repo.dart';
 import 'package:isar_community/isar.dart';
 
@@ -12,6 +13,7 @@ class DBService {
   final EvtTypeRepo evtTypes;
   final TabularRepo tabular;
   final EvtCatRepo evtCats;
+  final LocationRepo locations;
 
   final Isar isar;
 
@@ -21,7 +23,8 @@ class DBService {
     : evts = EvtRepo(isar),
       evtTypes = EvtTypeRepo(isar),
       tabular = TabularRepo(isar),
-      evtCats = EvtCatRepo(isar);
+      evtCats = EvtCatRepo(isar),
+      locations = LocationRepo(isar);
 
   /// populate necessary default records if missing
   Future<void> ensureReady() async {

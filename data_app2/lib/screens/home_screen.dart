@@ -3,6 +3,7 @@ import 'package:data_app2/data/app_prefs.dart';
 import 'package:data_app2/dialogs/import_something_dialog.dart';
 import 'package:data_app2/permission_manager.dart';
 import 'package:data_app2/screens/events/type_cat_index_screen.dart';
+import 'package:data_app2/screens/location_screen.dart';
 import 'package:data_app2/screens/month_calendar_screen.dart';
 import 'package:data_app2/screens/events/events_screen.dart';
 import 'package:data_app2/screens/settings_screen.dart';
@@ -69,6 +70,12 @@ class HomeScreen extends StatelessWidget {
                     "My events",
                     Icons.abc,
                     builder: (context) => EventTypeCatIndexScreen(),
+                  ),
+                  // --- A single screen for showing locations
+                  HomeNavLink(
+                    "Locations",
+                    Icons.map,
+                    builder: (context) => LocationScreen(),
                   ),
 
                   HomeNavLink("Calendar", Icons.calendar_month, builder: (context) => MonthCalendarScreen()),

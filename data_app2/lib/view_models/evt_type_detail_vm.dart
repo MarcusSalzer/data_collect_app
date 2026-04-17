@@ -73,13 +73,13 @@ class EvtTypeDetailVm extends EditVm<EvtTypeRec, EvtTypeDraft> {
         // We are creating a new record
         final newId = await _db.evtTypes.create(draft);
         final newRec = draft.toRec(newId);
-        _typeManager.addType(newRec);
+        _typeManager.upsertType(newRec);
         stored = newRec;
       } else {
         // We are updating a stored record
         final updated = draft.toRec(storedId);
         await _db.evtTypes.update(updated);
-        _typeManager.addType(updated);
+        _typeManager.upsertType(updated);
         stored = updated;
       }
     } on IsarError catch (e) {
