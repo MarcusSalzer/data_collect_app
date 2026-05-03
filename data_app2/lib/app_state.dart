@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:data_app2/data/app_prefs.dart';
 import 'package:data_app2/data/evt_type.dart';
 import 'package:data_app2/data/today_summary_data.dart';
+import 'package:data_app2/location_manager.dart';
 import 'package:data_app2/prefs_io.dart';
 import 'package:data_app2/style.dart';
 import 'package:data_app2/util/enums.dart';
@@ -21,14 +22,13 @@ class AppState extends ChangeNotifier {
   final Directory _userStoreDir;
   final DBService _db;
   final EvtTypeManagerPersist _evtTypeManager;
+  final LocationManager _locationManager;
 
   /// A user accessible directory for data
   Directory get userStoreDir => _userStoreDir;
 
   /// All preferences
   AppPrefs get prefs => _prefs;
-  // deprecated individual getters?
-  bool get isDarkMode => _prefs.colorSchemeMode == ColorSchemeMode.dark;
   bool get autoLowerCase => _prefs.autoLowerCase;
   LogLevel get logLevel => _prefs.logLevel;
   TextSearchMode get textSearchMode => _prefs.textSearchMode;
@@ -37,24 +37,29 @@ class AppState extends ChangeNotifier {
   DBService get db => _db;
   File get prefsFile => _prefsFile;
 
-  /// Get the singleton type repository
+  /// Get the singleton type manager
   EvtTypeManagerPersist get evtTypeManager => _evtTypeManager;
+
+  /// Get the singleton location manager
+  LocationManager get locationManager => _locationManager;
 
   // keep track of today summary
   TodaySummaryDataByType? todaySummary;
 
   final File _prefsFile;
 
-  /// Initialize appstate.
-  ///
-  /// Will also get a [EvtTypeManagerPersist] and fill evt-type-cache
-  AppState(this._db, this._prefs, this._userStoreDir, this._prefsFile) : _evtTypeManager = EvtTypeManagerPersist(_db) {
-    // Fill the cache
-    _db.allTypesAndCats().then((r) {
-      _evtTypeManager.reloadFromModels(r.$1, r.$2);
-    });
+  AppState(this._db, this._prefs, this._userStoreDir, this._prefsFile)
+    : _evtTypeManager = EvtTypeManagerPersist(_db),
+      _locationManager = LocationManager();
 
-    // check dangling types (move this?)
+  /// Perform needed asynchronous initialization
+  Future<void> init() async {
+    // event types and categories
+    // Fill the cache
+    final (t, c) = await _db.allTypesAndCats();
+    _evtTypeManager.reloadFromModels(t, c);
+
+    // check dangling types
     _db.danglingTypeRefs().then((d) {
       final count = d.length;
       final msg = "has $count dangling type-refs";
@@ -63,6 +68,14 @@ class AppState extends ChangeNotifier {
       }
       Logger.root.info(msg);
     });
+    // locations
+    final locs = await _db.locations.all();
+    _locationManager.reloadFromModels(locs);
+  }
+
+  Future<void> reloadLocations() async {
+    final locs = await _db.locations.all();
+    locationManager.reloadFromModels(locs);
   }
 
   // --- Preference updating ---
@@ -103,7 +116,9 @@ class AppState extends ChangeNotifier {
   }
 
   Future<void> clearPrefs() async {
-    await _prefsFile.delete();
+    if (await _prefsFile.exists()) {
+      await _prefsFile.delete();
+    }
     _prefs = AppPrefs();
   }
 

@@ -10,6 +10,8 @@ ImportFileRole roleFromName(String filename) {
     return ImportFileRole.eventTypes;
   } else if (filename.contains("event_categories")) {
     return ImportFileRole.eventCats;
+  } else if (filename.contains("locations")) {
+    return ImportFileRole.locations;
   }
   return ImportFileRole.unknown;
 }

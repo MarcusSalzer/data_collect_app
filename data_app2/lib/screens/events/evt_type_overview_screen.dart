@@ -1,11 +1,10 @@
 import 'package:data_app2/app_state.dart';
 import 'package:data_app2/data/evt_type.dart';
-import 'package:data_app2/util/enums.dart';
 import 'package:data_app2/view_models/evt_type_overview_vm.dart';
 import 'package:data_app2/util/fmt.dart';
 import 'package:data_app2/plots.dart';
 import 'package:data_app2/screens/events/event_type_detail_screen.dart';
-import 'package:data_app2/widgets/event_history_display.dart';
+import 'package:data_app2/widgets/evt_history_list.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -66,12 +65,7 @@ class EvtTypeOverviewScreen extends StatelessWidget {
                   return TabBarView(
                     children: [
                       const _EventTypeStatsDisplay(),
-                      EventHistoryDisplay(
-                        vm.evts,
-                        headingMode: GroupFreq.week,
-                        isScrollable: true,
-                        reloadAction: vm.load,
-                      ),
+                      EvtHistoryList(vm.evts, vm.load),
                     ],
                   );
                 },

@@ -3,6 +3,7 @@ import 'package:data_app2/data/app_prefs.dart';
 import 'package:data_app2/db_service.dart';
 import 'package:data_app2/io.dart';
 import 'package:data_app2/isar_models.dart';
+import 'package:data_app2/location_manager.dart';
 import 'package:data_app2/prefs_io.dart';
 import 'package:data_app2/screens/home_screen.dart';
 import 'package:data_app2/app_state.dart';
@@ -49,15 +50,21 @@ void main() async {
     final db = DBService(await initIsar(prefsFile.parent));
     await db.ensureReady();
 
+    final appState = AppState(db, prefs ?? AppPrefs(), await defaultUserStoreDir(), prefsFile);
+    await appState.init();
+
     runApp(
-      MyApp(
-        // Need a db. stored next to prefs
-        db: db,
-        prefs: prefs ?? AppPrefs(),
-        userStoreDir: await defaultUserStoreDir(),
-        // No prefs -> first startup
-        showWelcome: prefs == null,
-        prefsFile: prefsFile,
+      // No prefs -> first startup
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider<AppState>.value(value: appState),
+          ChangeNotifierProxyProvider<AppState, LocationManager>(
+            create: (ctx) => ctx.read<AppState>().locationManager,
+            update: (_, app, _) => app.locationManager,
+          ),
+          // TODO also proxy typemanager?
+        ],
+        child: MyApp(showWelcome: prefs == null),
       ),
     );
   } on MissingPlatformDirectoryException catch (e) {
@@ -82,22 +89,10 @@ class StartupErrorApp extends StatelessWidget {
 }
 
 class MyApp extends StatelessWidget {
-  final DBService db;
-
-  final AppPrefs prefs;
-
-  final Directory userStoreDir;
-
   final bool showWelcome;
-
-  final File prefsFile;
 
   const MyApp({
     super.key,
-    required this.db,
-    required this.prefs,
-    required this.prefsFile,
-    required this.userStoreDir,
     required this.showWelcome,
   });
 
@@ -105,18 +100,11 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     // Global state and methods in AppState.
     // Use select/watch/read, and maybe Consumer where appropriate.
-    return ChangeNotifierProvider<AppState>(
-      create: (_) => AppState(db, prefs, userStoreDir, prefsFile),
-      child: Builder(
-        builder: (context) {
-          return MaterialApp(
-            title: 'data collect app',
-            theme: context.select<AppState, ColorSchemeMode>((a) => a.prefs.colorSchemeMode).theme,
-            // Start at "welcome" or "home"
-            home: showWelcome ? const WelcomeScreen() : const HomeScreen(),
-          );
-        },
-      ),
+    return MaterialApp(
+      title: 'data collect app',
+      theme: context.select<AppState, ColorSchemeMode>((a) => a.prefs.colorSchemeMode).theme,
+      // Start at "welcome" or "home"
+      home: showWelcome ? const WelcomeScreen() : const HomeScreen(),
     );
   }
 }

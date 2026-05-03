@@ -19,7 +19,6 @@ class CompleteExportVm extends ChangeNotifier {
 
     final ce = await _app.db.evts.count();
     final ct = await _app.db.evtTypes.count();
-    await Future.delayed(Duration(milliseconds: 400));
 
     if (ce > 0) {
       state = Ready((nEvt: ce, nType: ct));
@@ -37,7 +36,7 @@ class CompleteExportVm extends ChangeNotifier {
       final serv = CompleteExportService(await _app.storeSubdir("export"), DateTime.now());
 
       /// export all data
-      final counts = await serv.exportAllData(_app.db, _app.evtTypeManager, _app.prefs);
+      final counts = await serv.exportAllData(_app.db, _app.evtTypeManager, _app.locationManager, _app.prefs);
 
       state = Done(counts.entries.map((e) => "${e.key}: ${e.value} lines").toList());
       savedFolder = serv.folderPath;

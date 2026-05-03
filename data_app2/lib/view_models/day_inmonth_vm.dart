@@ -44,7 +44,7 @@ class DayInmonthVm extends ChangeNotifier {
   /// Computed from type-summary, but remembered
   DurationSummaryList<EvtCatRec>? _summaryByCat;
 
-  List<EvtRec>? get dayEvts => _dayEvts;
+  UnmodifiableListView<EvtRec>? get dayEvts => _dayEvts?.unmodifiable;
 
   /// Unified getter the UI can consume
   DurationSummaryList<dynamic>? get activeSummary {

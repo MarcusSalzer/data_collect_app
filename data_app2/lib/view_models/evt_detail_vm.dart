@@ -1,30 +1,37 @@
-import 'dart:ui';
-
-import 'package:data_app2/app_state.dart';
 import 'package:data_app2/contracts/edit_vm.dart';
 import 'package:data_app2/data/evt.dart';
 import 'package:data_app2/data/evt_type.dart';
+import 'package:data_app2/data/location.dart';
+import 'package:data_app2/evt_type_manager.dart';
 import 'package:data_app2/local_datetime.dart';
+import 'package:data_app2/repos/evt_repo.dart';
 import 'package:isar_community/isar.dart';
 
 /// Handle details and editing of a single event
 class EvtDetailVm extends EditVm<EvtRec, EvtDraft> {
-  EvtDetailVm(EvtRec stored, this._app) : super(stored, stored.toDraft());
+  EvtDetailVm(EvtRec stored, this._evtRepo, this._typMan) : super(stored, stored.toDraft());
 
-  final AppState _app;
-
-  Color get color => _app.colorFor(evtType);
+  final EvtRepo _evtRepo;
+  final EvtTypeManager _typMan;
 
   EvtTypeRec? get evtType {
-    return _app.evtTypeManager.typeFromId(draft.typeId);
+    return _typMan.typeFromId(draft.typeId);
   }
 
-  List<EvtTypeRec> get allTypes => _app.evtTypeManager.allTypes;
+  List<EvtTypeRec> get allTypes => _typMan.allTypes;
 
   /// Update the type of the event
   void changeType(int newType) {
     if (newType != draft.typeId) {
       draft.typeId = newType;
+      notifyListeners();
+    }
+  }
+
+  /// Update the location of the event
+  void changeLocation(LocationRec? v) {
+    if (v?.id != draft.locationId) {
+      draft.locationId = v?.id;
       notifyListeners();
     }
   }
@@ -48,12 +55,12 @@ class EvtDetailVm extends EditVm<EvtRec, EvtDraft> {
     try {
       if (storedId == null) {
         // Store new
-        final newId = await _app.db.evts.create(draft);
+        final newId = await _evtRepo.create(draft);
         stored = draft.toRec(newId);
       } else {
         // Update stored
         final updated = draft.toRec(storedId);
-        await _app.db.evts.update(updated);
+        await _evtRepo.update(updated);
         stored = updated;
       }
     } on IsarError catch (e) {
@@ -75,7 +82,7 @@ class EvtDetailVm extends EditVm<EvtRec, EvtDraft> {
     if (storedId == null) {
       return false;
     }
-    final didDelete = await _app.db.evts.forceDelete(storedId);
+    final didDelete = await _evtRepo.forceDelete(storedId);
     return didDelete;
   }
 }

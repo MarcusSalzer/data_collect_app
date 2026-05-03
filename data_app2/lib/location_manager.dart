@@ -38,7 +38,7 @@ class LocationManager extends ChangeNotifier {
     notifyListeners();
   }
 
-  LocationRec? fromId(int id) => _byId[id];
+  LocationRec? fromId(int? id) => _byId[id];
   LocationRec? fromName(String name) => _byName[name];
 
   void clearCache() {

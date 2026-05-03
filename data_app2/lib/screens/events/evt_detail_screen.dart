@@ -1,11 +1,11 @@
 import 'package:data_app2/app_state.dart';
 import 'package:data_app2/data/evt.dart';
 import 'package:data_app2/data/evt_type.dart';
-import 'package:data_app2/dialogs/show_confirm_save_back_dialog.dart';
+import 'package:data_app2/data/location.dart';
+import 'package:data_app2/location_manager.dart';
 import 'package:data_app2/view_models/evt_detail_vm.dart';
 import 'package:data_app2/util/fmt.dart';
 import 'package:data_app2/local_datetime.dart';
-import 'package:data_app2/util.dart';
 import 'package:data_app2/widgets/edit_scaffold.dart';
 import 'package:data_app2/widgets/generic_autocomplete.dart';
 import 'package:data_app2/widgets/two_columns.dart';
@@ -20,7 +20,14 @@ class EvtDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider<EvtDetailVm>(
-      create: (context) => EvtDetailVm(evt, context.read<AppState>()),
+      create: (context) {
+        final app = context.read<AppState>();
+        return EvtDetailVm(
+          evt,
+          app.db.evts,
+          app.evtTypeManager,
+        );
+      },
       child: Consumer<EvtDetailVm>(
         builder: (context, vm, child) => EditScaffoldForVm<EvtRec>(
           title: "Event",
@@ -37,125 +44,6 @@ class EvtDetailScreen extends StatelessWidget {
   }
 }
 
-@Deprecated("New uses edit scaffold")
-class EvtDetailScreenOld extends StatelessWidget {
-  final EvtRec evt;
-
-  const EvtDetailScreenOld(this.evt, {super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return ChangeNotifierProvider<EvtDetailVm>(
-      create: (context) {
-        final app = Provider.of<AppState>(context, listen: false);
-        return EvtDetailVm(evt, app);
-      },
-      child: Consumer<EvtDetailVm>(
-        builder: (context, vm, child) => PopScope(
-          canPop: !vm.isDirty,
-          onPopInvokedWithResult: (didPop, Object? res) async {
-            if (!didPop) {
-              showConfirmSaveBackDialog(
-                context,
-                saveAction: () async {
-                  try {
-                    await vm.save();
-                    if (context.mounted) simpleSnack(context, "Saved!");
-                  } catch (e) {
-                    if (context.mounted) {
-                      simpleSnack(context, e.toString(), color: Colors.red);
-                    }
-                  }
-                  return null;
-                },
-              );
-            }
-          },
-          child: Scaffold(
-            appBar: AppBar(
-              title: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  Text("Event ${vm.stored?.id}${vm.isDirty ? " *" : ""}"),
-                  CircleAvatar(radius: 8, backgroundColor: vm.color),
-                ],
-              ),
-              actions: [
-                IconButton(
-                  onPressed: () {
-                    showDialog(
-                      context: context,
-                      builder: (context) => SimpleDialog(
-                        title: Text("Are you sure?"),
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: TextButton.icon(
-                              onPressed: () async {
-                                final didDelete = await vm.delete();
-                                if (context.mounted) {
-                                  if (didDelete) {
-                                    simpleSnack(context, "Deleted event ${evt.id}");
-                                  } else {
-                                    simpleSnack(context, "Failed to delete event", color: Colors.red);
-                                  }
-                                  // close dialog
-                                  Navigator.of(context).pop();
-                                  // leave details page
-                                  Navigator.of(context).pop();
-                                }
-                              },
-                              icon: Icon(Icons.dangerous_outlined),
-                              label: Text("delete permanently"),
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                  icon: Icon(Icons.delete_forever),
-                ),
-              ],
-            ),
-            body: SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  children: [
-                    EventEditForm(),
-                    if (vm.isDirty)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 20),
-                        child: TextButton(
-                          onPressed: () async {
-                            try {
-                              await vm.save();
-                              if (context.mounted) {
-                                Navigator.of(context).pop();
-                                simpleSnack(context, "Saved!");
-                              }
-                            } catch (e) {
-                              if (context.mounted) {
-                                simpleSnack(context, e.toString(), color: Colors.red);
-                              }
-                            }
-                          },
-                          child: Text("Save & exit"),
-                        ),
-                      ),
-                    SizedBox(height: 16),
-                    if (vm.stored case EvtRec st) EventDetailDisplay(st, vm.evtType),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 class EventEditForm extends StatelessWidget {
   const EventEditForm({super.key});
 
@@ -163,6 +51,7 @@ class EventEditForm extends StatelessWidget {
   Widget build(BuildContext context) {
     final vm = Provider.of<EvtDetailVm>(context, listen: false);
     final app = Provider.of<AppState>(context, listen: false);
+    final locMan = context.read<LocationManager>();
 
     return TwoColumns(
       flex: (1, 3),
@@ -185,6 +74,19 @@ class EventEditForm extends StatelessWidget {
         ),
         (Text("Start"), DTPickerPair(vm.draft.start, vm.changeStartLocalTZ)),
         (Text("End"), DTPickerPair(vm.draft.end, vm.changeEndLocalTZ)),
+        (
+          Text("Location"),
+          GenericAutocomplete<LocationRec>(
+            options: locMan.all,
+            initialValue: null,
+            nameOf: (e) => e.name,
+            onSelected: vm.changeLocation,
+            optionBuilder: (context, e) => ListTile(
+              title: Text(e.name),
+            ),
+            searchMode: app.textSearchMode,
+          ),
+        ),
       ],
     );
   }
@@ -284,12 +186,16 @@ class EventDetailDisplay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final locMan = context.watch<LocationManager>();
+    final location = locMan.fromId(evt.locationId);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _subtitle("Details"),
         _buildInfoRow('ID', evt.id.toString()),
         _buildInfoRow('Type', evtType.toString()),
+        _buildInfoRow('Location', location?.name ?? "N/A"),
         _buildInfoRow('Duration', Fmt.durationHmVerbose(evt.duration)),
         _subtitle("Start"),
         _buildInfoRow('Local', Fmt.dtSecond(evt.start?.asLocal)),

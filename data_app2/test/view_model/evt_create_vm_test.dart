@@ -10,7 +10,6 @@ import '../test_util/dummy_data.dart';
 void main() {
   late List<int> evtIds;
   late List<int> typeIds;
-  late List<int> catIds;
   final nEvt = 15;
   late final DBService db;
   late final EvtTypeManagerPersist typMan;
@@ -25,8 +24,10 @@ void main() {
     // refresh cache and clear db before each test
     typMan.clearCache();
     await db.clear();
-    (evtIds: evtIds, typeIds: typeIds, catIds: catIds) = await fillDbWithDummyData(db, nEvts: nEvt);
+    await fillDbWithDummyData(db, nEvts: nEvt);
     typMan.reloadFromModels(await db.evtTypes.all(), await db.evtCats.all());
+    evtIds = (await db.evts.allIds()).toList();
+    typeIds = (await db.evtTypes.allIds()).toList();
   });
 
   tearDownAll(() async {

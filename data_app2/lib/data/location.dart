@@ -11,11 +11,17 @@ class LocationRec implements Identifiable {
   final double lng;
 
   @override
-  toDraft() {
+  LocationDraft toDraft() {
     return LocationDraft(name, lat, lng);
+  }
+
+  @override
+  String toString() {
+    return "Location($id,$name,$lat,$lng)";
   }
 }
 
+/// For edit/create
 class LocationDraft implements Draft<LocationRec> {
   LocationDraft(this.name, this.lat, this.lng);
 

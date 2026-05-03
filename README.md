@@ -16,13 +16,14 @@
 - ✅ _26-02-06_ JSON-serializable prefs, improved test coverage, Import help screen
 - ✅ _26-02-10_ Consistent edit screens, category-color system. Daily summary `v0.1.1`
 - ✅ _26-03-15_ "day starts at", better time range filter, test coverage, state consumer cleanup
-- ❓ locations
+- ❓ Events can have locations.
 
 Maybe:
 
+- ❓ tabular data (datatypes: int, dec, user-enum, event)
+- ❓ colorful/dynamic theme
 - ❓ Persistent event filter, can apply globally in app?
 - ❓ event type stats: timeseries and summary statistics
-- ❓ tabular data, link to event
 - ❓ auto-backup, backup pruning (more compact file format?)
 - ❓ Linting: duplicates, overlapping events, DB change detection
 - ❓ Improved suggestions (recent, dynamic, pinned)

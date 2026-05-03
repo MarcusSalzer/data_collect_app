@@ -9,9 +9,9 @@ Color defaultColor(_) => Colors.red;
 /// List showing event types.
 class SelectionList<T extends Identifiable> extends StatelessWidget {
   final Color Function(T)? colorOf;
-  final int Function(T)? countOf;
+  final String Function(T)? subtitleOf;
   final void Function(T)? onTapItem;
-  const SelectionList({super.key, this.colorOf = defaultColor, this.countOf, required this.onTapItem});
+  const SelectionList({super.key, this.colorOf = defaultColor, this.subtitleOf, required this.onTapItem});
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +20,7 @@ class SelectionList<T extends Identifiable> extends StatelessWidget {
         final items = selVM.filtered;
         final cbTap = onTapItem;
         final cbColor = colorOf;
-        final cbSubtitle = countOf;
+        final cbSubtitle = subtitleOf;
 
         return Column(
           children: [
@@ -40,7 +40,7 @@ class SelectionList<T extends Identifiable> extends StatelessWidget {
                       },
                     ),
                     title: Text(selVM.textOf(rec), style: (cbColor != null) ? TextStyle(color: cbColor(rec)) : null),
-                    subtitle: (cbSubtitle != null) ? Text(cbSubtitle(rec).toString()) : null,
+                    subtitle: (cbSubtitle != null) ? Text(cbSubtitle(rec)) : null,
                     onTap: (cbTap != null) ? () => cbTap(rec) : null,
                     // trailing: IconButton(
                     //   onPressed: () {

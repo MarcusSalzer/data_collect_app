@@ -48,8 +48,6 @@ void main() {
     expect(vm.step, ImportStep.confirmFiles);
     // should have files to import
     expect(vm.candidates.canImport, true);
-    expect(vm.candidates.evtTypeCands.length, 1);
-    expect(vm.candidates.evtCatCands.length, 1);
 
     await vm.prepareCsvRows();
     expect(vm.step, ImportStep.confirmImport);
@@ -57,7 +55,8 @@ void main() {
     await vm.importToDb();
     expect(vm.error, isNull);
     expect(vm.step, ImportStep.done);
-    expect(vm.result!.evtTypeCount, 3);
+    expect(vm.result!.counts[ImportFileRole.eventTypes], 3);
+    expect(vm.result!.counts[ImportFileRole.eventCats], 2);
 
     final types = (await app.db.evtTypes.all()).toList();
     expect(types.map((t) => t.name).toSet(), {"tA", "tB", "tC"});

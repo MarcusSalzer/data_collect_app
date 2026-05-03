@@ -14,8 +14,11 @@ class CsvRow {
     return v;
   }
 
-  /// Get a string value or throw [FormatException] (parse or missing)
+  /// Get a integer value or throw [FormatException] (parse or missing)
   int reqInt(String col) => int.parse(req(col));
+
+  /// Get a double value or throw [FormatException] (parse or missing)
+  double reqDouble(String col) => double.parse(req(col));
 
   /// optional string value
   String? opt(String col) {
@@ -36,6 +39,7 @@ class CsvRow {
     final v2 = _row[col2];
 
     if (v1 == null || v2 == null) return null;
+    if (v1.isEmpty || v2.isEmpty) return null;
     return (v1, v2);
   }
 

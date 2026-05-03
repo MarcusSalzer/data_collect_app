@@ -47,7 +47,14 @@ class Event {
   @Index()
   int? locationId;
 
-  Event({required this.typeId, this.startLocalMillis, this.startUtcMillis, this.endLocalMillis, this.endUtcMillis});
+  Event({
+    required this.typeId,
+    this.startLocalMillis,
+    this.startUtcMillis,
+    this.endLocalMillis,
+    this.endUtcMillis,
+    this.locationId,
+  });
 }
 
 /// A type of event

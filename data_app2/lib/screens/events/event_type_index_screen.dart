@@ -49,7 +49,7 @@ class _Body extends StatelessWidget {
             }
             return SelectionList<EvtTypeRec>(
               colorOf: colorOf,
-              countOf: indexVM.countOf,
+              subtitleOf: (r) => indexVM.countOf(r).toString(),
               onTapItem: (r) {
                 Navigator.of(context).push(MaterialPageRoute(builder: (context) => EvtTypeOverviewScreen(r))).then((_) {
                   // reload data

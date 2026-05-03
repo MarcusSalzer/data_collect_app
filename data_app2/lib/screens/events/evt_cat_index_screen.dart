@@ -28,7 +28,7 @@ class _Body extends StatelessWidget {
 
         return SelectionList<EvtCatRec>(
           colorOf: (c) => c.color,
-          countOf: (c) => idToCount?[c.id] ?? 0,
+          subtitleOf: (c) => (idToCount?[c.id] ?? 0).toString(),
           onTapItem: (rec) {
             Navigator.of(context).push(MaterialPageRoute(builder: (context) => EvtCatDetailScreen(rec))).then((_) {
               // reload data

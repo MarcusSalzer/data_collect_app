@@ -1,21 +1,31 @@
 import 'dart:collection';
+import 'dart:math';
 
 import 'package:data_app2/data/evt.dart';
 import 'package:data_app2/data/evt_cat.dart';
 import 'package:data_app2/data/evt_type.dart';
+import 'package:data_app2/data/location.dart';
 import 'package:data_app2/db_service.dart';
 import 'package:data_app2/local_datetime.dart';
 import 'package:data_app2/util/colors.dart';
 
 /// Boring, non-specific test data
 class TestDummyData {
-  static EvtDraft makeEvtDraft(int i) => EvtDraft.inCurrentTZ(
-    i,
-    start: DateTime(2024, 1, 1).add(Duration(days: i)),
-    end: DateTime(2024, 1, 2).add(Duration(days: i)),
-  );
+  static final rng = Random(42);
+
+  static EvtDraft makeEvtDraft(int i, {int? locId}) {
+    final t = DateTime.now().subtract(Duration(hours: 3 * i));
+    return EvtDraft.inCurrentTZ(
+      i,
+      start: t,
+      end: t.add(Duration(hours: 1, minutes: (10 * i) % 30)),
+    )..locationId = locId;
+  }
 
   static EvtTypeDraft makeEvtTypeDraft(int i) => EvtTypeDraft('type $i');
+
+  static LocationDraft makeLocDraft(int i) =>
+      LocationDraft('loc $i', rng.nextDouble() * 50 - 25, rng.nextDouble() * 50 - 25);
 
   static EvtCatDraft makeEvtCatDraft(int i) {
     final colors = ColorEngine.defaults.values.toList();
@@ -23,11 +33,12 @@ class TestDummyData {
   }
 }
 
-Future<({List<int> catIds, List<int> evtIds, List<int> typeIds})> fillDbWithDummyData(
+Future<void> fillDbWithDummyData(
   DBService db, {
   int nCats = 3,
   int nTypes = 5,
   int nEvts = 20,
+  int nLocs = 4,
 }) async {
   // ---- Categories ----
   final catDrafts = List.generate(nCats, TestDummyData.makeEvtCatDraft);
@@ -41,11 +52,19 @@ Future<({List<int> catIds, List<int> evtIds, List<int> typeIds})> fillDbWithDumm
 
   final typeIds = await db.evtTypes.createAll(typeDrafts);
 
-  // ---- Events (each linked to a valid type) ----
-  final evtDrafts = List.generate(nEvts, (i) => TestDummyData.makeEvtDraft(i)..typeId = typeIds[i % typeIds.length]);
+  // --- Locations ---
+  final locDrafts = List.generate(nLocs, (i) => TestDummyData.makeLocDraft(i));
+  final locIds = await db.locations.createAll(locDrafts);
 
-  final evtIds = await db.evts.createAll(evtDrafts);
-  return (evtIds: evtIds, typeIds: typeIds, catIds: catIds);
+  // ---- Events (each linked to a valid type) ----
+  final rng = Random(33);
+  final evtDrafts = List.generate(
+    nEvts,
+    (i) => TestDummyData.makeEvtDraft(i)
+      ..typeId = typeIds[i % typeIds.length]
+      ..locationId = rng.nextBool() ? locIds[i % locIds.length] : null,
+  );
+  await db.evts.createAll(evtDrafts);
 }
 
 /// Specific test data in relation to

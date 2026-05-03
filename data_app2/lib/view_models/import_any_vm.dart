@@ -35,7 +35,7 @@ class ImportAnyVm extends ChangeNotifier {
       _fail("Cannot import CSV with columns: '$cols'");
     } else {
       if (role == ImportFileRole.events) {
-        _codec = EvtCsvCodec(typMan: _app.evtTypeManager);
+        _codec = EvtCsvCodec(_app.evtTypeManager, _app.locationManager);
       } else if (role == ImportFileRole.eventTypes) {
         _codec = EvtTypeCsvCodec.fromTypeManager(_app.evtTypeManager);
       } else if (role == ImportFileRole.eventCats) {

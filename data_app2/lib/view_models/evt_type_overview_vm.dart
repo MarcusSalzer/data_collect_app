@@ -1,7 +1,10 @@
+import 'dart:collection';
+
 import 'package:data_app2/app_state.dart';
 import 'package:data_app2/data/evt.dart';
 import 'package:data_app2/data/evt_type.dart';
 import 'package:data_app2/util/event_stats_compute.dart';
+import 'package:data_app2/util/extensions.dart';
 import 'package:data_app2/util/stats.dart';
 import 'package:flutter/material.dart';
 
@@ -18,8 +21,7 @@ class EvtTypeOverviewVm extends ChangeNotifier {
   Duration _totTime = Duration.zero;
   Map<int, int> _perWeekDay = {};
 
-  /// Get the [EvtTypeRec] or a temporary "error message"-type
-  List<EvtRec> get evts => _evts;
+  UnmodifiableListView<EvtRec> get evts => _evts.unmodifiable;
   bool get isLoading => _isLoading;
   Duration get totTime => _totTime;
   Map<int, int> get perWeekDay => _perWeekDay;

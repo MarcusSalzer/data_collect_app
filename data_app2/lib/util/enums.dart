@@ -11,7 +11,7 @@ enum GroupFreq { day, week, month }
 enum ImportMode { event, tabular }
 
 /// What are we importing
-enum ImportFileRole { events, eventTypes, eventCats, unknown }
+enum ImportFileRole { events, eventTypes, eventCats, locations, unknown }
 
 /// How to consider events in a range
 enum OverlapMode { fullyInside, overlapping, endInside }

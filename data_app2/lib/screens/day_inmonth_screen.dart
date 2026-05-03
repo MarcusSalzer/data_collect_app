@@ -6,8 +6,8 @@ import 'package:data_app2/util/fmt.dart';
 import 'package:data_app2/plots.dart';
 import 'package:data_app2/view_models/day_inmonth_vm.dart';
 import 'package:data_app2/view_models/month_vm.dart';
-import 'package:data_app2/widgets/event_history_display.dart';
 import 'package:data_app2/widgets/events_summary.dart';
+import 'package:data_app2/widgets/evt_history_list.dart';
 import 'package:data_app2/widgets/segm_button.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -90,12 +90,8 @@ class DayInmonthScreenOld extends StatelessWidget {
                       ]),
 
                       Text("Events", style: TextStyle(fontSize: 20)),
-                      EventHistoryDisplay(
-                        vm.dayEvts ?? [],
-                        headingMode: null,
-                        isScrollable: false,
-                        reloadAction: vm.load,
-                      ),
+
+                      EvtHistoryList(vm.dayEvts, vm.load),
                     ],
                   ),
                 ),
@@ -258,12 +254,7 @@ class DayInmonthScreen extends StatelessWidget {
                                   ),
                                 ],
                               ),
-                              EventHistoryDisplay(
-                                vm.dayEvts ?? [],
-                                headingMode: null,
-                                isScrollable: true,
-                                reloadAction: vm.load,
-                              ),
+                              EvtHistoryList(vm.dayEvts, vm.load),
                             ],
                           );
                         },

@@ -75,7 +75,7 @@ abstract class CsvCodecRW<T> extends CsvCodecWrite<T> {
     for (final (i, row) in rows.indexed) {
       try {
         yield build(row);
-      } catch (e) {
+      } on FormatException catch (e) {
         throw CsvFormatError(row: i, message: e.toString());
       }
     }

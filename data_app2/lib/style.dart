@@ -27,7 +27,6 @@ enum ColorSchemeMode {
 }
 
 /// Contains the actual theme data, that can be selected by the color scheme preference
-/// TODO: add colorful themes, or a "dynamic theme"
 class AppThemes {
   static final ThemeData light = ThemeData(
     brightness: Brightness.light,

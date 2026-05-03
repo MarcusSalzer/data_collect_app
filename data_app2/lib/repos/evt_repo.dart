@@ -15,6 +15,7 @@ class EvtRepo extends CrudRepo<EvtRec, EvtDraft, Event> {
           startUtcMillis: d.start?.utcMillis,
           endLocalMillis: d.end?.localMillis,
           endUtcMillis: d.end?.utcMillis,
+          locationId: d.locationId,
         ),
         recToIsar: (r) => Event(
           typeId: r.typeId,
@@ -22,12 +23,14 @@ class EvtRepo extends CrudRepo<EvtRec, EvtDraft, Event> {
           startUtcMillis: r.start?.utcMillis,
           endLocalMillis: r.end?.localMillis,
           endUtcMillis: r.end?.utcMillis,
+          locationId: r.locationId,
         )..id = r.id,
         fromIsar: (i) => EvtRec(
           i.id,
           i.typeId,
           start: LocalDateTime.maybeFromMillis(i.startUtcMillis, i.startLocalMillis),
           end: LocalDateTime.maybeFromMillis(i.endUtcMillis, i.endLocalMillis),
+          locationId: i.locationId,
         ),
       );
 
@@ -103,28 +106,6 @@ class EvtRepo extends CrudRepo<EvtRec, EvtDraft, Event> {
   Future<Iterable<EvtRec>> filteredTypes(Iterable<int> typeIds) async {
     final evts = await isar.txn(
       () async => await coll.where().anyOf(typeIds, (q, int n) => q.typeIdEqualTo(n)).findAll(),
-    );
-    return evts.map(fromIsar);
-  }
-
-  /// Get some events.
-  @Deprecated("use new range api")
-  Future<Iterable<EvtRec>> filteredLocalTimeOld({
-    Iterable<int>? typeIds,
-    LocalDateTime? earliest,
-    LocalDateTime? latest,
-  }) async {
-    final evts = await isar.txn(
-      () async => await coll
-          // sort reverse chrono
-          .where(sort: Sort.desc)
-          // optinally filter by time range
-          .optional(earliest != null, (q) => q.startLocalMillisGreaterThan(earliest!.localMillis, include: true))
-          .filter()
-          .optional(latest != null, (q) => q.endLocalMillisLessThan(latest!.localMillis))
-          // optionally filter by evt type
-          .optional(typeIds != null, (q) => q.anyOf(typeIds!, (q, int n) => q.typeIdEqualTo(n)))
-          .findAll(),
     );
     return evts.map(fromIsar);
   }

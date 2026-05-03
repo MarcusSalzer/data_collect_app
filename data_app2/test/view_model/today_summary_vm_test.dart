@@ -21,7 +21,9 @@ void main() {
   });
 
   test("empty", () async {
+    // empty db and type cache
     await app.db.clear();
+    app.evtTypeManager.reloadFromModels([], []);
 
     var nNotify = 0;
     final vm = TodaySummaryDisplayVm(Duration(hours: 1), app.db, app.evtTypeManager, 0.0, SummaryMode.type);
@@ -32,7 +34,9 @@ void main() {
 
     await vm.load();
 
+    // Should have a summary, but empty
     expect(vm.activeSummary, isNotNull);
+    expect(vm.activeSummary!.isEmpty, true);
     // no data
     expect(vm.eventList, isEmpty);
     expect(vm.activeSummary, isEmpty);

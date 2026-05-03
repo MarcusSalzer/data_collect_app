@@ -5,10 +5,12 @@ import 'package:data_app2/db_service.dart';
 import 'package:data_app2/evt_type_manager.dart';
 import 'package:data_app2/repos/evt_cat_repo.dart';
 import 'package:data_app2/view_models/evt_cat_detail_vm.dart';
+import 'package:data_app2/view_models/evt_detail_vm.dart';
 import 'package:data_app2/view_models/evt_type_detail_vm.dart';
 import 'package:test/test.dart';
 
 import '../test_util/dummy_app.dart';
+import '../test_util/dummy_data.dart';
 
 void main() {
   group('evtCats', () {
@@ -175,6 +177,52 @@ void main() {
       expect(vm.isDirty, false);
       expect(vm.errorMsg, isNull);
       expect((await db.evtTypes.all()).first.categoryId, catIds[1]);
+    });
+  });
+
+  group("events", () {
+    late final DBService db;
+    late final EvtTypeManager typManager;
+    setUpAll(() async {
+      db = await getDummyDb();
+      await fillDbWithDummyData(db);
+      typManager = EvtTypeManagerPersist(db);
+      final (typs, cats) = await db.allTypesAndCats();
+      typManager.reloadFromModels(typs, cats);
+    });
+
+    test("update type", () async {
+      final typs = typManager.allTypes;
+      final og = EvtRec.inCurrentTZ(133, typs[0].id, start: null, end: null);
+      final vm = EvtDetailVm(og, db.evts, typManager);
+      // start not dirty
+      expect(vm.isDirty, false);
+
+      vm.changeType(typs[1].id);
+      expect(vm.isDirty, true);
+      expect(vm.stored?.typeId, typs[0].id); // not saved
+      expect(vm.draft.typeId, typs[1].id);
+
+      await vm.save();
+      expect(vm.isDirty, false);
+      expect(vm.stored?.typeId, typs[1].id); // saved
+      expect(vm.draft.typeId, typs[1].id);
+
+      // check db
+      final loaded = await db.evts.getById(og.id);
+      expect(loaded?.typeId, typs[1].id);
+    });
+    test("update location", () {
+      //
+    });
+    test("update start", () {
+      //
+    });
+    test("update end", () {
+      //
+    });
+    test("delete", () {
+      //
     });
   });
 }

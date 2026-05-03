@@ -1,4 +1,5 @@
 import 'package:data_app2/app_state.dart';
+import 'package:data_app2/custom_render_plot/location_scatter.dart';
 import 'package:data_app2/data/location.dart';
 import 'package:data_app2/location_manager.dart';
 import 'package:data_app2/screens/location_detail_screen.dart';
@@ -27,11 +28,22 @@ class _BodyLocationList extends StatelessWidget {
             }
 
             return SelectionList<LocationRec>(
+              subtitleOf: (r) => "${r.lat}, ${r.lng}",
               onTapItem: (r) {
-                Navigator.of(context).push(MaterialPageRoute(builder: (context) => LocationDetailScreen(r))).then((_) {
-                  // reload data
-                  indexVM.load();
-                });
+                Navigator.of(context)
+                    .push(
+                      MaterialPageRoute(
+                        builder: (_) => LocationEditScreen(
+                          existing: r,
+                          repo: context.read<AppState>().db.locations,
+                          manager: context.read<LocationManager>(),
+                        ),
+                      ),
+                    )
+                    .then((_) {
+                      // reload data
+                      indexVM.load();
+                    });
               },
             );
           },
@@ -61,12 +73,6 @@ class _LocationScreenState extends State<LocationScreen> with SingleTickerProvid
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(
-          create: (_) {
-            return LocationManager();
-          },
-        ),
-
         ChangeNotifierProvider(
           create: (ctxCreate) {
             final app = ctxCreate.read<AppState>();
@@ -107,7 +113,7 @@ class _LocationScreenState extends State<LocationScreen> with SingleTickerProvid
             ),
             body: TabBarView(
               controller: _tabController,
-              children: [_BodyLocationList(), Placeholder()],
+              children: [_BodyLocationList(), LocationScatterMap()],
             ),
             floatingActionButton: onIndexTab
                 ? SelectionFab<LocationRec>(
@@ -119,14 +125,24 @@ class _LocationScreenState extends State<LocationScreen> with SingleTickerProvid
                       // ).push(MaterialPageRoute(builder: (_) => MultiEvtTypeSummaryScreen(typeIds: selected)));
                     },
                     actionEmpty: () {
-                      Navigator.of(context).push(MaterialPageRoute(builder: (_) => LocationDetailScreen(null))).then((
-                        _,
-                      ) {
-                        if (context.mounted) {
-                          // Reload data after possible edits
-                          // context.read<EvtTypeIndexVm>().load();
-                        }
-                      });
+                      Navigator.of(context)
+                          .push(
+                            MaterialPageRoute(
+                              builder: (_) => LocationEditScreen(
+                                existing: null,
+                                repo: context.read<AppState>().db.locations,
+                                manager: context.read<LocationManager>(),
+                              ),
+                            ),
+                          )
+                          .then((
+                            _,
+                          ) {
+                            if (context.mounted) {
+                              // Reload data after possible edits
+                              context.read<LocationIndexVm>().load();
+                            }
+                          });
                     },
                   )
                 : null,

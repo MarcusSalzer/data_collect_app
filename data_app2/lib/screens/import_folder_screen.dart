@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'package:data_app2/app_state.dart';
-import 'package:data_app2/import/import_candidate_collection.dart';
+import 'package:data_app2/importv2.dart';
 import 'package:data_app2/screens/import_help_screen.dart';
 import 'package:data_app2/style.dart';
 import 'package:data_app2/util/enums.dart';
@@ -84,9 +84,7 @@ class ImportFolderScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CandidateGroup(name: "Events", candidates: cands.evtCands),
-          CandidateGroup(name: "Event Types", candidates: cands.evtTypeCands),
-          CandidateGroup(name: "Unknown", candidates: cands.unknownCands),
+          for (var c in cands.cands.entries) CandidateGroup(name: c.key.name, candidates: c.value),
         ],
       ),
     );
@@ -134,12 +132,11 @@ class ImportFolderScreen extends StatelessWidget {
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
+        spacing: 32,
         children: [
           const Icon(Icons.check_circle, size: 48, color: Colors.green),
-          const SizedBox(height: 16),
           const Text('Import completed'),
           (result == null) ? Text("Error, no result") : _ImportResDisplay(result),
-          const SizedBox(height: 16),
           ElevatedButton(onPressed: () => Navigator.pop(context), child: const Text('Close')),
         ],
       ),
@@ -171,7 +168,26 @@ class _ImportResDisplay extends StatelessWidget {
   const _ImportResDisplay(this.res);
   @override
   Widget build(BuildContext context) {
-    return Text("Imported: ${res.evtTypeCount} types, ${res.evtCount} events. Skipped ${res.skippedTypeCount} types.");
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      spacing: 12,
+      children: [
+        for (final r in res.counts.entries)
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                "${r.key.name}:",
+                style: TextStyle(fontFamily: "monospace"),
+              ),
+              Text(
+                r.value.toString(),
+                style: TextStyle(fontFamily: "monospace"),
+              ),
+            ],
+          ),
+      ],
+    );
   }
 }
 
@@ -179,7 +195,7 @@ class CandidateGroup extends StatelessWidget {
   const CandidateGroup({super.key, required this.name, required this.candidates});
 
   final String name;
-  final List<CsvImportCandidate<Object?>> candidates;
+  final List<ImportCandidate> candidates;
 
   @override
   Widget build(BuildContext context) {
@@ -202,7 +218,7 @@ class CandidateGroup extends StatelessWidget {
 class CandidateTile extends StatelessWidget {
   const CandidateTile(this.cand, this._summary, {super.key});
 
-  final CsvImportCandidate<Object?> cand;
+  final ImportCandidate cand;
 
   final ImportCandidateSummary? _summary;
 

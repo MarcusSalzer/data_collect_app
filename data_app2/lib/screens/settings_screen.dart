@@ -200,8 +200,9 @@ class SettingsScreen extends StatelessWidget {
                 onPressed: () {
                   Navigator.of(context).push(
                     MaterialPageRoute(
-                      builder: (_) =>
-                          DailySummaryScreen(db: app.db, summaryService: DailyEvtSummaryService(app.evtTypeManager)),
+                      builder: (_) => DailySummaryScreen(
+                        summaryService: DailyEvtSummaryService(app.evtTypeManager, app.db),
+                      ),
                     ),
                   );
                 },
@@ -244,21 +245,20 @@ class SettingsScreen extends StatelessWidget {
                                     // delete all from DB
                                     final app = context.read<AppState>();
 
-                                    final cEvent = await app.db.evts.forceDeleteAll();
-                                    final cType = await app.db.evtTypes.forceDeleteAll();
-                                    final cCat = await app.db.evtCats.forceDeleteAll();
+                                    await app.db.clear();
 
                                     await app.clearPrefs();
 
                                     Logger.root.info("Deleted all data");
 
-                                    // clear cache in repo
+                                    // clear caches
                                     app.evtTypeManager.clearCache();
+                                    app.locationManager.clearCache();
 
                                     if (context.mounted) {
                                       simpleSnack(
                                         context,
-                                        "deleted: $cEvent events, $cType event-types, $cCat event-categories",
+                                        "deleted everything!",
                                       );
                                     }
                                   },

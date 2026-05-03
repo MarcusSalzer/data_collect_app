@@ -22,12 +22,13 @@ int _rotl32(int x, int r) {
 }
 
 class DailyEvtSummaryService {
-  // can get type by .resolveById()
+  // TODO Include location!!!
   final EvtTypeManager typeManager;
+  final DBService db;
 
-  DailyEvtSummaryService(this.typeManager);
+  DailyEvtSummaryService(this.typeManager, this.db);
 
-  Future<List<DailyEvtSummary>> buildAll(DBService db) async {
+  Future<List<DailyEvtSummary>> buildAll() async {
     await Future.delayed(Duration(milliseconds: 300));
     // refresh type cache
     final (types, cats) = await db.allTypesAndCats();

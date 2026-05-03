@@ -20,13 +20,17 @@ abstract class EvtBase {
 
   @override
   bool operator ==(Object other) =>
-      other is EvtBase && typeId == other.typeId && start == other.start && end == other.end;
+      other is EvtBase &&
+      typeId == other.typeId &&
+      start == other.start &&
+      end == other.end &&
+      locationId == other.locationId;
 
   @override
   int get hashCode => Object.hash(typeId, start, end);
 
   @override
-  String toString() => "Evt($typeId, $start, $end)";
+  String toString() => "Evt($typeId, $start, $end, $locationId)";
 }
 
 class EvtDraft extends EvtBase implements Draft<EvtRec> {
@@ -55,7 +59,7 @@ class EvtDraft extends EvtBase implements Draft<EvtRec> {
 
   @override
   EvtRec toRec(int id) {
-    return EvtRec(id, typeId, start: start, end: end);
+    return EvtRec(id, typeId, start: start, end: end, locationId: locationId);
   }
 }
 
@@ -78,7 +82,7 @@ class EvtRec extends EvtBase implements Identifiable {
 
   @override
   EvtDraft toDraft() {
-    return EvtDraft(typeId, start: start, end: end);
+    return EvtDraft(typeId, start: start, end: end, locationId: locationId);
   }
 
   /// Sloppy factory based on the draft constructor

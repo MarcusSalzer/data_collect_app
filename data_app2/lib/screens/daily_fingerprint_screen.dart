@@ -1,21 +1,19 @@
 import 'package:data_app2/daily_evt_summary_service.dart';
 import 'package:data_app2/data/daily_evt_summary.dart';
-import 'package:data_app2/db_service.dart';
 import 'package:data_app2/util/fmt.dart';
 import 'package:flutter/material.dart';
 
 class DailySummaryScreen extends StatelessWidget {
-  final DBService db;
   final DailyEvtSummaryService summaryService;
 
-  const DailySummaryScreen({super.key, required this.db, required this.summaryService});
+  const DailySummaryScreen({super.key, required this.summaryService});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text("DB Daily Summary")),
       body: FutureBuilder<List<DailyEvtSummary>>(
-        future: summaryService.buildAll(db),
+        future: summaryService.buildAll(),
         builder: (context, snap) {
           if (snap.connectionState != ConnectionState.done) {
             return const Center(child: CircularProgressIndicator());

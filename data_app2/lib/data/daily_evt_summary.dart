@@ -9,16 +9,12 @@ class DailyEvtSummary {
   final int sumStartEpochSec;
   final int xorMix;
 
-  // Optional future extension
-  final String? strongHash;
-
   const DailyEvtSummary({
     required this.dateUtc,
     required this.eventCount,
     required this.totalDuration,
     required this.sumStartEpochSec,
     required this.xorMix,
-    this.strongHash,
   });
 
   @override
@@ -29,6 +25,11 @@ class DailyEvtSummary {
         totalDuration == other.totalDuration &&
         sumStartEpochSec == other.sumStartEpochSec &&
         xorMix == other.xorMix;
+  }
+
+  @override
+  String toString() {
+    return "($eventCount, $totalDuration, $sumStartEpochSec, $xorMix)";
   }
 
   @override
