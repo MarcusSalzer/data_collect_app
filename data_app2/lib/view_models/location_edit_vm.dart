@@ -33,13 +33,13 @@ class LocationEditVm extends EditVm<LocationRec, LocationDraft> {
       draft.lng = parsed.lng;
       coordError = null;
     } else {
-      coordError = raw.isEmpty ? null : 'Unrecognised coordinate format';
+      coordError = raw.isEmpty ? null : 'Unrecognized coordinate format';
     }
     notifyListeners();
   }
 
   @override
-  Future<void> save() async {
+  save() async {
     final r = stored;
 
     try {
@@ -62,7 +62,7 @@ class LocationEditVm extends EditVm<LocationRec, LocationDraft> {
   }
 
   @override
-  Future<bool> delete() async {
+  delete() async {
     final r = stored;
     if (r == null) return false;
     try {

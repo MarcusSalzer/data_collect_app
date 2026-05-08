@@ -7,6 +7,8 @@ import 'package:data_app2/screens/location_screen.dart';
 import 'package:data_app2/screens/month_calendar_screen.dart';
 import 'package:data_app2/screens/events/events_screen.dart';
 import 'package:data_app2/screens/settings_screen.dart';
+import 'package:data_app2/screens/user_enum_screen.dart';
+import 'package:data_app2/screens/user_table_screen.dart';
 import 'package:data_app2/util.dart';
 import 'package:data_app2/view_models/today_summary_vm.dart';
 import 'package:data_app2/widgets/today_summary_display.dart';
@@ -90,6 +92,18 @@ class HomeScreen extends StatelessWidget {
                     },
                     label: Text("Import data"),
                     icon: Icon(Icons.download),
+                  ),
+                  SizedBox(height: 12),
+                  Text("Experimental"),
+                  HomeNavLink(
+                    "Enums",
+                    Icons.view_compact_alt,
+                    builder: (context) => UserEnumScreen(),
+                  ),
+                  HomeNavLink(
+                    "Datasets",
+                    Icons.data_object_outlined,
+                    builder: (context) => UsertableScreen(),
                   ),
                 ],
               ),

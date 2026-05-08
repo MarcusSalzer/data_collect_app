@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:data_app2/style.dart';
+import 'package:data_app2/users_schema.dart';
 import 'package:data_app2/util/enums.dart';
 import 'package:isar_community/isar.dart';
 
@@ -91,39 +92,105 @@ class Location {
 
   Location(this.name, this.lat, this.lng);
 }
-// USER-DEFINED TABULAR DATASETS
 
+// ================== UserSchemas ==================
+
+/// A user-defined enum group (e.g. "food", "mood")
+@collection
+class UserEnum {
+  Id id = Isar.autoIncrement;
+
+  @Index(unique: true)
+  String name;
+
+  UserEnum(this.name);
+}
+
+/// A value within a user-defined enum (e.g. "pizza", "happy")
+@collection
+class UserEnumValue {
+  Id id = Isar.autoIncrement;
+
+  @Index()
+  int enumId;
+
+  @Index(composite: [CompositeIndex('enumId')], unique: true)
+  String name;
+
+  UserEnumValue(this.enumId, this.name);
+}
+
+/// A column definition (e.g. "distance", DType.dFloat)
+@collection
+class UserColumn {
+  Id id = Isar.autoIncrement;
+
+  String name;
+
+  @Enumerated(EnumType.ordinal)
+  DType dtype;
+
+  /// Only set when dtype == DType.dEnum
+  int? enumId;
+
+  UserColumn(this.name, this.dtype, {this.enumId});
+}
+
+/// A user-defined table (e.g. "Runs", "Meals")
 @collection
 class UserTable {
   Id id = Isar.autoIncrement;
-  String name;
-  List<String> colNames;
-  // the datatype for each column (enum for each column)
-  @Enumerated(EnumType.ordinal)
-  List<TabularType> schema;
-  // optionally keep records at a fixed frequency
-  @Enumerated(EnumType.ordinal)
-  TableFreq frequency = TableFreq.free;
 
-  UserTable(this.name, this.colNames, this.schema, {this.frequency = TableFreq.free});
+  @Index(unique: true)
+  String name;
+
+  /// Ordered list of UserColumn IDs
+  List<int> columnIds;
+
+  UserTable(this.name, this.columnIds);
 }
 
+/// A row in a user-defined table
 @collection
 class UserRow {
-  Id? id;
-  // what table does the record belong to?
+  Id id = Isar.autoIncrement;
+
+  @Index()
   int tableId;
-  DateTime timestamp;
-  // values for each column, decode according to the Table's schema
+
+  /// Promoted: FK to built-in event
+  @Index()
+  int? eventId;
+
+  /// Promoted: standalone timestamp (for snapshots etc.)
+  @Index()
+  int? timestampMillis;
+
+  /// columnId -> encoded int (floats as bits, enums as value ID, ints as-is)
   List<int?> values;
 
-  UserRow(this.tableId, this.timestamp, this.values, {this.id});
+  UserRow({
+    required this.tableId,
+    this.eventId,
+    this.timestampMillis,
+    this.values = const [],
+  });
 }
 
 /// Initialize DB connection
 Future<Isar> initIsar(Directory dir) async {
   final isar = await Isar.open(
-    [EventSchema, UserTableSchema, UserRowSchema, EventTypeSchema, EventCategorySchema, LocationSchema],
+    [
+      EventSchema,
+      EventTypeSchema,
+      EventCategorySchema,
+      LocationSchema,
+      UserEnumSchema,
+      UserEnumValueSchema,
+      UserRowSchema,
+      UserColumnSchema,
+      UserTableSchema,
+    ],
     name: "data_app_db",
     directory: dir.path,
   );

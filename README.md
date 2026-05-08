@@ -16,7 +16,7 @@
 - ✅ _26-02-06_ JSON-serializable prefs, improved test coverage, Import help screen
 - ✅ _26-02-10_ Consistent edit screens, category-color system. Daily summary `v0.1.1`
 - ✅ _26-03-15_ "day starts at", better time range filter, test coverage, state consumer cleanup
-- ❓ Events can have locations.
+- ✅ _26-05-03_ Events can have locations.
 
 Maybe:
 

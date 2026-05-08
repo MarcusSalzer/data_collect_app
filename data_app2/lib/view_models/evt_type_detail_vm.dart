@@ -4,9 +4,9 @@ import 'package:data_app2/contracts/edit_vm.dart';
 import 'package:data_app2/data/evt_cat.dart';
 import 'package:data_app2/data/evt_type.dart';
 import 'package:data_app2/db_service.dart';
-import 'package:data_app2/errors/db_ref_exists_error.dart';
 import 'package:data_app2/evt_type_manager.dart';
 import 'package:data_app2/util/colors.dart';
+import 'package:data_app2/util/enums.dart';
 import 'package:isar_community/isar.dart';
 
 class EvtTypeDetailVm extends EditVm<EvtTypeRec, EvtTypeDraft> {
@@ -50,13 +50,20 @@ class EvtTypeDetailVm extends EditVm<EvtTypeRec, EvtTypeDraft> {
     final stored = this.stored;
     if (stored == null) return false; // cannot delete if never saved
 
-    var didDelete = false;
+    final r = await _db.evtTypes.deleteIfUnreferenced(stored.id);
 
-    try {
-      didDelete = await _db.evtTypes.deleteIfUnreferenced(stored.id);
-      await _typeManager.remove(stored.id, stored.name);
-    } on DbRefExistsError catch (e) {
-      errorMsg = "Category ${e.id} has references, will not delete";
+    var didDelete = false;
+    switch (r) {
+      case DeleteResult.deleted:
+        await _typeManager.remove(stored.id, stored.name);
+        didDelete = true;
+        break;
+      case DeleteResult.notFound:
+        errorMsg = "Error: not found";
+        break;
+      case DeleteResult.referenced:
+        errorMsg = "Category has references, will not delete";
+        break;
     }
 
     notifyListeners();

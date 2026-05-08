@@ -30,9 +30,10 @@ class _LocationEditScreenState extends State<LocationEditScreen> {
       text: widget.existing != null ? '${widget.existing!.lat}, ${widget.existing!.lng}' : '',
     );
     // prime the parser if editing an existing record
-    if (widget.existing != null) {
-      _vm.setCoordRaw(_coordCtrl.text);
-    }
+    // TODO why do this? it makes dirty?
+    // if (widget.existing != null) {
+    //   _vm.setCoordRaw(_coordCtrl.text);
+    // }
   }
 
   @override

@@ -1,8 +1,8 @@
 import 'package:data_app2/contracts/crud_repo.dart';
 import 'package:data_app2/data/evt_type.dart';
-import 'package:data_app2/errors/db_ref_exists_error.dart';
 import 'package:data_app2/isar_models.dart';
 import 'package:data_app2/repos/evt_cat_repo.dart';
+import 'package:data_app2/util/enums.dart';
 import 'package:isar_community/isar.dart';
 
 /// For accessing Event type data
@@ -50,13 +50,14 @@ class EvtTypeRepo extends CrudRepo<EvtTypeRec, EvtTypeDraft, EventType> {
     });
   }
 
-  /// Delete a event type, throws [DbRefExistsError] if it is referenced by some EvtType
-  Future<bool> deleteIfUnreferenced(int id) async {
+  /// Delete a event type, if it is not referenced by some EvtType
+  Future<DeleteResult> deleteIfUnreferenced(int id) async {
     // No index here yet. eventTypes is not huge so should be ok.
     if (await isar.events.filter().typeIdEqualTo(id).findFirst() != null) {
-      throw DbRefExistsError(id);
+      return DeleteResult.referenced;
     }
-    return await super.forceDelete(id);
+    final didDelete = await super.forceDelete(id);
+    return didDelete ? DeleteResult.deleted : DeleteResult.notFound;
   }
 
   /// Get all types in a category

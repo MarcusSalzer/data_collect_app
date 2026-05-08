@@ -4,16 +4,23 @@ import 'package:data_app2/repos/evt_cat_repo.dart';
 import 'package:data_app2/repos/evt_repo.dart';
 import 'package:data_app2/repos/evt_type_repo.dart';
 import 'package:data_app2/repos/location_repo.dart';
-import 'package:data_app2/repos/tabular_repo.dart';
+import 'package:data_app2/repos/user_schema_repos.dart';
 import 'package:isar_community/isar.dart';
 
 /// Wrapper repository for all DB access
 class DBService {
+  // --- events ---
   final EvtRepo evts;
   final EvtTypeRepo evtTypes;
-  final TabularRepo tabular;
   final EvtCatRepo evtCats;
   final LocationRepo locations;
+
+  // --- UserTables ---
+  final UserRowRepo userRows;
+  final UserColumnRepo userColumns;
+  final UserTableRepo userTables;
+  final UserEnumRepo userEnums;
+  final UserEnumValueRepo userEnumValues;
 
   final Isar isar;
 
@@ -22,9 +29,13 @@ class DBService {
   DBService(this.isar)
     : evts = EvtRepo(isar),
       evtTypes = EvtTypeRepo(isar),
-      tabular = TabularRepo(isar),
       evtCats = EvtCatRepo(isar),
-      locations = LocationRepo(isar);
+      locations = LocationRepo(isar),
+      userRows = UserRowRepo(isar),
+      userColumns = UserColumnRepo(isar),
+      userTables = UserTableRepo(isar),
+      userEnums = UserEnumRepo(isar),
+      userEnumValues = UserEnumValueRepo(isar);
 
   /// populate necessary default records if missing
   Future<void> ensureReady() async {

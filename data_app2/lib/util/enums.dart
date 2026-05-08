@@ -1,6 +1,3 @@
-/// Datatype for table column
-enum TabularType { int, cat }
-
 /// Frequency of table records
 enum TableFreq { free, day, week }
 
@@ -15,6 +12,9 @@ enum ImportFileRole { events, eventTypes, eventCats, locations, unknown }
 
 /// How to consider events in a range
 enum OverlapMode { fullyInside, overlapping, endInside }
+
+/// What happened when we tried deleting something?
+enum DeleteResult { deleted, notFound, referenced }
 
 /// How to summarize events in a range
 enum RangeSummaryInclusionMode {
