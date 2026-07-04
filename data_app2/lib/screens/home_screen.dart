@@ -7,6 +7,7 @@ import 'package:data_app2/screens/location_screen.dart';
 import 'package:data_app2/screens/month_calendar_screen.dart';
 import 'package:data_app2/screens/events/events_screen.dart';
 import 'package:data_app2/screens/settings_screen.dart';
+import 'package:data_app2/screens/user_blob_schemas_screen.dart';
 import 'package:data_app2/screens/user_enum_screen.dart';
 import 'package:data_app2/screens/user_table_screen.dart';
 import 'package:data_app2/util.dart';
@@ -100,10 +101,15 @@ class HomeScreen extends StatelessWidget {
                     Icons.view_compact_alt,
                     builder: (context) => UserEnumScreen(),
                   ),
+                  // HomeNavLink(
+                  //   "Datasets",
+                  //   Icons.data_object_outlined,
+                  //   builder: (context) => UsertableScreen(),
+                  // ),
                   HomeNavLink(
-                    "Datasets",
-                    Icons.data_object_outlined,
-                    builder: (context) => UsertableScreen(),
+                    "Blob schemas",
+                    Icons.stars_outlined,
+                    builder: (context) => UserBlobSchemasScreen(),
                   ),
                 ],
               ),

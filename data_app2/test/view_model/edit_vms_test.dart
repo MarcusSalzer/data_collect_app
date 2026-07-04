@@ -2,6 +2,7 @@ import 'package:data_app2/data/evt.dart';
 import 'package:data_app2/data/evt_cat.dart';
 import 'package:data_app2/data/evt_type.dart';
 import 'package:data_app2/data/location.dart';
+import 'package:data_app2/data/user_schema.dart';
 import 'package:data_app2/db_service.dart';
 import 'package:data_app2/evt_type_manager.dart';
 import 'package:data_app2/location_manager.dart';
@@ -10,6 +11,7 @@ import 'package:data_app2/view_models/evt_cat_detail_vm.dart';
 import 'package:data_app2/view_models/evt_detail_vm.dart';
 import 'package:data_app2/view_models/evt_type_detail_vm.dart';
 import 'package:data_app2/view_models/location_edit_vm.dart';
+import 'package:data_app2/view_models/user_enum_edit_vm.dart';
 import 'package:test/test.dart';
 
 import '../test_util/dummy_app.dart';
@@ -25,6 +27,7 @@ void main() {
     //clear db between tests
     await db.clear();
   });
+
   tearDownAll(() async {
     // close DB when done
     await db.isar.close();
@@ -90,10 +93,8 @@ void main() {
   });
 
   group('evtTypes', () {
-    late final DBService db;
     late final EvtTypeManagerPersist typManager;
     setUpAll(() async {
-      db = await getDummyDb();
       typManager = EvtTypeManagerPersist(db);
     });
 
@@ -101,10 +102,7 @@ void main() {
       //clear db between tests
       await db.clear();
     });
-    tearDownAll(() async {
-      // close DB when done
-      await db.isar.close();
-    });
+
     test('create', () async {
       final vm = EvtTypeDetailVm(null, db, typManager);
 
@@ -184,10 +182,8 @@ void main() {
   });
 
   group("events", () {
-    late final DBService db;
     late final EvtTypeManager typManager;
     setUpAll(() async {
-      db = await getDummyDb();
       await fillDbWithDummyData(db);
       typManager = EvtTypeManagerPersist(db);
       final (typs, cats) = await db.allTypesAndCats();
@@ -231,25 +227,49 @@ void main() {
   group("locations", () {
     // location manager/cache needed
     final locMan = LocationManager();
+
+    test("valid, not dirty when opens existing", () async {
+      final item = LocationRec(123, name: "old", lat: 9.99, lng: 12.22);
+      final vm = LocationEditVm(existing: item, repo: db.locations, manager: locMan);
+
+      expect(vm.stored, item);
+      expect(vm.isValid, true, reason: "existing should be valid");
+      expect(vm.isDirty, false, reason: "existing should not be dirty");
+    });
+
     test("create", () async {
       final vm = LocationEditVm(existing: null, repo: db.locations, manager: locMan);
 
       expect(vm.stored, isNull);
-      // expect(vm.isDirty, true);
+      expect(vm.isDirty, false, reason: "should not be dirty when not edited.");
+      expect(vm.isValid, false, reason: "should not be valid when empty");
+
       // give a name
       vm.setName("hello");
+      expect(vm.isDirty, true, reason: "should be dirty after edit.");
+
       await vm.save();
       // saved
       expect((await db.locations.all()).first.name, "hello");
-      expect(vm.isDirty, false);
+      expect(vm.isDirty, false, reason: "should not be dirty after save.");
       expect(vm.errorMsg, isNull);
     });
+  });
 
-    test("not dirty when existing", () async {
-      final loc = LocationRec(123, name: "old", lat: 9.99, lng: 12.22);
-      final vm = LocationEditVm(existing: loc, repo: db.locations, manager: locMan);
-      expect(vm.stored, loc);
-      expect(vm.isDirty, false);
+  group("enums", () {
+    test("not dirty, not valid when not edited", () {
+      final vm = UserEnumEditVm(null, db);
+      expect(vm.isDirty, false, reason: "should not be dirty when not edited.");
+      expect(vm.isValid, false);
+    });
+
+    test("valid, not dirty when opens existing", () async {
+      final item = UserEnumRec(13, name: "myenum");
+      final vm = UserEnumEditVm(item, db);
+
+      expect(vm.stored, item);
+      expect(vm.isValid, true, reason: "existing should be valid");
+      expect(vm.isDirty, false, reason: "existing should not be dirty");
     });
   });
 }

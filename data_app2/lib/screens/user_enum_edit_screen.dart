@@ -49,6 +49,7 @@ class _UserEnumEditScreenState extends State<UserEnumEditScreen> {
     return ListenableBuilder(
       listenable: _vm,
       builder: (context, _) {
+        final values = _vm.valueNameDrafts?.toList()?..sort();
         return EditScaffoldForVm(
           title: _vm.draft.name.isEmpty ? 'New Enum' : _vm.draft.name,
           vm: _vm,
@@ -63,22 +64,24 @@ class _UserEnumEditScreenState extends State<UserEnumEditScreen> {
               const SizedBox(height: 24),
               Text('Values', style: Theme.of(context).textTheme.titleSmall),
               const SizedBox(height: 8),
-              if (_vm.valueDrafts.isEmpty)
+              if (values == null)
+                const Text('Loading...', style: TextStyle(color: Colors.grey))
+              else if (values.isEmpty)
                 const Text('No values yet', style: TextStyle(color: Colors.grey))
               else
                 // not a Sliver context so ListView must be shrinkwrapped
                 ListView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
-                  itemCount: _vm.valueDrafts.length,
+                  itemCount: values.length,
                   itemBuilder: (context, i) {
-                    final value = _vm.valueDrafts[i];
+                    final v = values[i];
                     return ListTile(
                       contentPadding: EdgeInsets.zero,
-                      title: Text(value.name),
+                      title: Text(v),
                       trailing: IconButton(
                         icon: const Icon(Icons.delete_outline),
-                        onPressed: () => _vm.removeValue(i),
+                        onPressed: () => _vm.removeValue(v),
                       ),
                     );
                   },

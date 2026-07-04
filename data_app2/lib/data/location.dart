@@ -33,4 +33,10 @@ class LocationDraft implements Draft<LocationRec> {
   LocationRec toRec(int id) {
     return LocationRec(id, name: name, lat: lat, lng: lng);
   }
+
+  @override
+  bool operator ==(Object other) =>
+      other is LocationDraft && name == other.name && lat == other.lat && lng == other.lng;
+  @override
+  int get hashCode => Object.hash(name, lat, lng);
 }

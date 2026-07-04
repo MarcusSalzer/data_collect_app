@@ -27,7 +27,7 @@ class _LocationEditScreenState extends State<LocationEditScreen> {
     _vm = LocationEditVm(existing: widget.existing, repo: widget.repo, manager: widget.manager);
     _nameCtrl = TextEditingController(text: widget.existing?.name ?? '');
     _coordCtrl = TextEditingController(
-      text: widget.existing != null ? '${widget.existing!.lat}, ${widget.existing!.lng}' : '',
+      text: _vm.coordRaw,
     );
     // prime the parser if editing an existing record
     // TODO why do this? it makes dirty?

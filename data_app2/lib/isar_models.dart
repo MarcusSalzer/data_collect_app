@@ -177,6 +177,26 @@ class UserRow {
   });
 }
 
+/// User defined schema for parsing/validating Blobs.
+@collection
+class BlobSchema {
+  Id id = Isar.autoIncrement;
+}
+
+/// User defined Json data
+@collection
+class Blob {
+  Id id = Isar.autoIncrement;
+  final int schemaId;
+  final int? eventId;
+  final String json;
+  Blob(
+    this.json, {
+    required this.schemaId,
+    this.eventId,
+  });
+}
+
 /// Initialize DB connection
 Future<Isar> initIsar(Directory dir) async {
   final isar = await Isar.open(

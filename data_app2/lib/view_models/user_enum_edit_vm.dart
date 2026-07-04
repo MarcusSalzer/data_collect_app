@@ -4,19 +4,26 @@ import 'package:data_app2/db_service.dart';
 
 class UserEnumEditVm extends EditVm<UserEnumRec, UserEnumDraft> {
   final DBService _db;
-
-  // working copy: parallel list of drafts
-  List<UserEnumValueDraft> valueDrafts = [];
-
   UserEnumEditVm(UserEnumRec? stored, this._db) : super(stored, stored?.toDraft() ?? UserEnumDraft(""));
+
+  // load these
+  // working copy: parallel list of values (unique by name)
+  Set<String>? valueNameDrafts;
+  // easier than comparing sets?
+  bool _valuesDirty = false;
+
+  bool get isValid => draft.name.isNotEmpty;
+
+  @override
+  bool get isDirty => isValid && (super.isDirty || _valuesDirty);
 
   /// Load the corresponding EnumValues if we have a stored record.
   Future<void> load() async {
     final storedId = stored?.id;
     if (storedId == null) return;
 
-    final storedValues = await _db.userEnumValues.byEnum(storedId);
-    valueDrafts = storedValues.map((v) => v.toDraft()).toList();
+    final valuesStored = await _db.userEnumValues.byEnum(storedId);
+    valueNameDrafts = valuesStored.map((v) => v.name).toSet();
     notifyListeners();
   }
 
@@ -26,22 +33,28 @@ class UserEnumEditVm extends EditVm<UserEnumRec, UserEnumDraft> {
   }
 
   void addValue(String name) {
-    valueDrafts.add(UserEnumValueDraft(0, name.trim())); // enumId set on save
+    _valuesDirty = true;
+
+    // add if set is loaded
+    final ok = valueNameDrafts?.add(name.trim()) ?? false; // enumId set on save
+
+    if (!ok) {
+      errorMsg = "could not add '$name'";
+    }
     notifyListeners();
   }
 
-  void removeValue(int index) {
-    valueDrafts.removeAt(index);
-    notifyListeners();
-  }
-
-  void renameValue(int index, String name) {
-    valueDrafts[index].name = name.trim();
+  void removeValue(String name) {
+    _valuesDirty = true;
+    final ok = valueNameDrafts?.remove(name) ?? false;
+    if (!ok) {
+      errorMsg = "could not remove '$name'";
+    }
     notifyListeners();
   }
 
   @override
-  save() async {
+  Future<void> save() async {
     try {
       var storedEnumId = stored?.id;
 
@@ -52,18 +65,21 @@ class UserEnumEditVm extends EditVm<UserEnumRec, UserEnumDraft> {
         await _db.userEnums.update(draft.toRec(storedEnumId));
         stored = draft.toRec(storedEnumId);
       }
+
+      // fresh list of what is stored
       final storedValues = await _db.userEnumValues.byEnum(storedEnumId);
 
       // sync values: delete removed, create new, update existing
-      final storedIds = storedValues.map((v) => v.id).toSet();
+      final storedValIds = storedValues.map((v) => v.id).toSet();
 
-      // simpler: replace all values for this enum
-      for (final id in storedIds) {
+      // simply replace all values for this enum
+      // TODO AVOID Wwasting db Ids?
+      for (final id in storedValIds) {
         await _db.userEnumValues.forceDelete(id);
       }
-      for (final d in valueDrafts) {
-        d.enumId = storedEnumId;
-        await _db.userEnumValues.create(d);
+      final newValues = valueNameDrafts?.map((n) => UserEnumValueDraft(storedEnumId!, n)).toList();
+      if (newValues != null) {
+        await _db.userEnumValues.createAll(newValues);
       }
 
       errorMsg = null;

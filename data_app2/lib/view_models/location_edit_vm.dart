@@ -5,20 +5,24 @@ import 'package:data_app2/repos/location_repo.dart';
 import 'package:data_app2/util/location_parsing.dart';
 
 class LocationEditVm extends EditVm<LocationRec, LocationDraft> {
-  LocationEditVm({LocationRec? existing, required this.repo, required this.manager})
-    : super(existing, existing?.toDraft() ?? LocationDraft('', 0, 0));
-
-  final LocationRepo repo;
-  final LocationManager manager;
-
   // Raw text from the coordinate field, kept separate from the draft
   String coordRaw = '';
   String? coordError;
 
+  LocationEditVm({LocationRec? existing, required this.repo, required this.manager})
+    : super(existing, existing?.toDraft() ?? LocationDraft('', 0, 0)) {
+    if (existing != null) {
+      coordRaw = '${existing.lat}, ${existing.lng}';
+    }
+  }
+
+  final LocationRepo repo;
+  final LocationManager manager;
+
   bool get isValid => draft.name.isNotEmpty && coordError == null && coordRaw.isNotEmpty;
 
   @override
-  bool get isDirty => isValid && super.isDirty;
+  bool get isDirty => super.isDirty && draft.name.isNotEmpty;
 
   void setName(String v) {
     draft.name = v.trim();

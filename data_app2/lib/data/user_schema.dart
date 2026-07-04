@@ -1,6 +1,8 @@
 import 'package:data_app2/contracts/data.dart';
 import 'package:data_app2/users_schema.dart';
 
+// ============ ENUMS ============
+
 class UserEnumRec implements Identifiable {
   const UserEnumRec(this.id, {required this.name});
   @override
@@ -15,7 +17,15 @@ class UserEnumDraft implements Draft<UserEnumRec> {
   String name;
   @override
   UserEnumRec toRec(int id) => UserEnumRec(id, name: name);
+
+  @override
+  bool operator ==(Object other) => other is UserEnumDraft && other.name == name;
+
+  @override
+  int get hashCode => name.hashCode;
 }
+
+// ============ ENUM VALUES ============
 
 class UserEnumValueRec implements Identifiable {
   const UserEnumValueRec(this.id, {required this.enumId, required this.name});
@@ -34,6 +44,8 @@ class UserEnumValueDraft implements Draft<UserEnumValueRec> {
   @override
   UserEnumValueRec toRec(int id) => UserEnumValueRec(id, enumId: enumId, name: name);
 }
+
+// ============ USER TABLE THINGS (EXPERIMENTAL) ============
 
 class UserColumnRec implements Identifiable {
   const UserColumnRec(this.id, {required this.name, required this.dtype, this.enumId});
@@ -109,5 +121,155 @@ class UserRowDraft implements Draft<UserRowRec> {
     eventId: eventId,
     timestampMillis: timestampMillis,
     values: values,
+  );
+}
+
+// ============ BLOB DEFINITIONS ============
+
+/// A field's type. Sealed so every consumer (UI renderer, validator,
+/// JSON codec) gets exhaustiveness-checked switches
+sealed class BlobFieldType {
+  const BlobFieldType();
+
+  factory BlobFieldType.fromJson(Map<String, dynamic> json) {
+    final kind = json['kind'] as String;
+    return switch (kind) {
+      'int' => const DInt(),
+      'decimal' => const DDecimal(),
+      'bool' => const DBool(),
+      'enum' => DEnum(json['group'] as String),
+      // Reserved for later
+      // 'list' => DList(FieldSpec.fromJson(json['element'])),
+      'tuple' => DTuple([for (final e in json['elements']) BlobFieldSpec.fromJson(e)]),
+      _ => throw FormatException('Unknown field kind: $kind'),
+    };
+  }
+
+  Map<String, dynamic> toJson();
+}
+
+/// Represents a scalar integer field
+final class DInt extends BlobFieldType {
+  const DInt();
+  @override
+  Map<String, dynamic> toJson() => {'kind': 'int'};
+}
+
+/// Represents a scalar decimal field
+final class DDecimal extends BlobFieldType {
+  const DDecimal();
+  @override
+  Map<String, dynamic> toJson() => {'kind': 'decimal'};
+}
+
+/// Represents a plain boolean field
+final class DBool extends BlobFieldType {
+  const DBool();
+  @override
+  Map<String, dynamic> toJson() => {'kind': 'bool'};
+}
+
+/// References a named group of user-defined enum values (e.g. "food").
+/// The group itself lives in its own table,
+/// this just stores which group a field draws from.
+final class DEnum extends BlobFieldType {
+  const DEnum(this.group);
+  final String group;
+  @override
+  Map<String, dynamic> toJson() => {'kind': 'enum', 'group': group};
+}
+
+/// Represents a fixed array of sub-fields.
+final class DTuple extends BlobFieldType {
+  const DTuple(this.elements);
+  final List<BlobFieldSpec> elements;
+  @override
+  Map<String, dynamic> toJson() => {'kind': 'tuple', 'elements': elements.map((e) => e.type.toJson())};
+}
+
+/// Specifies a field with its type and nullability
+class BlobFieldSpec {
+  const BlobFieldSpec(this.name, this.type, {this.nullable = false});
+  final String name;
+  final BlobFieldType type;
+  final bool nullable;
+
+  factory BlobFieldSpec.fromJson(Map<String, dynamic> json) => BlobFieldSpec(
+    json['name'],
+    BlobFieldType.fromJson(json['type'] as Map<String, dynamic>),
+    nullable: json['nullable'] ?? false,
+  );
+
+  Map<String, dynamic> toJson() => {
+    'type': type.toJson(),
+    if (nullable) 'nullable': true,
+  };
+}
+
+class BlobSchemaDraft implements Draft<BlobSchemaRec> {
+  const BlobSchemaDraft(
+    this.name, {
+    required this.fields,
+  });
+  final String name;
+  final List<BlobFieldSpec> fields;
+
+  @override
+  BlobSchemaRec toRec(int id) {
+    return BlobSchemaRec(id, name: name, fields: List.from(fields));
+  }
+}
+
+class BlobSchemaRec implements Identifiable {
+  const BlobSchemaRec(
+    this.id, {
+    required this.name,
+    required this.fields,
+  });
+  @override
+  final int id;
+  final String name;
+  final List<BlobFieldSpec> fields;
+
+  @override
+  BlobSchemaDraft toDraft() => BlobSchemaDraft(
+    name,
+    fields: List.from(fields),
+  );
+}
+
+// ============ BLOB DATA (each record is an instance of these...z) ============
+
+class UserBlobRec implements Identifiable {
+  const UserBlobRec(
+    this.id, {
+    required this.schemaId,
+    this.eventId,
+    required this.json,
+  });
+  @override
+  final int id;
+  final int schemaId;
+  final int? eventId;
+  final String json;
+  @override
+  UserBlobDraft toDraft() => UserBlobDraft(
+    schemaId,
+    eventId: eventId,
+    json: json,
+  );
+}
+
+class UserBlobDraft implements Draft<UserBlobRec> {
+  UserBlobDraft(this.schemaId, {this.eventId, this.json = ""});
+  int schemaId;
+  int? eventId;
+  String json;
+  @override
+  UserBlobRec toRec(int id) => UserBlobRec(
+    id,
+    schemaId: schemaId,
+    eventId: eventId,
+    json: json,
   );
 }
