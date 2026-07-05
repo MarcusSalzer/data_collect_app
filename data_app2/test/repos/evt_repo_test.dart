@@ -38,9 +38,9 @@ void main() {
       /// make data (nonsense timezones)
       await db.isar.writeTxn(() async {
         await db.evts.coll.putAll([
-          Event(typeId: 1, startLocalMillis: 100, endLocalMillis: 200, startUtcMillis: 20, endUtcMillis: 30),
-          Event(typeId: 1, startLocalMillis: 110, endLocalMillis: 210, startUtcMillis: 10, endUtcMillis: 40),
-          Event(typeId: 1, startLocalMillis: 110, endLocalMillis: 210, startUtcMillis: 15, endUtcMillis: 40),
+          EventIsar(typeId: 1, startLocalMillis: 100, endLocalMillis: 200, startUtcMillis: 20, endUtcMillis: 30),
+          EventIsar(typeId: 1, startLocalMillis: 110, endLocalMillis: 210, startUtcMillis: 10, endUtcMillis: 40),
+          EventIsar(typeId: 1, startLocalMillis: 110, endLocalMillis: 210, startUtcMillis: 15, endUtcMillis: 40),
         ]);
       });
 
@@ -53,7 +53,7 @@ void main() {
         await db.evts.forceDeleteAll();
         await db.isar.writeTxn(() async {
           await db.evts.coll.put(
-            Event(typeId: 1, startLocalMillis: 100, endLocalMillis: 200, startUtcMillis: 50, endUtcMillis: 150),
+            EventIsar(typeId: 1, startLocalMillis: 100, endLocalMillis: 200, startUtcMillis: 50, endUtcMillis: 150),
           );
         });
       });
@@ -182,9 +182,9 @@ void main() {
       /// make data (nonsense timezones)
       await db.isar.writeTxn(() async {
         await db.evts.coll.putAll([
-          Event(typeId: 1, startLocalMillis: 20, endLocalMillis: 200, startUtcMillis: 10, endUtcMillis: 30),
-          Event(typeId: 1, startLocalMillis: 10, endLocalMillis: 210, startUtcMillis: 11, endUtcMillis: 40),
-          Event(typeId: 1, startLocalMillis: 15, endLocalMillis: 210, startUtcMillis: 12, endUtcMillis: 40),
+          EventIsar(typeId: 1, startLocalMillis: 20, endLocalMillis: 200, startUtcMillis: 10, endUtcMillis: 30),
+          EventIsar(typeId: 1, startLocalMillis: 10, endLocalMillis: 210, startUtcMillis: 11, endUtcMillis: 40),
+          EventIsar(typeId: 1, startLocalMillis: 15, endLocalMillis: 210, startUtcMillis: 12, endUtcMillis: 40),
         ]);
       });
 
@@ -197,7 +197,7 @@ void main() {
         await db.evts.forceDeleteAll();
         await db.isar.writeTxn(() async {
           await db.evts.coll.put(
-            Event(typeId: 1, startLocalMillis: 50, endLocalMillis: 150, startUtcMillis: 100, endUtcMillis: 200),
+            EventIsar(typeId: 1, startLocalMillis: 50, endLocalMillis: 150, startUtcMillis: 100, endUtcMillis: 200),
           );
         });
       });

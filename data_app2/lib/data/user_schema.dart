@@ -1,6 +1,7 @@
 import 'package:data_app2/contracts/data.dart';
 import 'package:data_app2/users_schema.dart';
-
+import 'package:flutter/foundation.dart';
+import 'package:collection/collection.dart';
 // ============ ENUMS ============
 
 class UserEnumRec implements Identifiable {
@@ -169,6 +170,20 @@ final class DBool extends BlobFieldType {
   Map<String, dynamic> toJson() => {'kind': 'bool'};
 }
 
+/// Represents a single timestamp
+final class DTimestamp extends BlobFieldType {
+  const DTimestamp();
+  @override
+  Map<String, dynamic> toJson() => {'kind': 'timestamp'};
+}
+
+/// Represents a duration of time
+final class DDuration extends BlobFieldType {
+  const DDuration();
+  @override
+  Map<String, dynamic> toJson() => {'kind': 'timestamp'};
+}
+
 /// References a named group of user-defined enum values (e.g. "food").
 /// The group itself lives in its own table,
 /// this just stores which group a field draws from.
@@ -189,13 +204,11 @@ final class DTuple extends BlobFieldType {
 
 /// Specifies a field with its type and nullability
 class BlobFieldSpec {
-  const BlobFieldSpec(this.name, this.type, {this.nullable = false});
-  final String name;
+  const BlobFieldSpec(this.type, {this.nullable = false});
   final BlobFieldType type;
   final bool nullable;
 
   factory BlobFieldSpec.fromJson(Map<String, dynamic> json) => BlobFieldSpec(
-    json['name'],
     BlobFieldType.fromJson(json['type'] as Map<String, dynamic>),
     nullable: json['nullable'] ?? false,
   );
@@ -207,17 +220,26 @@ class BlobFieldSpec {
 }
 
 class BlobSchemaDraft implements Draft<BlobSchemaRec> {
-  const BlobSchemaDraft(
+  BlobSchemaDraft(
     this.name, {
     required this.fields,
   });
-  final String name;
-  final List<BlobFieldSpec> fields;
+  String name;
+  final Map<String, BlobFieldSpec> fields;
 
   @override
   BlobSchemaRec toRec(int id) {
-    return BlobSchemaRec(id, name: name, fields: List.from(fields));
+    return BlobSchemaRec(id, name: name, fields: Map.from(fields));
   }
+
+  @override
+  bool operator ==(Object other) {
+    return other is BlobSchemaDraft && other.name == name && mapEquals(other.fields, fields);
+  }
+
+  @override
+  // TODO: implement hashCode
+  int get hashCode => Object.hash(name, fields);
 }
 
 class BlobSchemaRec implements Identifiable {
@@ -229,47 +251,62 @@ class BlobSchemaRec implements Identifiable {
   @override
   final int id;
   final String name;
-  final List<BlobFieldSpec> fields;
+  final Map<String, BlobFieldSpec> fields;
 
   @override
   BlobSchemaDraft toDraft() => BlobSchemaDraft(
     name,
-    fields: List.from(fields),
+    fields: Map.from(fields),
   );
 }
 
-// ============ BLOB DATA (each record is an instance of these...z) ============
+// ============ BLOB DATA (each record is an instance of these...) ============
 
 class UserBlobRec implements Identifiable {
   const UserBlobRec(
     this.id, {
     required this.schemaId,
     this.eventId,
-    required this.json,
+    required this.values,
   });
   @override
   final int id;
   final int schemaId;
   final int? eventId;
-  final String json;
+  final Map<String, dynamic> values;
   @override
   UserBlobDraft toDraft() => UserBlobDraft(
     schemaId,
     eventId: eventId,
-    json: json,
+    values: values,
   );
 }
 
-class UserBlobDraft implements Draft<UserBlobRec> {
-  UserBlobDraft(this.schemaId, {this.eventId, this.json = ""});
-  int schemaId;
+class UserBlobDraft extends Draft<UserBlobRec> {
+  UserBlobDraft(
+    this.schemaId, {
+    this.eventId,
+    Map<String, dynamic>? values,
+  }) : values = values ?? {};
+
+  final int schemaId;
   int? eventId;
-  String json;
+  Map<String, dynamic> values;
+
   @override
-  UserBlobRec toRec(int id) => UserBlobRec(
-    id,
-    schemaId: schemaId,
-    eventId: eventId,
-    json: json,
+  bool operator ==(Object other) =>
+      other is UserBlobDraft &&
+      schemaId == other.schemaId &&
+      eventId == other.eventId &&
+      const DeepCollectionEquality().equals(values, other.values);
+
+  @override
+  int get hashCode => Object.hash(
+    schemaId,
+    eventId,
+    const DeepCollectionEquality().hash(values),
   );
+
+  @override
+  UserBlobRec toRec(int id) => UserBlobRec(id, schemaId: schemaId, eventId: eventId, values: values);
 }

@@ -13,7 +13,7 @@ class EvtDraftOld {
 
   /// get event draft from db
   /// throws if not in repo
-  factory EvtDraftOld.fromIsar(Event e, String typeName) {
+  factory EvtDraftOld.fromIsar(EventIsar e, String typeName) {
     return EvtDraftOld(
       id: e.id,
       typeName: typeName,
@@ -22,8 +22,8 @@ class EvtDraftOld {
     );
   }
 
-  Event toIsar(int typeId) {
-    final evt = Event(
+  EventIsar toIsar(int typeId) {
+    final evt = EventIsar(
       typeId: typeId,
       startLocalMillis: start?.localMillis,
       startUtcMillis: start?.utcMillis,

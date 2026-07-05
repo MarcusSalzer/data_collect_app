@@ -6,19 +6,19 @@ import 'package:data_app2/util/enums.dart';
 import 'package:isar_community/isar.dart';
 
 /// For accessing Event type data
-class EvtTypeRepo extends CrudRepo<EvtTypeRec, EvtTypeDraft, EventType> {
+class EvtTypeRepo extends CrudRepo<EvtTypeRec, EvtTypeDraft, EventTypeIsar> {
   EvtTypeRepo(super.isar)
     : super(
         // NOTE: trim names to avoid confusing uniqueness issues
-        draftToIsar: (d) => EventType(d.name.trim(), d.categoryId),
-        recToIsar: (r) => EventType(r.name.trim(), r.categoryId)..id = r.id,
+        draftToIsar: (d) => EventTypeIsar(d.name.trim(), d.categoryId),
+        recToIsar: (r) => EventTypeIsar(r.name.trim(), r.categoryId)..id = r.id,
         fromIsar: (i) => EvtTypeRec(i.id, i.name, i.categoryId),
       );
 
   @override
-  get coll => isar.eventTypes;
+  get coll => isar.eventTypeIsars;
   @override
-  get idProp => isar.eventTypes.where().idProperty();
+  get idProp => isar.eventTypeIsars.where().idProperty();
 
   // === More specific transactions ===
 
@@ -39,12 +39,12 @@ class EvtTypeRepo extends CrudRepo<EvtTypeRec, EvtTypeDraft, EventType> {
   /// Get if exists, otherwise make a new
   Future<EvtTypeRec> getOrCreate(String name) async {
     return await isar.writeTxn(() async {
-      final existing = await isar.eventTypes.where().nameEqualTo(name).findFirst();
+      final existing = await isar.eventTypeIsars.where().nameEqualTo(name).findFirst();
       if (existing != null) {
         return fromIsar(existing);
       } else {
-        final newType = EventType(name);
-        await isar.eventTypes.put(newType);
+        final newType = EventTypeIsar(name);
+        await isar.eventTypeIsars.put(newType);
         return fromIsar(newType);
       }
     });
@@ -53,7 +53,7 @@ class EvtTypeRepo extends CrudRepo<EvtTypeRec, EvtTypeDraft, EventType> {
   /// Delete a event type, if it is not referenced by some EvtType
   Future<DeleteResult> deleteIfUnreferenced(int id) async {
     // No index here yet. eventTypes is not huge so should be ok.
-    if (await isar.events.filter().typeIdEqualTo(id).findFirst() != null) {
+    if (await isar.eventIsars.filter().typeIdEqualTo(id).findFirst() != null) {
       return DeleteResult.referenced;
     }
     final didDelete = await super.forceDelete(id);

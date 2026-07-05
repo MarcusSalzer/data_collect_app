@@ -6,10 +6,10 @@ import 'package:data_app2/time_range_queries.dart';
 import 'package:data_app2/util/enums.dart';
 import 'package:isar_community/isar.dart';
 
-class EvtRepo extends CrudRepo<EvtRec, EvtDraft, Event> {
+class EvtRepo extends CrudRepo<EvtRec, EvtDraft, EventIsar> {
   EvtRepo(super.isar)
     : super(
-        draftToIsar: (d) => Event(
+        draftToIsar: (d) => EventIsar(
           typeId: d.typeId,
           startLocalMillis: d.start?.localMillis,
           startUtcMillis: d.start?.utcMillis,
@@ -17,7 +17,7 @@ class EvtRepo extends CrudRepo<EvtRec, EvtDraft, Event> {
           endUtcMillis: d.end?.utcMillis,
           locationId: d.locationId,
         ),
-        recToIsar: (r) => Event(
+        recToIsar: (r) => EventIsar(
           typeId: r.typeId,
           startLocalMillis: r.start?.localMillis,
           startUtcMillis: r.start?.utcMillis,
@@ -35,14 +35,14 @@ class EvtRepo extends CrudRepo<EvtRec, EvtDraft, Event> {
       );
 
   @override
-  get coll => isar.events;
+  get coll => isar.eventIsars;
   @override
-  get idProp => isar.events.where().idProperty();
+  get idProp => isar.eventIsars.where().idProperty();
 
   /// get all referenced typeId:s on events
   Future<Set<int>> allReferencedTypeIds() async {
     return await isar.txn(() async {
-      return (await isar.events.where().typeIdProperty().findAll()).toSet();
+      return (await isar.eventIsars.where().typeIdProperty().findAll()).toSet();
     });
   }
 

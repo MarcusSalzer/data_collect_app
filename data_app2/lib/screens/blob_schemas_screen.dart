@@ -1,5 +1,5 @@
 import 'package:data_app2/app_state.dart';
-import 'package:data_app2/screens/user_blob_schema_edit_screen.dart';
+import 'package:data_app2/screens/blob_schema_edit_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -18,7 +18,7 @@ class UserBlobSchemasScreen extends StatelessWidget {
           Navigator.of(context)
               .push(
                 MaterialPageRoute(
-                  builder: (_) => UserBlobSchemaEditScreen(context.read<AppState>().db, null),
+                  builder: (_) => BlobSchemaEditScreen(context.read<AppState>().db, null),
                 ),
               )
               .then((_) {

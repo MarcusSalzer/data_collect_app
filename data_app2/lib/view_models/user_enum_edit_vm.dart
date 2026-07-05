@@ -12,6 +12,7 @@ class UserEnumEditVm extends EditVm<UserEnumRec, UserEnumDraft> {
   // easier than comparing sets?
   bool _valuesDirty = false;
 
+  /// Valid if it has a name, zero values is OK.
   bool get isValid => draft.name.isNotEmpty;
 
   @override

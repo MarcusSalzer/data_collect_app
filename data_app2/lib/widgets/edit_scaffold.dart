@@ -11,11 +11,13 @@ class _EditAppBar extends StatelessWidget implements PreferredSizeWidget {
     Future<bool> Function()? deleteAction,
     required this.title,
     required this.isDirty,
+    required this.hasStored,
   }) : _saveAction = saveAction,
        _deleteAction = deleteAction;
 
   final String title;
   final bool isDirty;
+  final bool hasStored;
   final AsyncValueGetter<bool>? _deleteAction;
   final AsyncValueGetter<void>? _saveAction;
   @override
@@ -30,25 +32,27 @@ class _EditAppBar extends StatelessWidget implements PreferredSizeWidget {
         if (_deleteAction != null)
           IconButton(
             icon: const Icon(Icons.delete_forever),
-            onPressed: () {
-              showDialog<void>(
-                context: context,
-                builder: (dialogContext) => ConfirmDialog(
-                  title: "Are you sure?",
-                  action: () async {
-                    final success = await _deleteAction();
+            onPressed: hasStored
+                ? () {
+                    showDialog<void>(
+                      context: context,
+                      builder: (dialogContext) => ConfirmDialog(
+                        title: "Are you sure?",
+                        action: () async {
+                          final success = await _deleteAction();
 
-                    if (dialogContext.mounted) {
-                      Navigator.of(dialogContext).pop();
-                    }
-                    if (context.mounted && success) {
-                      Navigator.of(context).pop("deleted");
-                      simpleSnack(context, "Deleted");
-                    }
-                  },
-                ),
-              );
-            },
+                          if (dialogContext.mounted) {
+                            Navigator.of(dialogContext).pop();
+                          }
+                          if (context.mounted && success) {
+                            Navigator.of(context).pop("deleted");
+                            simpleSnack(context, "Deleted");
+                          }
+                        },
+                      ),
+                    );
+                  }
+                : null,
           ),
       ],
     );
@@ -67,6 +71,7 @@ class EditScaffoldSimple extends StatelessWidget {
     this.deleteAction,
     this.errMsg,
     required this.isDirty,
+    required this.hasStored,
   }) : _saveAction = saveAction;
 
   final AsyncValueGetter<bool>? deleteAction;
@@ -75,6 +80,7 @@ class EditScaffoldSimple extends StatelessWidget {
   final String title;
   final String? errMsg;
   final bool isDirty;
+  final bool hasStored;
   final Widget body;
 
   @override
@@ -100,7 +106,13 @@ class EditScaffoldSimple extends StatelessWidget {
         }
       },
       child: Scaffold(
-        appBar: _EditAppBar(title: title, isDirty: isDirty, saveAction: _saveAction, deleteAction: deleteAction),
+        appBar: _EditAppBar(
+          title: title,
+          isDirty: isDirty,
+          hasStored: hasStored,
+          saveAction: _saveAction,
+          deleteAction: deleteAction,
+        ),
         body: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -174,7 +186,13 @@ class EditScaffoldForVm<R extends Identifiable> extends StatelessWidget {
         }
       },
       child: Scaffold(
-        appBar: _EditAppBar(title: title, isDirty: vm.isDirty, saveAction: vm.save, deleteAction: vm.delete),
+        appBar: _EditAppBar(
+          title: title,
+          isDirty: vm.isDirty,
+          hasStored: vm.hasStored,
+          saveAction: vm.save,
+          deleteAction: vm.delete,
+        ),
 
         body: Padding(
           padding: const EdgeInsets.all(16),

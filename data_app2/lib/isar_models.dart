@@ -1,37 +1,15 @@
 import 'dart:io';
 
-import 'package:data_app2/style.dart';
 import 'package:data_app2/users_schema.dart';
-import 'package:data_app2/util/enums.dart';
 import 'package:isar_community/isar.dart';
 
 // important: this file will contain Isar's generated code.
 part 'isar_models.g.dart';
 
-/// A singleton Isar object holding app prefs
-@collection
-class Preferences {
-  Id id = 0; // a single instance.
-  @Enumerated(EnumType.ordinal)
-  ColorSchemeMode colorSchemeMode;
-  // input normalization preferences
-  bool autoLowerCase;
-
-  // logging
-  @Enumerated(EnumType.ordinal)
-  LogLevel logLevel;
-
-  // For various search fields
-  @Enumerated(EnumType.ordinal)
-  TextSearchMode textSearchMode;
-
-  Preferences(this.colorSchemeMode, this.autoLowerCase, this.logLevel, this.textSearchMode);
-}
-
 /// A timed event
 /// Store the time both in local and utc to avoid ambiguities when traveling or DST
 @collection
-class Event {
+class EventIsar {
   Id id = Isar.autoIncrement;
   @Index()
   int typeId;
@@ -48,7 +26,7 @@ class Event {
   @Index()
   int? locationId;
 
-  Event({
+  EventIsar({
     required this.typeId,
     this.startLocalMillis,
     this.startUtcMillis,
@@ -60,28 +38,28 @@ class Event {
 
 /// A type of event
 @collection
-class EventType {
+class EventTypeIsar {
   Id id = Isar.autoIncrement;
   @Index(unique: true)
   String name;
   @Enumerated(EnumType.ordinal)
   int categoryId;
 
-  EventType(this.name, [this.categoryId = 1]);
+  EventTypeIsar(this.name, [this.categoryId = 1]);
 }
 
 /// A category of event types
 @collection
-class EventCategory {
+class EventCategoryIsar {
   Id id = Isar.autoIncrement;
   @Index(unique: true)
   String name;
   int colorArgb32;
-  EventCategory(this.name, [this.colorArgb32 = 0]);
+  EventCategoryIsar(this.name, [this.colorArgb32 = 0]);
 }
 
 @collection
-class Location {
+class LocationIsar {
   Id id = Isar.autoIncrement;
 
   @Index(unique: true)
@@ -90,25 +68,25 @@ class Location {
   double lat;
   double lng;
 
-  Location(this.name, this.lat, this.lng);
+  LocationIsar(this.name, this.lat, this.lng);
 }
 
 // ================== UserSchemas ==================
 
 /// A user-defined enum group (e.g. "food", "mood")
 @collection
-class UserEnum {
+class UserEnumIsar {
   Id id = Isar.autoIncrement;
 
   @Index(unique: true)
   String name;
 
-  UserEnum(this.name);
+  UserEnumIsar(this.name);
 }
 
 /// A value within a user-defined enum (e.g. "pizza", "happy")
 @collection
-class UserEnumValue {
+class UserEnumValueIsar {
   Id id = Isar.autoIncrement;
 
   @Index()
@@ -117,12 +95,12 @@ class UserEnumValue {
   @Index(composite: [CompositeIndex('enumId')], unique: true)
   String name;
 
-  UserEnumValue(this.enumId, this.name);
+  UserEnumValueIsar(this.enumId, this.name);
 }
 
 /// A column definition (e.g. "distance", DType.dFloat)
 @collection
-class UserColumn {
+class UserColumnIsar {
   Id id = Isar.autoIncrement;
 
   String name;
@@ -133,12 +111,12 @@ class UserColumn {
   /// Only set when dtype == DType.dEnum
   int? enumId;
 
-  UserColumn(this.name, this.dtype, {this.enumId});
+  UserColumnIsar(this.name, this.dtype, {this.enumId});
 }
 
 /// A user-defined table (e.g. "Runs", "Meals")
 @collection
-class UserTable {
+class UserTableIsar {
   Id id = Isar.autoIncrement;
 
   @Index(unique: true)
@@ -147,12 +125,12 @@ class UserTable {
   /// Ordered list of UserColumn IDs
   List<int> columnIds;
 
-  UserTable(this.name, this.columnIds);
+  UserTableIsar(this.name, this.columnIds);
 }
 
 /// A row in a user-defined table
 @collection
-class UserRow {
+class UserRowIsar {
   Id id = Isar.autoIncrement;
 
   @Index()
@@ -169,7 +147,7 @@ class UserRow {
   /// columnId -> encoded int (floats as bits, enums as value ID, ints as-is)
   List<int?> values;
 
-  UserRow({
+  UserRowIsar({
     required this.tableId,
     this.eventId,
     this.timestampMillis,
@@ -179,18 +157,22 @@ class UserRow {
 
 /// User defined schema for parsing/validating Blobs.
 @collection
-class BlobSchema {
+class UserBlobSchemaIsar {
   Id id = Isar.autoIncrement;
+  final String name;
+  final String json;
+
+  UserBlobSchemaIsar(this.name, {required this.json});
 }
 
 /// User defined Json data
 @collection
-class Blob {
+class UserBlobIsar {
   Id id = Isar.autoIncrement;
   final int schemaId;
   final int? eventId;
   final String json;
-  Blob(
+  UserBlobIsar(
     this.json, {
     required this.schemaId,
     this.eventId,
@@ -201,15 +183,17 @@ class Blob {
 Future<Isar> initIsar(Directory dir) async {
   final isar = await Isar.open(
     [
-      EventSchema,
-      EventTypeSchema,
-      EventCategorySchema,
-      LocationSchema,
-      UserEnumSchema,
-      UserEnumValueSchema,
-      UserRowSchema,
-      UserColumnSchema,
-      UserTableSchema,
+      EventIsarSchema,
+      EventTypeIsarSchema,
+      EventCategoryIsarSchema,
+      LocationIsarSchema,
+      UserEnumIsarSchema,
+      UserEnumValueIsarSchema,
+      // UserRowSchema,
+      // UserColumnSchema,
+      // UserTableSchema,
+      UserBlobSchemaIsarSchema,
+      UserBlobIsarSchema,
     ],
     name: "data_app_db",
     directory: dir.path,

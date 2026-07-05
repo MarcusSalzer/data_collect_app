@@ -61,14 +61,14 @@ void main() {
   });
 
   group('EvtRepo', () {
-    runCrudRepoTests<EvtRec, EvtDraft, Event>(
+    runCrudRepoTests<EvtRec, EvtDraft, EventIsar>(
       repo: () => db.evts,
       makeDraft: TestDummyData.makeEvtDraft,
       expectEqual: (actual, match) => expect(actual, match), // use equality op
     );
   });
   group('EvtTypeRepo', () {
-    runCrudRepoTests<EvtTypeRec, EvtTypeDraft, EventType>(
+    runCrudRepoTests<EvtTypeRec, EvtTypeDraft, EventTypeIsar>(
       repo: () => db.evtTypes,
       makeDraft: TestDummyData.makeEvtTypeDraft,
       expectEqual: (a, b) {
@@ -79,7 +79,7 @@ void main() {
     );
   });
   group('EvtCatRepo', () {
-    runCrudRepoTests<EvtCatRec, EvtCatDraft, EventCategory>(
+    runCrudRepoTests<EvtCatRec, EvtCatDraft, EventCategoryIsar>(
       repo: () => db.evtCats,
       makeDraft: TestDummyData.makeEvtCatDraft,
       expectEqual: (a, b) {

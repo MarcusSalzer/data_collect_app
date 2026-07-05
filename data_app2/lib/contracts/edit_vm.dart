@@ -11,6 +11,7 @@ abstract class EditVm<R extends Identifiable, D extends Draft> extends ChangeNot
 
   int? get id => stored?.id;
   bool get isDirty => stored?.toDraft() != draft;
+  bool get hasStored => stored != null;
 
   Future<bool> delete();
   Future<void> save();

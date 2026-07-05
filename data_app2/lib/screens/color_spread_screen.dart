@@ -40,6 +40,7 @@ class _ColorSpreadScreenState extends State<ColorSpreadScreen> {
     return EditScaffoldSimple(
       title: "Color spread",
       isDirty: _isDirty,
+      hasStored: true, // always a stored value
       saveAction: () async {
         final ok = await widget.saveAction(value);
         if (ok) {

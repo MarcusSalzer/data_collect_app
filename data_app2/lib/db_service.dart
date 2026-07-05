@@ -4,6 +4,7 @@ import 'package:data_app2/repos/evt_cat_repo.dart';
 import 'package:data_app2/repos/evt_repo.dart';
 import 'package:data_app2/repos/evt_type_repo.dart';
 import 'package:data_app2/repos/location_repo.dart';
+import 'package:data_app2/repos/user_enum_repos.dart';
 import 'package:data_app2/repos/user_schema_repos.dart';
 import 'package:isar_community/isar.dart';
 
