@@ -159,6 +159,7 @@ class UserRowIsar {
 @collection
 class UserBlobSchemaIsar {
   Id id = Isar.autoIncrement;
+  @Index(unique: true) // Schemas mus have unique names.
   final String name;
   final String json;
 
@@ -169,7 +170,9 @@ class UserBlobSchemaIsar {
 @collection
 class UserBlobIsar {
   Id id = Isar.autoIncrement;
+  @Index() // Important, finding data for a schema.
   final int schemaId;
+  @Index()
   final int? eventId;
   final String json;
   UserBlobIsar(

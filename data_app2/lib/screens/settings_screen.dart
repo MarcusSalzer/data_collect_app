@@ -87,6 +87,34 @@ class _PrefsForm extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       spacing: 8,
       children: [
+        Text("Aesthetics", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
+        EnumDropdownWithDescription<ColorSchemeMode>(
+          label: "Color Scheme",
+          value: prefs.colorSchemeMode,
+          options: ColorSchemeMode.values,
+          onChanged: (v) => context.read<AppState>().setColorScheme(v),
+          descriptionOf: (v) => v.description,
+        ),
+        SettingContainer(
+          "Color spread",
+          "Spread colors in categories",
+          child: TextButton(
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => ColorSpreadScreen(
+                    initVal: prefs.colorSpread,
+                    saveAction: (v) async {
+                      await context.read<AppState>().updatePrefs(prefs.copyWith(colorSpread: v));
+                      return true;
+                    },
+                  ),
+                ),
+              );
+            },
+            child: Text(NumberFormat.decimalPercentPattern(decimalDigits: 0).format(prefs.colorSpread)),
+          ),
+        ),
         Text("Behavior", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
         SettingContainer(
           "Lowercase inputs",
@@ -127,34 +155,6 @@ class _PrefsForm extends StatelessWidget {
               ),
             ),
             onChanged: (v) => context.read<AppState>().updatePrefs(prefs.copyWith(dayStartsH: v)),
-          ),
-        ),
-        Text("Aesthetics", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
-        EnumDropdownWithDescription<ColorSchemeMode>(
-          label: "Color Scheme",
-          value: prefs.colorSchemeMode,
-          options: ColorSchemeMode.values,
-          onChanged: (v) => context.read<AppState>().setColorScheme(v),
-          descriptionOf: (v) => v.description,
-        ),
-        SettingContainer(
-          "Color spread",
-          "Spread colors in categories",
-          child: TextButton(
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => ColorSpreadScreen(
-                    initVal: prefs.colorSpread,
-                    saveAction: (v) async {
-                      await context.read<AppState>().updatePrefs(prefs.copyWith(colorSpread: v));
-                      return true;
-                    },
-                  ),
-                ),
-              );
-            },
-            child: Text(NumberFormat.decimalPercentPattern(decimalDigits: 0).format(prefs.colorSpread)),
           ),
         ),
       ],

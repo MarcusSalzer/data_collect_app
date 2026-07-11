@@ -3,15 +3,15 @@ import 'package:data_app2/data/user_schema.dart';
 import 'package:data_app2/repos/blob_repos.dart';
 
 class UserBlobEditVm extends EditVm<UserBlobRec, UserBlobDraft> {
-  UserBlobEditVm({
-    required UserBlobRec? stored,
-    required this.schema,
+  UserBlobEditVm(
+    UserBlobRec? stored,
+    this.schema, {
     required this.enumGroupValues,
     required this.repo,
   }) : super(stored, stored?.toDraft() ?? UserBlobDraft(schema.id));
 
   final BlobSchemaRec schema;
-  final Map<String, List<String>> enumGroupValues;
+  final Map<String, Set<String>> enumGroupValues;
   final BlobRepo repo;
 
   final Map<String, String?> _fieldErrors = {};
@@ -46,13 +46,15 @@ class UserBlobEditVm extends EditVm<UserBlobRec, UserBlobDraft> {
       final typeError = switch (spec.type) {
         DInt() => value is int ? null : 'Must be a whole number',
         DDecimal() => value is num ? null : 'Must be a number',
+        DText() => value is String ? null : "Must be a string",
         DBool() => value is bool ? null : 'Invalid',
         DTimestamp() => value is int ? null : 'Invalid date',
-        DEnum(:final group) => (enumGroupValues[group] ?? const []).contains(value) ? null : 'Invalid choice',
+        DEnum(:final group) => (enumGroupValues[group] ?? <String>{}).contains(value) ? null : 'Invalid choice',
         // TODO: Handle this case.
         DDuration() => throw UnimplementedError(),
         // TODO: Handle this case.
         DTuple() => throw UnimplementedError(),
+        // TODO: Handle this case.
       };
       if (typeError != null) {
         _fieldErrors[name] = typeError;

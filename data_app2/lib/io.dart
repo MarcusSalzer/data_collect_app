@@ -74,7 +74,7 @@ Future<File> defaultLogFile() async {
 
 /// Let user pick a single file
 Future<String?> pickSingleFile() async {
-  final fpRes = await FilePicker.platform.pickFiles(initialDirectory: (await defaultUserStoreDir()).path);
+  final fpRes = await FilePicker.pickFiles(initialDirectory: (await defaultUserStoreDir()).path);
   if (fpRes == null) {
     return null; // canceled
   }
@@ -83,7 +83,7 @@ Future<String?> pickSingleFile() async {
 
 /// Let user pick a single directory
 Future<Directory?> pickSingleFolder() async {
-  final path = await FilePicker.platform.getDirectoryPath(initialDirectory: (await defaultUserStoreDir()).path);
+  final path = await FilePicker.getDirectoryPath(initialDirectory: (await defaultUserStoreDir()).path);
   return path != null ? Directory(path) : null;
 }
 

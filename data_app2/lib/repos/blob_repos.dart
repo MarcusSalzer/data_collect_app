@@ -16,6 +16,11 @@ class BlobRepo extends CrudRepo<UserBlobRec, UserBlobDraft, UserBlobIsar> {
   IsarCollection<UserBlobIsar> get coll => isar.userBlobIsars;
   @override
   QueryBuilder<UserBlobIsar, int, QQueryOperations> get idProp => coll.where().idProperty();
+
+  /// Get all records with a certain schema (should be indexed/fast)
+  Future<Iterable<UserBlobRec>> bySchema(int enumId) async {
+    return (await coll.where().schemaIdEqualTo(enumId).findAll()).map(fromIsar);
+  }
 }
 
 class BlobSchemaRepo extends CrudRepo<BlobSchemaRec, BlobSchemaDraft, UserBlobSchemaIsar> {

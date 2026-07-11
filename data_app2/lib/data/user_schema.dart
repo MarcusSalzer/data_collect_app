@@ -162,6 +162,13 @@ final class DDecimal extends BlobFieldType {
   Map<String, dynamic> toJson() => {'kind': 'decimal'};
 }
 
+/// Represents a scalar decimal field
+final class DText extends BlobFieldType {
+  const DText();
+  @override
+  Map<String, dynamic> toJson() => {'kind': 'decimal'};
+}
+
 /// Represents a plain boolean field
 final class DBool extends BlobFieldType {
   const DBool();

@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class BlobEditScreen extends StatelessWidget {
-  const BlobEditScreen({super.key, required this.vm});
+  const BlobEditScreen(this.vm, {super.key});
   final UserBlobEditVm vm;
 
   @override
@@ -70,6 +70,11 @@ class _FieldInput extends StatelessWidget {
         initialValue: (vm.rawValue(name) as num?)?.toString() ?? '',
         decoration: InputDecoration(labelText: label, errorText: error),
         keyboardType: const TextInputType.numberWithOptions(decimal: true),
+        onChanged: (text) => vm.setValue(name, double.tryParse(text)),
+      ),
+      DText() => TextFormField(
+        initialValue: vm.rawValue(name).toString(),
+        decoration: InputDecoration(labelText: label, errorText: error),
         onChanged: (text) => vm.setValue(name, double.tryParse(text)),
       ),
       DBool() => SwitchListTile(

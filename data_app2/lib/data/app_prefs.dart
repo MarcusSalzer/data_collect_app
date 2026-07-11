@@ -18,7 +18,7 @@ class AppPrefs extends ValueObject {
   @JsonKey(defaultValue: SummaryMode.type)
   final SummaryMode summaryMode;
 
-  @JsonKey(defaultValue: TextSearchMode.starts)
+  @JsonKey(defaultValue: TextSearchMode.wordStarts)
   final TextSearchMode textSearchMode;
 
   final bool autoLowerCase;
@@ -31,7 +31,7 @@ class AppPrefs extends ValueObject {
     this.logLevel = LogLevel.warning,
     this.summaryMode = SummaryMode.type,
     this.autoLowerCase = false,
-    this.textSearchMode = TextSearchMode.starts,
+    this.textSearchMode = TextSearchMode.wordStarts,
     this.colorSpread = 0.5,
     this.dayStartsH = 0,
   });
