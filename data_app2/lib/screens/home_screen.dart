@@ -108,7 +108,7 @@ class HomeScreen extends StatelessWidget {
                   HomeNavLink(
                     "Blob schemas",
                     Icons.stars_outlined,
-                    builder: (context) => UserBlobSchemasScreen(),
+                    builder: (context) => BlobSchemasScreen(),
                   ),
                 ],
               ),

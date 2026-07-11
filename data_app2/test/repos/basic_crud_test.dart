@@ -3,6 +3,7 @@ import 'package:data_app2/contracts/data.dart';
 import 'package:data_app2/data/evt.dart';
 import 'package:data_app2/data/evt_cat.dart';
 import 'package:data_app2/data/evt_type.dart';
+import 'package:data_app2/data/user_schema.dart';
 import 'package:data_app2/db_service.dart';
 import 'package:data_app2/isar_models.dart';
 import 'package:test/test.dart';
@@ -86,6 +87,28 @@ void main() {
         expect(a.id, b.id);
         expect(a.name, b.name);
         expect(a.color, b.color);
+      },
+    );
+  });
+
+  group('BlobSchemaRepo', () {
+    runCrudRepoTests<BlobSchemaRec, BlobSchemaDraft, UserBlobSchemaIsar>(
+      repo: () => db.blobSchemas,
+      makeDraft: TestDummyData.makeBlobSchemaDraft,
+      expectEqual: (a, b) {
+        expect(a.id, b.id, reason: "id should match");
+        expect(a.name, b.name, reason: "name should match");
+        expect(a.fields, b.fields, reason: "fields should match");
+      },
+    );
+  });
+
+  group('BlobRepo', () {
+    runCrudRepoTests<UserBlobRec, UserBlobDraft, UserBlobIsar>(
+      repo: () => db.blobs,
+      makeDraft: TestDummyData.makeBlobDraft,
+      expectEqual: (a, b) {
+        expect(a.id, b.id, reason: "id should match");
       },
     );
   });

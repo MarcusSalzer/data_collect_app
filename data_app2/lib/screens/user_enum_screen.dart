@@ -10,7 +10,7 @@ class _Body extends StatelessWidget {
   Widget build(BuildContext context) {
     final indexVm = context.watch<UserEnumIndexVm>();
 
-    final items = indexVm.items;
+    final items = indexVm.enums;
     if (items == null) {
       return Center(child: Text("Loading..."));
     }
@@ -21,8 +21,15 @@ class _Body extends StatelessWidget {
       itemCount: items.length,
       itemBuilder: (context, i) {
         final rec = items[i];
+        final vals = indexVm.vmap[rec.id];
         return ListTile(
           title: Text(rec.name),
+          subtitle: (vals == null)
+              ? Text(
+                  "No values",
+                  style: TextStyle(color: Colors.grey),
+                )
+              : Text(vals.map((v) => v.name).join(", ")),
           onTap: () {
             Navigator.of(context)
                 .push(
@@ -48,20 +55,16 @@ class UserEnumScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MultiProvider(
-      providers: [
-        ChangeNotifierProvider(
-          create: (ctxCreate) {
-            final app = ctxCreate.read<AppState>();
-            return UserEnumIndexVm(app.db.userEnums)..load();
-          },
-        ),
-      ],
+    return ChangeNotifierProvider(
+      create: (ctxCreate) {
+        final app = ctxCreate.read<AppState>();
+        return UserEnumIndexVm(app.db.userEnums, app.db.userEnumValues)..load();
+      },
       child: Scaffold(
         appBar: AppBar(
           title: Builder(
             builder: (context) {
-              final count = context.watch<UserEnumIndexVm>().items?.length;
+              final count = context.watch<UserEnumIndexVm>().enums?.length;
               return Text("Enums ($count)");
             },
           ),

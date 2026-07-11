@@ -13,7 +13,14 @@ Future<Isar> getTmpIsar() async {
 
   final dir = await getTmpDir();
   final isar = await Isar.open(
-    [EventIsarSchema, EventTypeIsarSchema, EventCategoryIsarSchema, LocationIsarSchema],
+    [
+      EventIsarSchema,
+      EventTypeIsarSchema,
+      EventCategoryIsarSchema,
+      LocationIsarSchema,
+      UserBlobIsarSchema,
+      UserBlobSchemaIsarSchema,
+    ],
     directory: dir.path,
     name: 'test_db',
     inspector: false,

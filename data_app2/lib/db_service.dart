@@ -1,5 +1,6 @@
 import 'package:data_app2/data/evt_cat.dart';
 import 'package:data_app2/data/evt_type.dart';
+import 'package:data_app2/repos/blob_repos.dart';
 import 'package:data_app2/repos/evt_cat_repo.dart';
 import 'package:data_app2/repos/evt_repo.dart';
 import 'package:data_app2/repos/evt_type_repo.dart';
@@ -23,6 +24,11 @@ class DBService {
   final UserEnumRepo userEnums;
   final UserEnumValueRepo userEnumValues;
 
+  // --- User Blobs ---
+  final BlobSchemaRepo blobSchemas;
+  final BlobRepo blobs;
+
+  // Database access
   final Isar isar;
 
   String? get dbFolder => isar.directory;
@@ -36,7 +42,9 @@ class DBService {
       userColumns = UserColumnRepo(isar),
       userTables = UserTableRepo(isar),
       userEnums = UserEnumRepo(isar),
-      userEnumValues = UserEnumValueRepo(isar);
+      userEnumValues = UserEnumValueRepo(isar),
+      blobSchemas = BlobSchemaRepo(isar),
+      blobs = BlobRepo(isar);
 
   /// populate necessary default records if missing
   Future<void> ensureReady() async {

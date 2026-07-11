@@ -22,7 +22,7 @@ class _BlobSchemaEditScreenState extends State<BlobSchemaEditScreen> {
   @override
   void initState() {
     super.initState();
-    _vm = BlobSchemaEditVm(widget.existing, "TODO")..load();
+    _vm = BlobSchemaEditVm(widget.existing, widget.db.blobSchemas)..load();
     _nameCtrl = TextEditingController(text: widget.existing?.name ?? '');
   }
 

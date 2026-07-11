@@ -18,15 +18,25 @@ class BlobRepo extends CrudRepo<UserBlobRec, UserBlobDraft, UserBlobIsar> {
   QueryBuilder<UserBlobIsar, int, QQueryOperations> get idProp => coll.where().idProperty();
 }
 
-  // class BlobSchemaRepo extends CrudRepo<UserEnumValueRec, UserEnumValueDraft, UserEnumValue> {
-  //   BlobSchemaRepo(super.isar)
-  //     : super(
-  //         draftToIsar: (d) => UserEnumValue(d.enumId, d.name),
-  //         recToIsar: (r) => UserEnumValue(r.enumId, r.name)..id = r.id,
-  //         fromIsar: (i) => UserEnumValueRec(i.id, enumId: i.enumId, name: i.name),
-  //       );
-  //   @override
-  //   IsarCollection<UserEnumValue> get coll => isar.userEnumValues;
-  //   @override
-  //   QueryBuilder<UserEnumValue, int, QQueryOperations> get idProp => coll.where().idProperty();
-  // }
+class BlobSchemaRepo extends CrudRepo<BlobSchemaRec, BlobSchemaDraft, UserBlobSchemaIsar> {
+  BlobSchemaRepo(super.isar)
+    : super(
+        draftToIsar: (d) =>
+            UserBlobSchemaIsar(d.name, json: jsonEncode({for (final e in d.fields.entries) e.key: e.value.toJson()})),
+        recToIsar: (r) =>
+            UserBlobSchemaIsar(r.name, json: jsonEncode({for (final e in r.fields.entries) e.key: e.value.toJson()}))
+              ..id = r.id,
+        fromIsar: (i) => BlobSchemaRec(
+          i.id,
+          name: i.name,
+          fields: {
+            for (final e in (jsonDecode(i.json) as Map<String, dynamic>).entries)
+              e.key: BlobFieldSpec.fromJson(e.value as Map<String, dynamic>),
+          },
+        ),
+      );
+  @override
+  IsarCollection<UserBlobSchemaIsar> get coll => isar.userBlobSchemaIsars;
+  @override
+  QueryBuilder<UserBlobSchemaIsar, int, QQueryOperations> get idProp => coll.where().idProperty();
+}

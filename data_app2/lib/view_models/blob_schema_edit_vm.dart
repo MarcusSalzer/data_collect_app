@@ -1,8 +1,10 @@
 import 'package:data_app2/contracts/edit_vm.dart';
 import 'package:data_app2/data/user_schema.dart';
+import 'package:data_app2/repos/blob_repos.dart';
+import 'package:isar_community/isar.dart';
 
 class BlobSchemaEditVm extends EditVm<BlobSchemaRec, BlobSchemaDraft> {
-  final String repo;
+  final BlobSchemaRepo repo;
 
   BlobSchemaEditVm(BlobSchemaRec? stored, this.repo)
     : super(stored, stored?.toDraft() ?? BlobSchemaDraft('', fields: {}));
@@ -45,14 +47,28 @@ class BlobSchemaEditVm extends EditVm<BlobSchemaRec, BlobSchemaDraft> {
 
   // === Storage methods ===
   @override
-  Future<bool> delete() {
-    // TODO: implement delete
-    throw UnimplementedError();
+  Future<bool> delete() async {
+    final stored = this.stored;
+    if (stored == null) return false; // cannot delete if never saved
+
+    final r = await repo.forceDelete(stored.id);
+    return r;
   }
 
   @override
-  Future<void> save() {
-    // TODO: implement save
-    throw UnimplementedError();
+  save() async {
+    try {
+      stored = await repo.createOrUpdate(draft, stored?.id);
+    } on IsarError catch (e) {
+      if (e.message.contains("Unique")) {
+        errorMsg = "Please give a unique name";
+      } else {
+        errorMsg = e.message;
+      }
+    } catch (e) {
+      errorMsg = e.toString();
+    }
+    // always notify after
+    notifyListeners();
   }
 }

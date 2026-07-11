@@ -94,7 +94,8 @@ class _BlobFieldCreateScreenState extends State<BlobFieldCreateScreen> {
   }
 }
 
-enum _TypeKind { int, decimal, bool, timestamp, enumType }
+/// Which options can be selected
+enum _TypeOption { int, decimal, bool, timestamp, duration, enumType }
 
 class FieldTypeSelector extends StatefulWidget {
   const FieldTypeSelector({
@@ -111,17 +112,18 @@ class FieldTypeSelector extends StatefulWidget {
 }
 
 class _FieldTypeSelectorState extends State<FieldTypeSelector> {
-  _TypeKind? _kind;
+  _TypeOption? _kind;
   String? _enumGroup;
 
   void _emit() {
     final type = switch (_kind) {
-      _TypeKind.int => const DInt(),
-      _TypeKind.decimal => const DDecimal(),
-      _TypeKind.bool => const DBool(),
-      _TypeKind.timestamp => const DTimestamp(),
-      _TypeKind.enumType => _enumGroup == null ? null : DEnum(_enumGroup!),
-      null => null,
+      _TypeOption.int => const DInt(),
+      _TypeOption.decimal => const DDecimal(),
+      _TypeOption.bool => const DBool(),
+      _TypeOption.timestamp => const DTimestamp(),
+      _TypeOption.duration => const DDuration(),
+      _TypeOption.enumType => _enumGroup == null ? null : DEnum(_enumGroup!),
+      null => throw UnimplementedError(),
     };
     widget.onChanged(type);
   }
@@ -131,15 +133,16 @@ class _FieldTypeSelectorState extends State<FieldTypeSelector> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        DropdownButtonFormField<_TypeKind>(
+        DropdownButtonFormField<_TypeOption>(
           initialValue: _kind,
           decoration: const InputDecoration(labelText: 'Data type'),
           items: const [
-            DropdownMenuItem(value: _TypeKind.int, child: Text('Integer')),
-            DropdownMenuItem(value: _TypeKind.decimal, child: Text('Decimal')),
-            DropdownMenuItem(value: _TypeKind.bool, child: Text('Yes / No')),
-            DropdownMenuItem(value: _TypeKind.timestamp, child: Text('Timestamp')),
-            DropdownMenuItem(value: _TypeKind.enumType, child: Text('Choice (enum)')),
+            DropdownMenuItem(value: _TypeOption.int, child: Text('Integer')),
+            DropdownMenuItem(value: _TypeOption.decimal, child: Text('Decimal')),
+            DropdownMenuItem(value: _TypeOption.bool, child: Text('Yes / No')),
+            DropdownMenuItem(value: _TypeOption.timestamp, child: Text('Timestamp')),
+            DropdownMenuItem(value: _TypeOption.enumType, child: Text('Choice (enum)')),
+
             // Future: List(...), Tuple(...) — each pushes a nested
             // FieldTypeSelector for the element/sub-field type(s).
           ],
@@ -151,10 +154,10 @@ class _FieldTypeSelectorState extends State<FieldTypeSelector> {
             _emit();
           },
         ),
-        if (_kind == _TypeKind.enumType) ...[
+        if (_kind == _TypeOption.enumType) ...[
           const SizedBox(height: 12),
           if (widget.enumGroups.isEmpty)
-            const Text('No enum groups yet — create one first.')
+            const Text('No enums defined.')
           else
             DropdownButtonFormField<String>(
               initialValue: _enumGroup,

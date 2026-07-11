@@ -5,6 +5,7 @@ import 'package:data_app2/data/evt.dart';
 import 'package:data_app2/data/evt_cat.dart';
 import 'package:data_app2/data/evt_type.dart';
 import 'package:data_app2/data/location.dart';
+import 'package:data_app2/data/user_schema.dart';
 import 'package:data_app2/db_service.dart';
 import 'package:data_app2/local_datetime.dart';
 import 'package:data_app2/util/colors.dart';
@@ -27,9 +28,35 @@ class TestDummyData {
   static LocationDraft makeLocDraft(int i) =>
       LocationDraft('loc $i', rng.nextDouble() * 50 - 25, rng.nextDouble() * 50 - 25);
 
+  /// Event category with rotating colors
   static EvtCatDraft makeEvtCatDraft(int i) {
     final colors = ColorEngine.defaults.values.toList();
     return EvtCatDraft('cat $i', colors[i % colors.length]);
+  }
+
+  /// Schema with [i] fields of rotating types and nullability
+  static BlobSchemaDraft makeBlobSchemaDraft(int i) {
+    final types = <BlobFieldType>[DInt(), DBool()];
+    return BlobSchemaDraft(
+      'bs $i',
+      fields: Map.fromEntries(
+        Iterable.generate(i, (id) => MapEntry("f $id", BlobFieldSpec(types[i % types.length], nullable: id % 2 == 0))),
+      ),
+    );
+  }
+
+  /// Schema with [i] fields of rotating types and nullability
+  static UserBlobDraft makeBlobDraft(int i) {
+    return UserBlobDraft(
+      i,
+      eventId: (i % 2 == 0) ? i * 3 : null,
+      values: Map.fromEntries(
+        Iterable.generate(
+          i,
+          (id) => MapEntry("v_$id", i + 7),
+        ),
+      ),
+    );
   }
 }
 

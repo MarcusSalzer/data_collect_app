@@ -70,25 +70,12 @@ class EvtTypeDetailVm extends EditVm<EvtTypeRec, EvtTypeDraft> {
     return didDelete;
   }
 
-  // save event type to DB, returns error message or null if successful
   @override
   save() async {
-    final storedId = stored?.id;
-
     try {
-      if (storedId == null) {
-        // We are creating a new record
-        final newId = await _db.evtTypes.create(draft);
-        final newRec = draft.toRec(newId);
-        _typeManager.upsertType(newRec);
-        stored = newRec;
-      } else {
-        // We are updating a stored record
-        final updated = draft.toRec(storedId);
-        await _db.evtTypes.update(updated);
-        _typeManager.upsertType(updated);
-        stored = updated;
-      }
+      final updated = await _db.evtTypes.createOrUpdate(draft, stored?.id);
+      _typeManager.upsertType(updated);
+      stored = updated;
     } on IsarError catch (e) {
       if (e.message.contains("Unique")) {
         errorMsg = "Please give a unique name";
@@ -98,6 +85,7 @@ class EvtTypeDetailVm extends EditVm<EvtTypeRec, EvtTypeDraft> {
     } catch (e) {
       errorMsg = e.toString();
     }
+    // always notify after
     notifyListeners();
   }
 }

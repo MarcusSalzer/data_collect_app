@@ -1,6 +1,5 @@
 import 'package:data_app2/contracts/data.dart';
 import 'package:data_app2/users_schema.dart';
-import 'package:flutter/foundation.dart';
 import 'package:collection/collection.dart';
 // ============ ENUMS ============
 
@@ -138,9 +137,9 @@ sealed class BlobFieldType {
       'int' => const DInt(),
       'decimal' => const DDecimal(),
       'bool' => const DBool(),
+      'timestamp' => const DTimestamp(),
+      'duration' => const DDuration(),
       'enum' => DEnum(json['group'] as String),
-      // Reserved for later
-      // 'list' => DList(FieldSpec.fromJson(json['element'])),
       'tuple' => DTuple([for (final e in json['elements']) BlobFieldSpec.fromJson(e)]),
       _ => throw FormatException('Unknown field kind: $kind'),
     };
@@ -170,18 +169,18 @@ final class DBool extends BlobFieldType {
   Map<String, dynamic> toJson() => {'kind': 'bool'};
 }
 
-/// Represents a single timestamp
+/// Represents a single timestamp (milliseconds)
 final class DTimestamp extends BlobFieldType {
   const DTimestamp();
   @override
   Map<String, dynamic> toJson() => {'kind': 'timestamp'};
 }
 
-/// Represents a duration of time
+/// Represents a duration of time (milliseconds)
 final class DDuration extends BlobFieldType {
   const DDuration();
   @override
-  Map<String, dynamic> toJson() => {'kind': 'timestamp'};
+  Map<String, dynamic> toJson() => {'kind': 'duration'};
 }
 
 /// References a named group of user-defined enum values (e.g. "food").
@@ -217,6 +216,18 @@ class BlobFieldSpec {
     'type': type.toJson(),
     if (nullable) 'nullable': true,
   };
+  @override
+  String toString() {
+    return "BFS(${type.runtimeType}, null? $nullable)";
+  }
+
+  @override
+  int get hashCode => DeepCollectionEquality().hash(toJson());
+
+  @override
+  bool operator ==(Object other) {
+    return other is BlobFieldSpec && DeepCollectionEquality().equals(other.toJson(), toJson());
+  }
 }
 
 class BlobSchemaDraft implements Draft<BlobSchemaRec> {
@@ -234,12 +245,15 @@ class BlobSchemaDraft implements Draft<BlobSchemaRec> {
 
   @override
   bool operator ==(Object other) {
-    return other is BlobSchemaDraft && other.name == name && mapEquals(other.fields, fields);
+    return other is BlobSchemaDraft && other.name == name && DeepCollectionEquality().equals(other.fields, fields);
   }
 
   @override
-  // TODO: implement hashCode
   int get hashCode => Object.hash(name, fields);
+  @override
+  String toString() {
+    return "$name: $fields";
+  }
 }
 
 class BlobSchemaRec implements Identifiable {
@@ -258,6 +272,11 @@ class BlobSchemaRec implements Identifiable {
     name,
     fields: Map.from(fields),
   );
+
+  @override
+  String toString() {
+    return "$id, ${toDraft()}";
+  }
 }
 
 // ============ BLOB DATA (each record is an instance of these...) ============
