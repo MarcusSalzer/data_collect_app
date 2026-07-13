@@ -17,10 +17,11 @@
 - ✅ _26-02-10_ Consistent edit screens, category-color system. Daily summary `v0.1.1`
 - ✅ _26-03-15_ "day starts at", better time range filter, test coverage, state consumer cleanup
 - ✅ _26-05-03_ Events can have locations.
+-    ? Blobs, Schemas and Enums. (ndjson based import/export)
 
 Maybe:
 
-- ❓ tabular data (datatypes: int, dec, user-enum, event)
+-    link blob to event, more blob dtypes
 - ❓ colorful/dynamic theme
 - ❓ Persistent event filter, can apply globally in app?
 - ❓ event type stats: timeseries and summary statistics
@@ -37,6 +38,7 @@ Maybe:
 - Reduce storage permissions?
 - changing colors does not reload types.
 - are events sorted in "instances"?
+- cannot unset location
 
 ## Overall architecture
 

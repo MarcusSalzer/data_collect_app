@@ -182,24 +182,23 @@ class UserBlobIsar {
   });
 }
 
+/// Which schemas should the database use.
+const isarSchemas = [
+  EventIsarSchema,
+  EventTypeIsarSchema,
+  EventCategoryIsarSchema,
+  LocationIsarSchema,
+  UserEnumIsarSchema,
+  UserEnumValueIsarSchema,
+  // UserRowSchema,
+  // UserColumnSchema,
+  // UserTableSchema,
+  UserBlobSchemaIsarSchema,
+  UserBlobIsarSchema,
+];
+
 /// Initialize DB connection
 Future<Isar> initIsar(Directory dir) async {
-  final isar = await Isar.open(
-    [
-      EventIsarSchema,
-      EventTypeIsarSchema,
-      EventCategoryIsarSchema,
-      LocationIsarSchema,
-      UserEnumIsarSchema,
-      UserEnumValueIsarSchema,
-      // UserRowSchema,
-      // UserColumnSchema,
-      // UserTableSchema,
-      UserBlobSchemaIsarSchema,
-      UserBlobIsarSchema,
-    ],
-    name: "data_app_db",
-    directory: dir.path,
-  );
+  final isar = await Isar.open(isarSchemas, name: "data_app_db", directory: dir.path);
   return isar;
 }

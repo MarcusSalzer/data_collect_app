@@ -66,12 +66,13 @@ Future<void> fillDbWithDummyData(
   int nTypes = 5,
   int nEvts = 20,
   int nLocs = 4,
+  int nEnums = 4,
 }) async {
-  // ---- Categories ----
+  // --- Categories ---
   final catDrafts = List.generate(nCats, TestDummyData.makeEvtCatDraft);
   final catIds = await db.evtCats.createAll(catDrafts);
 
-  // ---- Types (each linked to a valid category) ----
+  // --- Types (each linked to a valid category) ---
   final typeDrafts = List.generate(
     nTypes,
     (i) => TestDummyData.makeEvtTypeDraft(i)..categoryId = catIds[i % catIds.length],
@@ -83,7 +84,7 @@ Future<void> fillDbWithDummyData(
   final locDrafts = List.generate(nLocs, (i) => TestDummyData.makeLocDraft(i));
   final locIds = await db.locations.createAll(locDrafts);
 
-  // ---- Events (each linked to a valid type) ----
+  // --- Events (each linked to a valid type) ---
   final rng = Random(33);
   final evtDrafts = List.generate(
     nEvts,
@@ -92,6 +93,20 @@ Future<void> fillDbWithDummyData(
       ..locationId = rng.nextBool() ? locIds[i % locIds.length] : null,
   );
   await db.evts.createAll(evtDrafts);
+
+  // --- enums ---
+  final enumDrafts = List.generate(nEnums, (i) => UserEnumDraft("enum $i"));
+  final enumIds = await db.userEnums.createAll(enumDrafts);
+  final evDrafts = <UserEnumValueDraft>[];
+  // Make N values for the N:th enum
+  for (var (idx, enumId) in enumIds.indexed) {
+    for (var i = 0; i < idx; i++) {
+      evDrafts.add(
+        UserEnumValueDraft(enumId, "E$enumId-V$i"),
+      );
+    }
+  }
+  await db.userEnumValues.createAll(evDrafts);
 }
 
 /// Specific test data in relation to

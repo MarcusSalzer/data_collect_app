@@ -74,7 +74,7 @@ class UserEnumEditVm extends EditVm<UserEnumRec, UserEnumDraft> {
       final storedValIds = storedValues.map((v) => v.id).toSet();
 
       // simply replace all values for this enum
-      // TODO AVOID Wwasting db Ids?
+      // TODO AVOID Wasting db Ids?
       for (final id in storedValIds) {
         await _db.userEnumValues.forceDelete(id);
       }

@@ -10,21 +10,8 @@ import 'paths.dart';
 
 Future<Isar> getTmpIsar() async {
   await Isar.initializeIsarCore(download: true);
-
   final dir = await getTmpDir();
-  final isar = await Isar.open(
-    [
-      EventIsarSchema,
-      EventTypeIsarSchema,
-      EventCategoryIsarSchema,
-      LocationIsarSchema,
-      UserBlobIsarSchema,
-      UserBlobSchemaIsarSchema,
-    ],
-    directory: dir.path,
-    name: 'test_db',
-    inspector: false,
-  );
+  final isar = await Isar.open(isarSchemas, directory: dir.path, name: 'test_db', inspector: false);
   return isar;
 }
 

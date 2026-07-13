@@ -35,6 +35,8 @@ class UserEnumValueRec implements Identifiable {
   final String name;
   @override
   UserEnumValueDraft toDraft() => UserEnumValueDraft(enumId, name);
+
+  Map<String, dynamic> toJson() => {'id': id, "name": name};
 }
 
 class UserEnumValueDraft implements Draft<UserEnumValueRec> {
@@ -43,6 +45,15 @@ class UserEnumValueDraft implements Draft<UserEnumValueRec> {
   String name;
   @override
   UserEnumValueRec toRec(int id) => UserEnumValueRec(id, enumId: enumId, name: name);
+}
+
+/// Data object to hold a enum and its values
+class UserEnumHydrated extends UserEnumRec {
+  final List<UserEnumValueRec> values;
+
+  UserEnumHydrated(super.id, this.values, {required super.name});
+
+  Map<String, dynamic> toJson() => {'id': id, "name": name, "values": values};
 }
 
 // ============ USER TABLE THINGS (EXPERIMENTAL) ============
@@ -263,6 +274,7 @@ class BlobSchemaDraft implements Draft<BlobSchemaRec> {
   }
 }
 
+/// Stored schema definition
 class BlobSchemaRec implements Identifiable {
   const BlobSchemaRec(
     this.id, {
@@ -284,10 +296,14 @@ class BlobSchemaRec implements Identifiable {
   String toString() {
     return "$id, ${toDraft()}";
   }
+
+  /// Complete JSON of the stored object
+  Map<String, dynamic> toJson() => {"id": id, "name": name, "fields": fields};
 }
 
 // ============ BLOB DATA (each record is an instance of these...) ============
 
+/// Stored data, belongs to some schema.
 class UserBlobRec implements Identifiable {
   const UserBlobRec(
     this.id, {
@@ -306,6 +322,9 @@ class UserBlobRec implements Identifiable {
     eventId: eventId,
     values: values,
   );
+
+  /// Complete JSON of the stored object
+  Map<String, dynamic> toJson() => {"id": id, "schemaId": schemaId, "eventId": eventId, "values": values};
 }
 
 class UserBlobDraft extends Draft<UserBlobRec> {

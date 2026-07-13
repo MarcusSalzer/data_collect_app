@@ -23,6 +23,16 @@ extension ImportOverlapPolicyUi on ImportOverlapPolicy {
   };
 }
 
+///Keep track of csv data to import
+class CsvImportHandler {
+  //
+}
+
+// keep track of things to import
+class NDJsonImportHandler {
+  //
+}
+
 /// Handle folder import workflow:
 /// - scan folder
 /// - prepare data

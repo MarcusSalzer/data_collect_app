@@ -1,5 +1,6 @@
 import 'package:data_app2/data/evt_cat.dart';
 import 'package:data_app2/data/evt_type.dart';
+import 'package:data_app2/data/user_schema.dart';
 import 'package:data_app2/repos/blob_repos.dart';
 import 'package:data_app2/repos/evt_cat_repo.dart';
 import 'package:data_app2/repos/evt_repo.dart';
@@ -77,5 +78,18 @@ class DBService {
 
   Future<(Iterable<EvtTypeRec>, Iterable<EvtCatRec>)> allTypesAndCats() async {
     return (await evtTypes.all(), await evtCats.all());
+  }
+
+  /// Get all enums and their values.
+  Future<Iterable<UserEnumHydrated>> allEnumsWithValues() async {
+    final eAll = userEnums.all();
+    final vAll = userEnumValues.all();
+
+    final vmap = <int, List<UserEnumValueRec>>{};
+    for (var v in await vAll) {
+      vmap.putIfAbsent(v.enumId, () => []).add(v);
+    }
+
+    return (await eAll).map((e) => UserEnumHydrated(e.id, vmap[e.id] ?? [], name: e.name));
   }
 }

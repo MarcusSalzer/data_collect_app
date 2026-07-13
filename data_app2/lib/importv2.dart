@@ -152,9 +152,11 @@ class ImportCandidateCollection {
     final role = roleFromName(p.basename(file.path));
     final size = (await file.stat()).size;
 
-    cands[role]!.add(
-      ImportCandidate(file, cols, size, role, CsvSchemasConst.byImportRole[role]),
-    );
+    cands
+        .putIfAbsent(role, () => [])
+        .add(
+          ImportCandidate(file, cols, size, role, CsvSchemasConst.byImportRole[role]),
+        );
   }
 
   /// Useful for UI / flow decisions

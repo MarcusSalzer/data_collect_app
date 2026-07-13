@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:data_app2/csv/csv_schema.dart';
 import 'package:data_app2/csv/evt_cat_csv.dart';
@@ -78,7 +79,21 @@ class CompleteExportService {
     // --------- Preferences ---------
     PrefsIo.store(prefs, File(p.join(folderPath, "prefs.json")));
 
-    return {"events": nEvt, "types": nType, "categories": nCat, "locations": nLoc};
+    // --------- Blob: schemas & records as separate files ---------
+    final nBlobSchemas = await _saveNdjson(await db.blobSchemas.all(), "blob_schemas.ndjson");
+    final nBlobs = await _saveNdjson(await db.blobs.all(), "blob_records.ndjson");
+
+    // --------- Enums: Groups and values in same file ---------
+    final nEnum = await _saveNdjson(await db.allEnumsWithValues(), "enums.ndjson");
+    return {
+      "events": nEvt,
+      "types": nType,
+      "categories": nCat,
+      "locations": nLoc,
+      "schemas": nBlobSchemas,
+      "records": nBlobs,
+      "enums": nEnum,
+    };
   }
 
   /// Save some data with a compatible CSV writer
@@ -96,6 +111,25 @@ class CompleteExportService {
     await file.writeAsString(lines.join("\n"));
     // How many lines were written
     return lines.length;
+  }
+
+  /// Save some data as json lines
+  Future<int> _saveNdjson(Iterable<Object> records, String filename) async {
+    // prepare file
+    final file = File(p.join(folderPath, filename));
+    if (await file.exists()) {
+      throw ExportError("Target (${file.path}) already exists.");
+    }
+    await file.create(recursive: true);
+    final sink = file.openWrite();
+    var count = 0;
+    for (var r in records) {
+      sink.writeln(jsonEncode(r));
+      count++;
+    }
+    await sink.flush();
+    await sink.close();
+    return count;
   }
 }
 

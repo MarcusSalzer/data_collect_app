@@ -10,7 +10,7 @@ class EvtTypeCsvCodec extends CsvCodecRW<EvtTypeDraft> {
   final int? Function(String) catIdFromName;
   EvtTypeCsvCodec({super.sep, required this.catNameFromId, required this.catIdFromName});
 
-  /// Get reslve-functions from a typemanager
+  /// Get resolve-functions from a typemanager
   EvtTypeCsvCodec.fromTypeManager(EvtTypeManager tm)
     : this(catNameFromId: (i) => tm.catFromId(i)?.name, catIdFromName: (i) => tm.catFromName(i)?.id);
 

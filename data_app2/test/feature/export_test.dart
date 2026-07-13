@@ -58,11 +58,14 @@ void main() {
 
     final childs = folder.listSync().map((f) => p.basename(f.path)).toSet();
     expect(childs, {
+      'blob_records.ndjson',
+      'blob_schemas.ndjson',
       "events_all.csv",
       "event_types.csv",
       "event_categories.csv",
       "locations.csv",
       "prefs.json",
+      "enums.ndjson",
     });
 
     // check contents

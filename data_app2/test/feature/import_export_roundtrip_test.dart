@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:data_app2/app_state.dart';
+import 'package:data_app2/contracts/crud_repo.dart';
 import 'package:data_app2/daily_evt_summary_service.dart';
 import 'package:data_app2/export_service.dart';
 import 'package:data_app2/view_models/import_folder_vm.dart';
@@ -29,10 +30,40 @@ Future<void> exportImport(AppState app) async {
 }
 
 void main() {
+  late final AppState app;
+  setUpAll(() async {
+    app = await getDummyApp();
+  });
+  tearDownAll(() async {
+    await app.db.isar.close();
+  });
+  setUp(() async {
+    // dummy app with dummy data
+    await fillDbWithDummyData(app.db);
+  });
+  tearDown(() async {
+    await app.db.clear();
+  });
+  test('object counts are preserved', () async {
+    // Check item counts for these repos
+    final repos = <CrudRepo>[
+      app.db.evts,
+      app.db.evtTypes,
+      app.db.evtCats,
+      app.db.locations,
+      app.db.locations,
+      app.db.userEnumValues,
+      app.db.userEnums,
+    ];
+    final countsPre = await Future.wait(repos.map((r) => r.count()));
+    print(countsPre);
+    await exportImport(app);
+    final countsPost = await Future.wait(repos.map((r) => r.count()));
+
+    expect(countsPost, countsPre);
+  });
   test('DB fingerprint is preserved when exporting and importing', () async {
     // dummy app with dummy data
-    final app = await getDummyApp();
-    await fillDbWithDummyData(app.db);
 
     final summaryPre = await DailyEvtSummaryService(app.evtTypeManager, app.db).buildAll();
     await exportImport(app);
