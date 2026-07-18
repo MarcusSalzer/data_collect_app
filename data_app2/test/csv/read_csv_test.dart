@@ -14,7 +14,7 @@ void main() {
   evtTypeMan.reloadFromModels([EvtTypeRec(137, "phone call")], []);
 
   group("events", () {
-    final codec = EvtCsvCodec(evtTypeMan, locMan);
+    final codec = EvtCsvCodecHuman(evtTypeMan, locMan);
     test("read event (Especially local datetimes...)", () {
       final lines = [
         "id,type,start_utc,start_offset_s,end_utc,end_offset_s,location",

@@ -7,7 +7,7 @@ import 'package:data_app2/csv/csv_schema.dart';
 import 'package:data_app2/csv/evt_cat_csv.dart';
 import 'package:data_app2/csv/evt_csv.dart';
 import 'package:data_app2/csv/evt_type_csv.dart';
-import 'package:data_app2/csv/infer_from_header.dart';
+import 'package:data_app2/csv/infer_role.dart';
 import 'package:data_app2/csv/location_csv.dart';
 import 'package:data_app2/data/evt.dart';
 import 'package:data_app2/util/enums.dart';
@@ -36,9 +36,9 @@ class ImportRoleDef {
 Map<ImportFileRole, ImportRoleDef> getImportRoleDefinitions(AppState app) {
   return {
     ImportFileRole.eventCats: ImportRoleDef(
-      schema: CsvSchemasConst.evtCat,
+      schema: CsvSchemasConst.evtCatHuman,
       import: (rows) async {
-        final items = EvtCatCsvCodec().decode(rows).toList();
+        final items = EvtCatCsvCodecHuman().decode(rows).toList();
         final nSkip = await app.db.evtCats.createIfPossible(items);
         return items.length - nSkip;
       },
@@ -49,7 +49,7 @@ Map<ImportFileRole, ImportRoleDef> getImportRoleDefinitions(AppState app) {
     ),
 
     ImportFileRole.eventTypes: ImportRoleDef(
-      schema: CsvSchemasConst.evtType,
+      schema: CsvSchemasConst.evtTypeHuman,
       validate: (rows) {
         final counts = <String, int>{};
         for (var name in rows.map((r) => r.req("name"))) {
@@ -63,7 +63,7 @@ Map<ImportFileRole, ImportRoleDef> getImportRoleDefinitions(AppState app) {
         }
       },
       import: (rows) async {
-        final items = EvtTypeCsvCodec.fromTypeManager(app.evtTypeManager).decode(rows);
+        final items = EvtTypeCsvCodecHuman.fromTypeManager(app.evtTypeManager).decode(rows);
 
         final created = await app.db.evtTypes.createAllThrowEarly(items);
         return created.length;
@@ -77,18 +77,18 @@ Map<ImportFileRole, ImportRoleDef> getImportRoleDefinitions(AppState app) {
     ),
 
     ImportFileRole.locations: ImportRoleDef(
-      schema: CsvSchemasConst.location,
+      schema: CsvSchemasConst.locationHuman,
       import: (rows) async {
-        final items = LocationCsvCodec().decode(rows);
+        final items = LocationCsvCodecHuman().decode(rows);
         final created = await app.db.locations.createAllThrowEarly(items);
         return created.length;
       },
     ),
 
     ImportFileRole.events: ImportRoleDef(
-      schema: CsvSchemasConst.evt,
+      schema: CsvSchemasConst.evtHuman,
       import: (rows) async {
-        final items = EvtCsvCodec(
+        final items = EvtCsvCodecHuman(
           app.evtTypeManager,
           app.locationManager,
         ).decode(rows);
@@ -106,7 +106,11 @@ Map<ImportFileRole, ImportRoleDef> getImportRoleDefinitions(AppState app) {
 }
 
 ImportRoleDef getRoleDef(AppState app, ImportFileRole role) {
-  return getImportRoleDefinitions(app)[role]!;
+  final r = getImportRoleDefinitions(app)[role];
+  if (r == null) {
+    throw StateError("could not find import role definition for $role");
+  }
+  return r;
 }
 
 class ImportCandidate {

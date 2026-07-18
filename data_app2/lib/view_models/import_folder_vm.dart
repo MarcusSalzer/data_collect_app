@@ -23,14 +23,79 @@ extension ImportOverlapPolicyUi on ImportOverlapPolicy {
   };
 }
 
-///Keep track of csv data to import
-class CsvImportHandler {
-  //
-}
+// class ImportCandidateV3 {
+//   final File file;
+//   final int size;
+//   final ImportFileRole role;
+//   final ImportFileMode mode;
 
-// keep track of things to import
-class NDJsonImportHandler {
-  //
+//   ImportCandidateV3(this.file, this.role, this.mode, this.size);
+
+//   String get name => file.path.split("/").last;
+// }
+
+/// Keep track of csv data to import
+/// Old system for human-schema import. supports only evt/evtType/evtCat/location
+/// NOTE: Will not preserve ids, use only for backwards compatibility!
+class HumanCsvImportManager {
+  final candidates = ImportCandidateCollection(); // mutable collection
+  final Map<ImportCandidate, List<CsvRow>> rowsPerCand = {};
+
+  Future<void> scan(Directory folder) async {
+    candidates.clear();
+    // Find all files with .csv extension
+    final filesCsv = folder.listSync().whereType<File>().where((f) => f.path.toLowerCase().endsWith('.csv'));
+
+    for (final file in filesCsv) {
+      await candidates.addFile(file);
+    }
+  }
+
+  Future<void> prepareRows(AppState app) async {
+    for (final entry in candidates.cands.entries) {
+      final role = entry.key;
+      if (entry.value.isEmpty) {
+        // no data, safe to skip
+        continue;
+      }
+      final def = getRoleDef(app, role);
+
+      for (final cand in entry.value) {
+        final rows = parseRows(await cand.file.readAsLines()).toList();
+
+        def.validate?.call(rows);
+
+        rowsPerCand[cand] = rows;
+      }
+    }
+  }
+
+  Future<ImportResult> importToDb(AppState app) async {
+    final res = ImportResult();
+    const order = [
+      ImportFileRole.eventCats,
+      ImportFileRole.eventTypes,
+      ImportFileRole.locations,
+      ImportFileRole.events,
+    ];
+    for (final role in order) {
+      final def = getRoleDef(app, role);
+
+      for (final cand in candidates.cands[role]!) {
+        if (rowsPerCand[cand] case List<CsvRow> rows) {
+          final c = await def.import(rows);
+          res.add(role, c);
+        }
+      }
+
+      //  side effects live HERE
+      final sideEffect = def.afterAll;
+      if (sideEffect != null) {
+        await sideEffect();
+      }
+    }
+    return res;
+  }
 }
 
 /// Handle folder import workflow:
@@ -46,8 +111,7 @@ class ImportFolderVm extends ChangeNotifier {
   final Directory folder;
 
   // --- State ---
-  final _candidates = ImportCandidateCollection(); // mutable collection
-  final Map<ImportCandidate, List<CsvRow>> rowsPerCand = {};
+  final manager = HumanCsvImportManager();
 
   ImportStep _step = ImportStep.scanningFolder; // progress through steps
   String? _errorMsg;
@@ -59,7 +123,7 @@ class ImportFolderVm extends ChangeNotifier {
   ImportStep get step => _step;
   String? get error => _errorMsg;
   ImportResult? get result => _result;
-  ImportCandidateCollection get candidates => _candidates;
+  ImportCandidateCollection get candidates => manager.candidates;
   ImportOverlapPolicy get overlapPolicy => _overlapPolicy;
   bool get showOverlapOptions => _showOverlapOptions;
 
@@ -68,15 +132,7 @@ class ImportFolderVm extends ChangeNotifier {
     _setStep(ImportStep.scanningFolder);
 
     try {
-      _candidates.clear();
-
-      // Find all files with .csv extension
-      final files = folder.listSync().whereType<File>().where((f) => f.path.toLowerCase().endsWith('.csv'));
-
-      for (final file in files) {
-        await _candidates.addFile(file);
-      }
-
+      await manager.scan(folder);
       _setStep(ImportStep.confirmFiles);
     } on PathNotFoundException catch (e) {
       _fail("Could not find the directory '${e.path}'. (${e.osError})");
@@ -87,21 +143,9 @@ class ImportFolderVm extends ChangeNotifier {
 
   Future<void> prepareCsvRows() async {
     _setStep(ImportStep.preparingModels);
+    await manager.prepareRows(_app);
 
     try {
-      for (final entry in candidates.cands.entries) {
-        final role = entry.key;
-        final def = getRoleDef(_app, role);
-
-        for (final cand in entry.value) {
-          final rows = parseRows(await cand.file.readAsLines()).toList();
-
-          def.validate?.call(rows);
-
-          rowsPerCand[cand] = rows;
-        }
-      }
-
       _setStep(ImportStep.confirmImport);
     } catch (e) {
       _fail(e.toString());
@@ -110,31 +154,9 @@ class ImportFolderVm extends ChangeNotifier {
 
   Future<void> importToDb() async {
     _setStep(ImportStep.importing);
-    final res = ImportResult();
-    const order = [
-      ImportFileRole.eventCats,
-      ImportFileRole.eventTypes,
-      ImportFileRole.locations,
-      ImportFileRole.events,
-    ];
+
     try {
-      for (final role in order) {
-        final def = getRoleDef(_app, role);
-
-        for (final cand in candidates.cands[role]!) {
-          if (rowsPerCand[cand] case List<CsvRow> rows) {
-            final c = await def.import(rows);
-            res.add(role, c);
-          }
-        }
-
-        //  side effects live HERE
-        final sideEffect = def.afterAll;
-        if (sideEffect != null) {
-          await sideEffect();
-        }
-      }
-      _result = res;
+      _result = await manager.importToDb(_app);
       _setStep(ImportStep.done);
     } catch (e) {
       _fail(e.toString());

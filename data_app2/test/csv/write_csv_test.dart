@@ -34,10 +34,10 @@ void main() {
       end: LocalDateTime.fromUtcISOAndOffset(utcIso: "1970-01-01T00:01:00Z", offsetMillis: 3000),
     );
 
-    final codec = EvtCsvCodec(evtTypeMan, locMan);
+    final codec = EvtCsvCodecHuman(evtTypeMan, locMan);
     final lines = codec.encodeWithHeader([evtRec]).toList();
 
-    expect(lines[0], CsvSchemasConst.evt.writeCols.join(","));
+    expect(lines[0], CsvSchemasConst.evtHuman.writeCols.join(","));
     expect(lines[1], "$typeName,1970-01-01T00:00:00Z,2,1970-01-01T00:01:00Z,3,");
   });
   test('write single Event Draft, missing timestamp and location', () {
@@ -48,10 +48,10 @@ void main() {
       end: null,
     );
 
-    final codec = EvtCsvCodec(evtTypeMan, locMan);
+    final codec = EvtCsvCodecHuman(evtTypeMan, locMan);
     final lines = codec.encodeWithHeader([evtRec]).toList();
 
-    expect(lines[0], CsvSchemasConst.evt.writeCols.join(","));
+    expect(lines[0], CsvSchemasConst.evtHuman.writeCols.join(","));
     expect(lines[1], "$typeName,1970-01-01T00:00:00Z,2,,,");
   });
   test('write single Event Draft, missing timestamp, has location', () {
@@ -64,17 +64,17 @@ void main() {
       locationId: loc.id,
     );
 
-    final codec = EvtCsvCodec(evtTypeMan, locMan);
+    final codec = EvtCsvCodecHuman(evtTypeMan, locMan);
     final lines = codec.encodeWithHeader([evtRec]).toList();
 
-    expect(lines[0], CsvSchemasConst.evt.writeCols.join(","));
+    expect(lines[0], CsvSchemasConst.evtHuman.writeCols.join(","));
     expect(lines[1], "$typeName,1970-01-01T00:00:00Z,2,,,${loc.name}");
   });
 
   // EVENT TYPES
 
   test('write single EventType', () {
-    final codec = EvtTypeCsvCodec.fromTypeManager(evtTypeMan);
+    final codec = EvtTypeCsvCodecHuman.fromTypeManager(evtTypeMan);
     final cat = evtTypeMan.allCats.last;
     // create a new event
     final r = EvtTypeDraft("mytype", cat.id);

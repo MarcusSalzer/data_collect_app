@@ -1,4 +1,4 @@
-import 'package:data_app2/csv/infer_from_header.dart';
+import 'package:data_app2/csv/infer_role.dart';
 import 'package:test/test.dart';
 import '../test_util/paths.dart';
 

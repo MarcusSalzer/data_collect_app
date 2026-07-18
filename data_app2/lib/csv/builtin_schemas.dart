@@ -3,18 +3,32 @@ import 'package:data_app2/util/enums.dart';
 
 /// Consts for domain models
 class CsvSchemasConst {
-  static const evt = CsvSchema(
+  // event
+  static const evtHuman = CsvSchema(
     ["type", "start_utc", "start_offset_s", "end_utc", "end_offset_s", "location"],
     {"type"},
   );
-  static const evtCat = CsvSchema(["name"], {"name"});
-  static const location = CsvSchema(["name", "lat", "lng"], {"name", "lat", "lng"});
-  static const evtType = CsvSchema(["name", "category"], {"name"});
+  static const evtRaw = CsvSchema(
+    ["id", "type_id", "start_utc", "start_offset_s", "end_utc", "end_offset_s", "location_id"],
+    {"id", "type_id"},
+  );
+
+  // category
+  static const evtCatHuman = CsvSchema(["name"], {"name"});
+  static const evtCatRaw = CsvSchema(["id", "name"], {"id", "name"});
+
+  // location
+  static const locationHuman = CsvSchema(["name", "lat", "lng"], {"name", "lat", "lng"});
+  static const locationRaw = CsvSchema(["id", "name", "lat", "lng"], {"id", "name", "lat", "lng"});
+
+  // event type
+  static const evtTypeHuman = CsvSchema(["name", "category"], {"name"});
+  static const evtTypeRaw = CsvSchema(["id", "name", "category_id"], {"id", "name"});
 
   static const byImportRole = {
-    ImportFileRole.events: evt,
-    ImportFileRole.eventTypes: evtType,
-    ImportFileRole.eventCats: evtCat,
-    ImportFileRole.locations: location,
+    ImportFileRole.events: evtHuman,
+    ImportFileRole.eventTypes: evtTypeHuman,
+    ImportFileRole.eventCats: evtCatHuman,
+    ImportFileRole.locations: locationHuman,
   };
 }

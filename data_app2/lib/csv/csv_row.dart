@@ -1,3 +1,5 @@
+import 'package:data_app2/local_datetime.dart';
+
 const colsEvt = ["id", "type_name", "start_utc", "start_offset_s", "end_utc", "end_offset_s"];
 
 class CsvRow {
@@ -47,6 +49,12 @@ class CsvRow {
   (int, int)? optPairInt(String col1, String col2) {
     final p = optPair(col1, col2);
     return (p == null) ? null : (int.parse(p.$1), int.parse(p.$2));
+  }
+
+  /// Optional local datetime from isa and offset columns
+  LocalDateTime? optLocalDt(String colIso, String colOffset) {
+    final p = optPair(colIso, colOffset);
+    return (p == null) ? null : LocalDateTime.fromUtcISOAndOffset(utcIso: p.$1, offsetMillis: int.parse(p.$2) * 1000);
   }
 }
 

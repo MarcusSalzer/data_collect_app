@@ -4,6 +4,7 @@ import 'package:data_app2/app_state.dart';
 import 'package:data_app2/contracts/crud_repo.dart';
 import 'package:data_app2/daily_evt_summary_service.dart';
 import 'package:data_app2/export_service.dart';
+import 'package:data_app2/util/enums.dart';
 import 'package:data_app2/view_models/import_folder_vm.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -11,11 +12,15 @@ import '../test_util/dummy_app.dart';
 import '../test_util/dummy_data.dart';
 import '../test_util/paths.dart';
 
-Future<void> exportImport(AppState app) async {
+Future<void> exportImport(AppState app, ImportFileMode mode) async {
   // export!
 
   final es = CompleteExportService(await getTmpDir(), DateTime.now());
-  await es.exportAllData(app.db, app.evtTypeManager, app.locationManager, app.prefs);
+  if (mode == ImportFileMode.csvHuman) {
+    await es.exportAllDataHuman(app.db, app.evtTypeManager, app.locationManager, app.prefs);
+  } else {
+    await es.exportAllDataRaw(app.db, app.prefs);
+  }
 
   final folder = Directory(es.folderPath);
 
@@ -44,31 +49,56 @@ void main() {
   tearDown(() async {
     await app.db.clear();
   });
-  test('object counts are preserved', () async {
-    // Check item counts for these repos
-    final repos = <CrudRepo>[
-      app.db.evts,
-      app.db.evtTypes,
-      app.db.evtCats,
-      app.db.locations,
-      app.db.locations,
-      app.db.userEnumValues,
-      app.db.userEnums,
-    ];
-    final countsPre = await Future.wait(repos.map((r) => r.count()));
-    print(countsPre);
-    await exportImport(app);
-    final countsPost = await Future.wait(repos.map((r) => r.count()));
 
-    expect(countsPost, countsPre);
+  group("Human", () {
+    test('object counts are preserved', () async {
+      // Check item counts for these repos
+      // Human mode cannot restore blobs! (also skips enums)
+      final repos = <CrudRepo>[
+        app.db.evts,
+        app.db.evtTypes,
+        app.db.evtCats,
+        app.db.locations,
+        app.db.locations,
+      ];
+      final countsPre = await Future.wait(repos.map((r) => r.count()));
+      await exportImport(app, ImportFileMode.csvHuman);
+      final countsPost = await Future.wait(repos.map((r) => r.count()));
+
+      expect(countsPost, countsPre);
+    });
+    test('DB fingerprint is preserved when exporting and importing', () async {
+      final summaryPre = await DailyEvtSummaryService(app.evtTypeManager, app.db).buildAll();
+      await exportImport(app, ImportFileMode.csvHuman);
+      final summaryPost = await DailyEvtSummaryService(app.evtTypeManager, app.db).buildAll();
+
+      expect(summaryPost, summaryPre);
+    });
   });
-  test('DB fingerprint is preserved when exporting and importing', () async {
-    // dummy app with dummy data
 
-    final summaryPre = await DailyEvtSummaryService(app.evtTypeManager, app.db).buildAll();
-    await exportImport(app);
-    final summaryPost = await DailyEvtSummaryService(app.evtTypeManager, app.db).buildAll();
+  // group("Raw", () {
+  //   test('object counts are preserved', () async {
+  //     // Check item counts for these repos
+  //     // Human mode cannot restore blobs! (also skips enums)
+  //     final repos = <CrudRepo>[
+  //       app.db.evts,
+  //       app.db.evtTypes,
+  //       app.db.evtCats,
+  //       app.db.locations,
+  //       app.db.locations,
+  //     ];
+  //     final countsPre = await Future.wait(repos.map((r) => r.count()));
+  //     await exportImport(app, ImportFileMode.csvRaw);
+  //     final countsPost = await Future.wait(repos.map((r) => r.count()));
 
-    expect(summaryPost, summaryPre);
-  });
+  //     expect(countsPost, countsPre);
+  //   });
+  //   test('DB fingerprint is preserved when exporting and importing', () async {
+  //     final summaryPre = await DailyEvtSummaryService(app.evtTypeManager, app.db).buildAll();
+  //     await exportImport(app, ImportFileMode.csvRaw);
+  //     final summaryPost = await DailyEvtSummaryService(app.evtTypeManager, app.db).buildAll();
+
+  //     expect(summaryPost, summaryPre);
+  //   });
+  // });
 }

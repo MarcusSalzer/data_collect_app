@@ -5,14 +5,14 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   testWidgets('evt schema can be displayed', (tester) async {
-    await tester.pumpWidget(MaterialApp(home: Scaffold(body: SchemaDisplayCard("ok", CsvSchemasConst.evt))));
+    await tester.pumpWidget(MaterialApp(home: Scaffold(body: SchemaDisplayCard("ok", CsvSchemasConst.evtHuman))));
 
     // optional cols in parentheses
-    for (var c in CsvSchemasConst.evt.optionalCols) {
+    for (var c in CsvSchemasConst.evtHuman.optionalCols) {
       expect(find.text("($c)"), findsOneWidget);
     }
     // required cols
-    for (var c in CsvSchemasConst.evt.requiredCols) {
+    for (var c in CsvSchemasConst.evtHuman.requiredCols) {
       expect(find.text(c), findsOneWidget);
     }
   });

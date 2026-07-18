@@ -44,15 +44,15 @@ void main() {
   test("throws exception if file exists", () async {
     final es = CompleteExportService(parentDir, DateTime.now());
     // export once
-    await es.exportAllData(app.db, app.evtTypeManager, app.locationManager, app.prefs);
+    await es.exportAllDataHuman(app.db, app.evtTypeManager, app.locationManager, app.prefs);
     // should not be able to export again
-    expect(() => es.exportAllData(app.db, app.evtTypeManager, app.locationManager, app.prefs), throwsException);
+    expect(() => es.exportAllDataHuman(app.db, app.evtTypeManager, app.locationManager, app.prefs), throwsException);
   });
 
   test('writes empty', () async {
     final now = DateTime.now();
     final es = CompleteExportService(parentDir, now);
-    await es.exportAllData(app.db, app.evtTypeManager, app.locationManager, app.prefs);
+    await es.exportAllDataHuman(app.db, app.evtTypeManager, app.locationManager, app.prefs);
     final folder = correctOutDir(parentDir, now);
     expect(folder.existsSync(), true);
 
@@ -75,10 +75,10 @@ void main() {
     final locLines = File(p.join(folder.path, "locations.csv")).readAsLinesSync();
 
     // should be empty, except for csv headers
-    expect(evtLines, [CsvSchemasConst.evt.writeCols.join(",")]);
-    expect(typeLines, [CsvSchemasConst.evtType.writeCols.join(",")]);
-    expect(catLines, [CsvSchemasConst.evtCat.writeCols.join(",")]);
-    expect(locLines, [CsvSchemasConst.location.writeCols.join(",")]);
+    expect(evtLines, [CsvSchemasConst.evtHuman.writeCols.join(",")]);
+    expect(typeLines, [CsvSchemasConst.evtTypeHuman.writeCols.join(",")]);
+    expect(catLines, [CsvSchemasConst.evtCatHuman.writeCols.join(",")]);
+    expect(locLines, [CsvSchemasConst.locationHuman.writeCols.join(",")]);
 
     // read prefs
     expect((await PrefsIo.load(File(p.join(folder.path, "prefs.json"))))?.toJson(), app.prefs.toJson());
@@ -90,7 +90,7 @@ void main() {
     // export
     final now = DateTime.now();
     final es = CompleteExportService(parentDir, now);
-    await es.exportAllData(app.db, app.evtTypeManager, app.locationManager, app.prefs);
+    await es.exportAllDataHuman(app.db, app.evtTypeManager, app.locationManager, app.prefs);
     final folder = correctOutDir(parentDir, now);
     expect(folder.existsSync(), true);
 

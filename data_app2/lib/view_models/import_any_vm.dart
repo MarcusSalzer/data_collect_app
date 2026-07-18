@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'package:data_app2/app_state.dart';
-import 'package:data_app2/csv/infer_from_header.dart';
+import 'package:data_app2/csv/infer_role.dart';
 import 'package:data_app2/csv/csv_schema.dart';
 import 'package:data_app2/csv/evt_cat_csv.dart';
 import 'package:data_app2/csv/evt_csv.dart';
@@ -35,11 +35,11 @@ class ImportAnyVm extends ChangeNotifier {
       _fail("Cannot import CSV with columns: '$cols'");
     } else {
       if (role == ImportFileRole.events) {
-        _codec = EvtCsvCodec(_app.evtTypeManager, _app.locationManager);
+        _codec = EvtCsvCodecHuman(_app.evtTypeManager, _app.locationManager);
       } else if (role == ImportFileRole.eventTypes) {
-        _codec = EvtTypeCsvCodec.fromTypeManager(_app.evtTypeManager);
+        _codec = EvtTypeCsvCodecHuman.fromTypeManager(_app.evtTypeManager);
       } else if (role == ImportFileRole.eventCats) {
-        _codec = EvtCatCsvCodec();
+        _codec = EvtCatCsvCodecHuman();
       }
       _setStep(ImportStep.confirmImport);
     }
@@ -55,13 +55,13 @@ class ImportAnyVm extends ChangeNotifier {
 
     try {
       final rows = parseRows(await File(filePath).readAsLines());
-      if (cod is EvtCsvCodec) {
+      if (cod is EvtCsvCodecHuman) {
         // Events
         await _app.db.evts.createAll(cod.decode(rows));
-      } else if (cod is EvtTypeCsvCodec) {
+      } else if (cod is EvtTypeCsvCodecHuman) {
         // Event types
         await _app.db.evtTypes.createAll(cod.decode(rows));
-      } else if (cod is EvtCatCsvCodec) {
+      } else if (cod is EvtCatCsvCodecHuman) {
         // Event categoriues
         await _app.db.evtCats.createAll(cod.decode(rows));
       }

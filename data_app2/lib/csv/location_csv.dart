@@ -3,10 +3,10 @@ import 'package:data_app2/csv/csv_row.dart';
 import 'package:data_app2/csv/csv_schema.dart';
 import 'package:data_app2/data/location.dart';
 
-class LocationCsvCodec extends CsvCodecRW<LocationDraft> {
-  LocationCsvCodec({super.sep});
+class LocationCsvCodecHuman extends CsvCodecRW<LocationDraft> {
+  LocationCsvCodecHuman({super.sep});
   @override
-  get schema => CsvSchemasConst.location;
+  get schema => CsvSchemasConst.locationHuman;
 
   @override
   build(CsvRow r) {
@@ -21,4 +21,21 @@ class LocationCsvCodec extends CsvCodecRW<LocationDraft> {
       "lng": d.lng.toString(),
     });
   }
+}
+
+class LocationCsvCodecRaw extends CsvCodecRW<LocationRec> {
+  LocationCsvCodecRaw({super.sep});
+  @override
+  get schema => CsvSchemasConst.locationHuman;
+
+  @override
+  build(CsvRow r) => LocationRec(r.reqInt("id"), name: r.req("name"), lat: r.reqDouble("lat"), lng: r.reqDouble("lng"));
+
+  @override
+  toRow(d) => CsvRow({
+    "id": d.id.toString(),
+    "name": d.name,
+    "lat": d.lat.toString(),
+    "lng": d.lng.toString(),
+  });
 }

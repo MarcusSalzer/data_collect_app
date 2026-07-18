@@ -5,17 +5,17 @@ import 'package:data_app2/data/evt_type.dart';
 import 'package:data_app2/evt_type_manager.dart';
 import 'package:data_app2/repos/evt_cat_repo.dart';
 
-class EvtTypeCsvCodec extends CsvCodecRW<EvtTypeDraft> {
+class EvtTypeCsvCodecHuman extends CsvCodecRW<EvtTypeDraft> {
   final String? Function(int) catNameFromId;
   final int? Function(String) catIdFromName;
-  EvtTypeCsvCodec({super.sep, required this.catNameFromId, required this.catIdFromName});
+  EvtTypeCsvCodecHuman({super.sep, required this.catNameFromId, required this.catIdFromName});
 
   /// Get resolve-functions from a typemanager
-  EvtTypeCsvCodec.fromTypeManager(EvtTypeManager tm)
+  EvtTypeCsvCodecHuman.fromTypeManager(EvtTypeManager tm)
     : this(catNameFromId: (i) => tm.catFromId(i)?.name, catIdFromName: (i) => tm.catFromName(i)?.id);
 
   @override
-  CsvSchema get schema => CsvSchemasConst.evtType;
+  CsvSchema get schema => CsvSchemasConst.evtTypeHuman;
 
   @override
   build(CsvRow r) {
@@ -32,5 +32,22 @@ class EvtTypeCsvCodec extends CsvCodecRW<EvtTypeDraft> {
     if (catName == null) throw FormatException("Unknown category: ${d.categoryId}");
 
     return CsvRow({"name": d.name, "category": catName});
+  }
+}
+
+class EvtTypeCsvCodecRaw extends CsvCodecRW<EvtTypeRec> {
+  EvtTypeCsvCodecRaw({super.sep});
+
+  @override
+  CsvSchema get schema => CsvSchemasConst.evtTypeRaw;
+
+  @override
+  build(CsvRow r) {
+    return EvtTypeRec(r.reqInt("id"), r.req("name"), r.optInt("category_id") ?? EvtCatRepo.defaultId);
+  }
+
+  @override
+  toRow(d) {
+    return CsvRow({"id": d.id.toString(), "name": d.name, "category_id": d.categoryId.toString()});
   }
 }

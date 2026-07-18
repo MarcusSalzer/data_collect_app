@@ -17,7 +17,7 @@ void main() {
       EvtCatRec(EvtCatRepo.defaultId, "default"),
       EvtCatRec(EvtCatRepo.defaultId + 1, "a"),
     ]);
-    final codec = EvtTypeCsvCodec.fromTypeManager(typMan);
+    final codec = EvtTypeCsvCodecHuman.fromTypeManager(typMan);
     final lines = ["name,category", "hello,a", "world,default"];
     final drafts = codec.decode(parseRows(lines));
     final written = codec.encodeWithHeader(drafts).toList();
@@ -38,7 +38,7 @@ void main() {
       EvtDraft(14, start: null, end: null, locationId: 99),
     ];
 
-    final codec = EvtCsvCodec(typMan, locMan);
+    final codec = EvtCsvCodecHuman(typMan, locMan);
     final written = codec.encodeWithHeader(drafts).toList();
     expect(written.length, 3); // Header + 2 records
     expect(written[1], "hello,,,,,");

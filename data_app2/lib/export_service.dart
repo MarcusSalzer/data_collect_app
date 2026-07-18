@@ -33,8 +33,8 @@ class CompleteExportService {
 
   CompleteExportService(this.parent, DateTime now) : name = _genName(now);
 
-  /// Export all data
-  Future<Map<String, int>> exportAllData(
+  /// Export all data (human schema variant)
+  Future<Map<String, int>> exportAllDataHuman(
     DBService db,
     EvtTypeManager typMan,
     LocationManager locMan,
@@ -51,28 +51,81 @@ class CompleteExportService {
     final nEvt = await _saveCsv<EvtDraft>(
       // Map to draft. Id:s not needed at export.
       (await db.evts.all()).map((r) => r.toDraft()),
-      EvtCsvCodec(typMan, locMan),
+      EvtCsvCodecHuman(typMan, locMan),
       "events_all.csv",
     );
 
     // --------- Event Types ---------
     final nType = await _saveCsv<EvtTypeDraft>(
       typMan.allTypes.map((e) => e.toDraft()), // all after reload
-      EvtTypeCsvCodec.fromTypeManager(typMan),
+      EvtTypeCsvCodecHuman.fromTypeManager(typMan),
       "event_types.csv",
     );
 
     // --------- Event Cats ---------
     final nCat = await _saveCsv<EvtCatDraft>(
       (await db.evtCats.all()).map((r) => r.toDraft()),
-      EvtCatCsvCodec(),
+      EvtCatCsvCodecHuman(),
       "event_categories.csv",
     );
 
     // --------- Locations ---------
     final nLoc = await _saveCsv<LocationDraft>(
       locMan.all.map((r) => r.toDraft()),
-      LocationCsvCodec(),
+      LocationCsvCodecHuman(),
+      "locations.csv",
+    );
+
+    // --------- Preferences ---------
+    PrefsIo.store(prefs, File(p.join(folderPath, "prefs.json")));
+
+    // --------- Blob: schemas & records as separate files ---------
+    final nBlobSchemas = await _saveNdjson(await db.blobSchemas.all(), "blob_schemas.ndjson");
+    final nBlobs = await _saveNdjson(await db.blobs.all(), "blob_records.ndjson");
+
+    // --------- Enums: Groups and values in same file ---------
+    final nEnum = await _saveNdjson(await db.allEnumsWithValues(), "enums.ndjson");
+    return {
+      "events": nEvt,
+      "types": nType,
+      "categories": nCat,
+      "locations": nLoc,
+      "schemas": nBlobSchemas,
+      "records": nBlobs,
+      "enums": nEnum,
+    };
+  }
+
+  /// Export all data (human schema variant)
+  Future<Map<String, int>> exportAllDataRaw(
+    DBService db,
+    AppPrefs prefs,
+  ) async {
+    // --------- Events ---------
+    final nEvt = await _saveCsv<EvtRec>(
+      await db.evts.all(),
+      EvtCsvCodecRaw(),
+      "events_all.csv",
+    );
+
+    // --------- Event Types ---------
+    final nType = await _saveCsv<EvtTypeRec>(
+      await db.evtTypes.all(),
+      EvtTypeCsvCodecRaw(),
+      "event_types.csv",
+    );
+
+    // --------- Event Cats ---------
+    final nCat = await _saveCsv<EvtCatRec>(
+      await db.evtCats.all(),
+      EvtCatCsvCodecRaw(),
+      "event_categories.csv",
+    );
+
+    // --------- Locations ---------
+    final nLoc = await _saveCsv<LocationRec>(
+      await db.locations.all(),
+      LocationCsvCodecRaw(),
       "locations.csv",
     );
 

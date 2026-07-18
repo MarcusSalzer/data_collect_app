@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:data_app2/csv/builtin_schemas.dart';
 import 'package:data_app2/util/enums.dart';
 
+/// Choose import mode based on typical file name
 ImportFileRole roleFromName(String filename) {
   if (filename.contains("events")) {
     return ImportFileRole.events;
@@ -24,6 +25,7 @@ ImportFileRole roleFromCols(Set<String> fileCols) {
 
   for (var MapEntry(key: role, value: sch) in CsvSchemasConst.byImportRole.entries) {
     if (sch.requiredCols.difference(fileCols).isEmpty) {
+      // How many extra columns?
       possibleExcess[role] = fileCols.difference(sch.writeCols.toSet()).length;
     }
   }

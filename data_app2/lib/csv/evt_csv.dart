@@ -3,22 +3,16 @@ import 'package:data_app2/csv/csv_row.dart';
 import 'package:data_app2/csv/csv_schema.dart';
 import 'package:data_app2/data/evt.dart';
 import 'package:data_app2/evt_type_manager.dart';
-import 'package:data_app2/local_datetime.dart';
 import 'package:data_app2/location_manager.dart';
 
-class EvtCsvCodec extends CsvCodecRW<EvtDraft> {
-  EvtCsvCodec(this.typMan, this.locMan, {super.sep});
+/// Converts events to/from human-readable CSV. Needs managers to resolve type/location from name.
+class EvtCsvCodecHuman extends CsvCodecRW<EvtDraft> {
+  EvtCsvCodecHuman(this.typMan, this.locMan, {super.sep});
   EvtTypeManager typMan; // Needed to resolve types
   LocationManager locMan; // Needed to resolve locations
 
   @override
-  get schema => CsvSchemasConst.evt;
-
-  /// Parse data for LocalDateTime
-  /// p=(utc string and offset in seconds)
-  LocalDateTime? _getLdt((String, String)? p) {
-    return (p == null) ? null : LocalDateTime.fromUtcISOAndOffset(utcIso: p.$1, offsetMillis: int.parse(p.$2) * 1000);
-  }
+  get schema => CsvSchemasConst.evtHuman;
 
   @override
   build(CsvRow r) {
@@ -34,8 +28,8 @@ class EvtCsvCodec extends CsvCodecRW<EvtDraft> {
 
     return EvtDraft(
       typ.id,
-      start: _getLdt(r.optPair("start_utc", "start_offset_s")),
-      end: _getLdt(r.optPair("end_utc", "end_offset_s")),
+      start: r.optLocalDt("start_utc", "start_offset_s"),
+      end: r.optLocalDt("end_utc", "end_offset_s"),
       locationId: loc?.id,
     );
   }
@@ -56,4 +50,32 @@ class EvtCsvCodec extends CsvCodecRW<EvtDraft> {
       "location": loc?.name,
     });
   }
+}
+
+/// Converts events to/from raw CSV. Important to have all files in sync!
+class EvtCsvCodecRaw extends CsvCodecRW<EvtRec> {
+  EvtCsvCodecRaw({super.sep});
+
+  @override
+  get schema => CsvSchemasConst.evtRaw;
+
+  @override
+  build(CsvRow r) => EvtRec(
+    r.reqInt("id"),
+    r.reqInt("type_id"),
+    start: r.optLocalDt("start_utc", "start_offset_s"),
+    end: r.optLocalDt("end_utc", "end_offset_s"),
+    locationId: r.optInt("location_id"),
+  );
+
+  @override
+  toRow(d) => CsvRow({
+    "id": d.id.toString(),
+    "type_id": d.typeId.toString(),
+    "start_utc": d.start?.toUtcIso8601String(),
+    "start_offset_s": d.start?.offsetSeconds.toString(),
+    "end_utc": d.end?.toUtcIso8601String(),
+    "end_offset_s": d.end?.offsetSeconds.toString(),
+    "location_id": d.locationId?.toString(),
+  });
 }

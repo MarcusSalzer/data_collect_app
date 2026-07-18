@@ -88,6 +88,7 @@ Future<Directory?> pickSingleFolder() async {
 }
 
 /// Check what data is loaded for import
+@Deprecated("New things more granular")
 class EvtImportSummary {
   int count = 0;
   int nullCount = 0;

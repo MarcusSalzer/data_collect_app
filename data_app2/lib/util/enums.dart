@@ -4,11 +4,15 @@ enum TableFreq { free, day, week }
 /// Frequency of grouping timestamps
 enum GroupFreq { day, week, month }
 
-/// What are we importing (Deprecated??)
+/// What are we importing
+@Deprecated("New things more granular")
 enum ImportMode { event, tabular }
 
 /// What are we importing
-enum ImportFileRole { events, eventTypes, eventCats, locations, unknown }
+enum ImportFileRole { events, eventTypes, eventCats, locations, enums, blobs, blobSchemas, unknown }
+
+/// What type of data to parse
+enum ImportFileMode { csvHuman, csvRaw, ndjson, json }
 
 /// How to consider events in a range
 enum OverlapMode { fullyInside, overlapping, endInside }
