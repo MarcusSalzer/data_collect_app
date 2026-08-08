@@ -4,7 +4,6 @@ import 'package:data_app2/app_state.dart';
 import 'package:data_app2/contracts/crud_repo.dart';
 import 'package:data_app2/daily_evt_summary_service.dart';
 import 'package:data_app2/export_service.dart';
-import 'package:data_app2/util/enums.dart';
 import 'package:data_app2/view_models/import_folder_vm.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -12,11 +11,11 @@ import '../test_util/dummy_app.dart';
 import '../test_util/dummy_data.dart';
 import '../test_util/paths.dart';
 
-Future<void> exportImport(AppState app, ImportFileMode mode) async {
+Future<void> exportImport(AppState app, {required bool human}) async {
   // export!
 
   final es = CompleteExportService(await getTmpDir(), DateTime.now());
-  if (mode == ImportFileMode.csvHuman) {
+  if (human) {
     await es.exportAllDataHuman(app.db, app.evtTypeManager, app.locationManager, app.prefs);
   } else {
     await es.exportAllDataRaw(app.db, app.prefs);
@@ -62,14 +61,14 @@ void main() {
         app.db.locations,
       ];
       final countsPre = await Future.wait(repos.map((r) => r.count()));
-      await exportImport(app, ImportFileMode.csvHuman);
+      await exportImport(app, human: true);
       final countsPost = await Future.wait(repos.map((r) => r.count()));
 
       expect(countsPost, countsPre);
     });
     test('DB fingerprint is preserved when exporting and importing', () async {
       final summaryPre = await DailyEvtSummaryService(app.evtTypeManager, app.db).buildAll();
-      await exportImport(app, ImportFileMode.csvHuman);
+      await exportImport(app, human: true);
       final summaryPost = await DailyEvtSummaryService(app.evtTypeManager, app.db).buildAll();
 
       expect(summaryPost, summaryPre);

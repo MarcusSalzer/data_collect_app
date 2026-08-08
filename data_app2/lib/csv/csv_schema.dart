@@ -23,7 +23,7 @@ abstract class CsvCodecWrite<T> {
   CsvSchema get schema;
   String get header => schema.writeCols.join(sep);
 
-  CsvCodecWrite({this.sep = ","});
+  const CsvCodecWrite({this.sep = ","});
   // use row when writing too
   // allows ensuring the same order as writeCols, and gets the same validation,
   // so, if something cannot be read it cannot be written either
@@ -51,7 +51,7 @@ abstract class CsvCodecWrite<T> {
 
 /// Define how a Data class is converted to and from CSV
 abstract class CsvCodecRW<T> extends CsvCodecWrite<T> {
-  CsvCodecRW({super.sep = ","});
+  const CsvCodecRW({super.sep = ","});
 
   // The CsvRow class has opt/req methods for each possible datatype
   // These methods can be used blindly inside build, but will throw errors
@@ -71,7 +71,8 @@ abstract class CsvCodecRW<T> extends CsvCodecWrite<T> {
   }
 
   /// for converting rows to data objects.
-  Iterable<T> decode(Iterable<CsvRow> rows) sync* {
+  @Deprecated("iteration moved to 'ImportDef'")
+  Iterable<T> decodeAll(Iterable<CsvRow> rows) sync* {
     for (final (i, row) in rows.indexed) {
       try {
         yield build(row);
@@ -82,7 +83,7 @@ abstract class CsvCodecRW<T> extends CsvCodecWrite<T> {
   }
 }
 
-Iterable<CsvRow> parseRows(Iterable<String> linesWithHeader, {String sep = ","}) sync* {
+Iterable<CsvRow> parseCsvRows(Iterable<String> linesWithHeader, {String sep = ","}) sync* {
   final fileCols = linesWithHeader.first.split(sep);
 
   for (final (i, line) in linesWithHeader.skip(1).indexed) {

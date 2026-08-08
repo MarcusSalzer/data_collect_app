@@ -7,6 +7,7 @@ import 'package:data_app2/db_service.dart';
 import 'package:data_app2/evt_type_manager.dart';
 import 'package:data_app2/location_manager.dart';
 import 'package:data_app2/repos/evt_cat_repo.dart';
+import 'package:data_app2/view_models/blob_schema_edit_vm.dart';
 import 'package:data_app2/view_models/evt_cat_detail_vm.dart';
 import 'package:data_app2/view_models/evt_detail_vm.dart';
 import 'package:data_app2/view_models/evt_type_detail_vm.dart';
@@ -271,5 +272,55 @@ void main() {
       expect(vm.isValid, true, reason: "existing should be valid");
       expect(vm.isDirty, false, reason: "existing should not be dirty");
     });
+  });
+
+  group("blob schemas", () {
+    test("not dirty, not valid when not edited", () {
+      final vm = BlobSchemaEditVm(null, db.blobSchemas);
+      expect(vm.isDirty, false, reason: "should not be dirty when not edited.");
+      expect(vm.isValid, false);
+    });
+
+    test("valid, not dirty when opens existing", () async {
+      final item = BlobSchemaRec(13, name: "myschema", fields: {"myField": BlobFieldSpec(DDecimal())}, evtLink: true);
+      final vm = BlobSchemaEditVm(item, db.blobSchemas);
+
+      expect(vm.stored, item);
+      expect(vm.isValid, true, reason: "existing should be valid");
+      expect(vm.isDirty, false, reason: "existing should not be dirty");
+    });
+    test("create", () async {
+      final vm = BlobSchemaEditVm(null, db.blobSchemas);
+      vm.setName("new");
+      expect(vm.isDirty, false, reason: "only name, not dirty");
+      expect(vm.isValid, false, reason: "no fields -> not valid");
+      vm.addField("f1", BlobFieldSpec(DDecimal()));
+
+      expect(vm.isDirty, true);
+      expect(vm.isValid, true);
+
+      // save and load
+      await vm.save();
+      expect(vm.isDirty, false, reason: "should not be dirty after save.");
+      expect(vm.errorMsg, isNull);
+
+      final loaded = (await db.blobSchemas.all()).first;
+      expect(loaded.name, "new");
+      expect(loaded.fields["f1"], BlobFieldSpec(DDecimal()));
+    });
+  });
+
+  test("change evtLink", () async {
+    final item = BlobSchemaRec(13, name: "myschema", fields: {"myField": BlobFieldSpec(DDecimal())}, evtLink: true);
+    final vm = BlobSchemaEditVm(item, db.blobSchemas);
+    await vm.save();
+
+    expect((await db.blobSchemas.all()).first.evtLink, true);
+
+    // change & save
+    vm.setEvtLink(false);
+    await vm.save();
+
+    expect((await db.blobSchemas.all()).first.evtLink, false);
   });
 }

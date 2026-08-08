@@ -1,5 +1,6 @@
 import 'package:data_app2/data/user_schema.dart';
 import 'package:data_app2/view_models/blob_edit_vm.dart';
+import 'package:data_app2/widgets/edit_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -11,8 +12,9 @@ class BlobEditScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return ChangeNotifierProvider.value(
       value: vm,
-      child: Scaffold(
-        appBar: AppBar(title: Text(vm.schema.name)),
+      child: EditScaffoldForVm(
+        vm: vm,
+        title: vm.schema.name,
         body: Consumer<UserBlobEditVm>(
           builder: (context, vm, _) => ListView(
             padding: const EdgeInsets.all(16),

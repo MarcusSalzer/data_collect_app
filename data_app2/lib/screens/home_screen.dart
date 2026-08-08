@@ -90,21 +90,17 @@ class HomeScreen extends StatelessWidget {
                         simpleSnack(context, "needs storage permission");
                       }
                     },
-                    label: Text("Import data"),
+                    label: Text("Import data (Legacy)"),
                     icon: Icon(Icons.download),
                   ),
                   SizedBox(height: 12),
                   Text("Experimental"),
+                  Text("Import data (new)..."),
                   HomeNavLink(
                     "Enums",
                     Icons.view_compact_alt,
                     builder: (context) => UserEnumScreen(),
                   ),
-                  // HomeNavLink(
-                  //   "Datasets",
-                  //   Icons.data_object_outlined,
-                  //   builder: (context) => UsertableScreen(),
-                  // ),
                   HomeNavLink(
                     "Blob schemas",
                     Icons.stars_outlined,

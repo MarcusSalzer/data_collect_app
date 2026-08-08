@@ -25,10 +25,16 @@ class CsvSchemasConst {
   static const evtTypeHuman = CsvSchema(["name", "category"], {"name"});
   static const evtTypeRaw = CsvSchema(["id", "name", "category_id"], {"id", "name"});
 
-  static const byImportRole = {
+  static const byImportRoleHuman = {
     ImportFileRole.events: evtHuman,
     ImportFileRole.eventTypes: evtTypeHuman,
     ImportFileRole.eventCats: evtCatHuman,
     ImportFileRole.locations: locationHuman,
+  };
+  static const byImportRoleRaw = {
+    ImportFileRole.events: evtRaw,
+    ImportFileRole.eventTypes: evtTypeRaw,
+    ImportFileRole.eventCats: evtCatRaw,
+    ImportFileRole.locations: locationRaw,
   };
 }

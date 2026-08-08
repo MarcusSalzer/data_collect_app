@@ -54,7 +54,7 @@ class EvtCsvCodecHuman extends CsvCodecRW<EvtDraft> {
 
 /// Converts events to/from raw CSV. Important to have all files in sync!
 class EvtCsvCodecRaw extends CsvCodecRW<EvtRec> {
-  EvtCsvCodecRaw({super.sep});
+  const EvtCsvCodecRaw({super.sep});
 
   @override
   get schema => CsvSchemasConst.evtRaw;

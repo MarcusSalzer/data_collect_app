@@ -21,10 +21,10 @@ void main() {
         "7900,phone call,2026-02-10T14:29:20Z,3600,2026-02-10T14:32:44Z,7200,Null island",
       ];
 
-      final rows = parseRows(lines).toList();
+      final rows = parseCsvRows(lines).toList();
       expect(rows.length, lines.length - 1); // minus header
 
-      final d = codec.decode(rows).first;
+      final d = codec.decodeAll(rows).first;
       expect(d.typeId, 137);
 
       expect(d.start, LocalDateTime.fromUtcISOAndOffset(utcIso: "2026-02-10T14:29:20Z", offsetMillis: 3_600_000));

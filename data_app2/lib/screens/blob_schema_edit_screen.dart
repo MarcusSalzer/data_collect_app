@@ -45,14 +45,17 @@ class _BlobSchemaEditScreenState extends State<BlobSchemaEditScreen> {
           body: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text("valid: ${_vm.isValid}, dirty: ${_vm.isDirty}"),
+              Text(
+                "valid: ${_vm.isValid}, dirty: ${_vm.isDirty}",
+                style: TextStyle(color: Colors.grey),
+              ),
               TextField(
                 controller: _nameCtrl,
                 decoration: const InputDecoration(labelText: 'Name'),
                 onChanged: _vm.setName,
               ),
-              const SizedBox(height: 24),
-              Text('Fields', style: Theme.of(context).textTheme.titleSmall),
+              const SizedBox(height: 32),
+              Text('Fields', style: Theme.of(context).textTheme.titleMedium),
               const SizedBox(height: 8),
               if (fields.isEmpty)
                 const Text('No fields', style: TextStyle(color: Colors.grey))
@@ -91,6 +94,17 @@ class _BlobSchemaEditScreenState extends State<BlobSchemaEditScreen> {
                         ),
                       );
                     },
+                  ),
+                ],
+              ),
+              const SizedBox(height: 32),
+              Text('Special fields', style: Theme.of(context).textTheme.titleMedium),
+              Row(
+                children: [
+                  Expanded(child: Text("Event link")),
+                  Checkbox(
+                    value: _vm.draft.evtLink,
+                    onChanged: _vm.setEvtLink,
                   ),
                 ],
               ),

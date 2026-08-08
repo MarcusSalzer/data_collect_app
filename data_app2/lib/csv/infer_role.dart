@@ -4,7 +4,7 @@ import 'package:data_app2/csv/builtin_schemas.dart';
 import 'package:data_app2/util/enums.dart';
 
 /// Choose import mode based on typical file name
-ImportFileRole roleFromName(String filename) {
+ImportFileRole roleFromFileName(String filename) {
   if (filename.contains("events")) {
     return ImportFileRole.events;
   } else if (filename.contains("event_types")) {
@@ -13,6 +13,12 @@ ImportFileRole roleFromName(String filename) {
     return ImportFileRole.eventCats;
   } else if (filename.contains("locations")) {
     return ImportFileRole.locations;
+  } else if (filename == "prefs.json") {
+    return ImportFileRole.prefs;
+  } else if ({"blob_schemas.ndjson", "blob_schemas.jsonl"}.contains(filename)) {
+    return ImportFileRole.blobSchemas;
+  } else if ({"blob_records.ndjson", "blob_records.jsonl"}.contains(filename)) {
+    return ImportFileRole.blobs;
   }
   return ImportFileRole.unknown;
 }
@@ -23,7 +29,7 @@ ImportFileRole roleFromName(String filename) {
 ImportFileRole roleFromCols(Set<String> fileCols) {
   final possibleExcess = <ImportFileRole, int>{};
 
-  for (var MapEntry(key: role, value: sch) in CsvSchemasConst.byImportRole.entries) {
+  for (var MapEntry(key: role, value: sch) in CsvSchemasConst.byImportRoleHuman.entries) {
     if (sch.requiredCols.difference(fileCols).isEmpty) {
       // How many extra columns?
       possibleExcess[role] = fileCols.difference(sch.writeCols.toSet()).length;
@@ -41,6 +47,7 @@ ImportFileRole roleFromCols(Set<String> fileCols) {
 
 /// Read a single line from the file
 Future<String> _readFirstLine(File file) async {
+  // Stream and take first line, will unsubscribe and close automatically
   return file.openRead().transform(utf8.decoder).transform(LineSplitter()).first;
 }
 

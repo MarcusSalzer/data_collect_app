@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:data_app2/data/evt.dart';
 import 'package:data_app2/util/enums.dart';
@@ -141,4 +142,9 @@ class EvtImportSummary {
       count++;
     }
   }
+}
+
+/// Count the number of lines in a utf8 file
+Future<int> countLinesUtf8(File file) async {
+  return file.openRead().transform(utf8.decoder).transform(LineSplitter()).length;
 }

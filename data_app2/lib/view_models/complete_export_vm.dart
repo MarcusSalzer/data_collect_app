@@ -20,11 +20,7 @@ class CompleteExportVm extends ChangeNotifier {
     final ce = await _app.db.evts.count();
     final ct = await _app.db.evtTypes.count();
 
-    if (ce > 0) {
-      state = Ready((nEvt: ce, nType: ct));
-    } else {
-      state = Error("Has no events");
-    }
+    state = Ready((nEvt: ce, nType: ct));
     notifyListeners();
   }
 

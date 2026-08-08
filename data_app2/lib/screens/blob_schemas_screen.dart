@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:data_app2/app_state.dart';
 import 'package:data_app2/screens/blob_schema_edit_screen.dart';
 import 'package:data_app2/screens/blob_schema_show_screen.dart';
@@ -23,15 +21,40 @@ class _Body extends StatelessWidget {
     return ListView.builder(
       itemCount: items.length,
       itemBuilder: (context, i) {
-        final rec = items[i];
+        final schema = items[i];
+
+        final fieldLines = schema.fields.entries
+            .map(
+              (e) => Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [Text(e.key), Text(e.value.toString())],
+              ),
+            )
+            .toList();
+
+        if (schema.evtLink) {
+          fieldLines.add(
+            Row(
+              children: [Text("Event link")],
+            ),
+          );
+        }
+
         return ListTile(
-          title: Text(rec.name),
-          subtitle: Text(jsonEncode(rec.fields)),
+          title: Text(
+            schema.name,
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          subtitle: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            // Show a row per field
+            children: fieldLines,
+          ),
           onTap: () {
             Navigator.of(context)
                 .push(
                   MaterialPageRoute(
-                    builder: (_) => BlobSchemaShowScreen(context.read<AppState>().db, rec),
+                    builder: (_) => BlobSchemaShowScreen(context.read<AppState>().db, schema),
                   ),
                 )
                 .then((_) {

@@ -157,11 +157,19 @@ class EditScaffoldSimple extends StatelessWidget {
 /// Supports: discard, delete, save, and dismiss error messages
 /// TODO: can this use the simple version?
 class EditScaffoldForVm<R extends Identifiable> extends StatelessWidget {
-  const EditScaffoldForVm({super.key, required this.title, required this.body, required this.vm});
+  const EditScaffoldForVm({
+    super.key,
+    required this.title,
+    required this.body,
+    required this.vm,
+    this.bottomNavigationBar,
+  });
 
   final EditVm<R, Draft<R>> vm;
   final String title;
   final Widget body;
+
+  final Widget? bottomNavigationBar;
 
   @override
   Widget build(BuildContext context) {
@@ -223,6 +231,7 @@ class EditScaffoldForVm<R extends Identifiable> extends StatelessWidget {
             ],
           ),
         ),
+        bottomNavigationBar: bottomNavigationBar,
       ),
     );
   }

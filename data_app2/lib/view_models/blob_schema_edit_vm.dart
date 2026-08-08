@@ -13,7 +13,7 @@ class BlobSchemaEditVm extends EditVm<BlobSchemaRec, BlobSchemaDraft> {
   bool get isValid => draft.name.isNotEmpty && draft.fields.isNotEmpty;
 
   @override
-  bool get isDirty => isValid && super.isDirty;
+  bool get isDirty => draft.fields.isNotEmpty && super.isDirty;
 
   /// Get all field names as a sorted list
   List<MapEntry<String, BlobFieldSpec>> get fieldList =>
@@ -42,6 +42,12 @@ class BlobSchemaEditVm extends EditVm<BlobSchemaRec, BlobSchemaDraft> {
 
   void setName(String name) {
     draft.name = name;
+    notifyListeners();
+  }
+
+  void setEvtLink(bool? v) {
+    print("set event link $v");
+    draft.evtLink = v ?? false;
     notifyListeners();
   }
 

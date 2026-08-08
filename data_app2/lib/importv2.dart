@@ -9,6 +9,7 @@ import 'package:data_app2/csv/evt_csv.dart';
 import 'package:data_app2/csv/evt_type_csv.dart';
 import 'package:data_app2/csv/infer_role.dart';
 import 'package:data_app2/csv/location_csv.dart';
+import 'package:data_app2/data/app_prefs.dart';
 import 'package:data_app2/data/evt.dart';
 import 'package:data_app2/util/enums.dart';
 import 'package:path/path.dart' as p;
@@ -38,7 +39,7 @@ Map<ImportFileRole, ImportRoleDef> getImportRoleDefinitions(AppState app) {
     ImportFileRole.eventCats: ImportRoleDef(
       schema: CsvSchemasConst.evtCatHuman,
       import: (rows) async {
-        final items = EvtCatCsvCodecHuman().decode(rows).toList();
+        final items = EvtCatCsvCodecHuman().decodeAll(rows).toList();
         final nSkip = await app.db.evtCats.createIfPossible(items);
         return items.length - nSkip;
       },
@@ -63,7 +64,7 @@ Map<ImportFileRole, ImportRoleDef> getImportRoleDefinitions(AppState app) {
         }
       },
       import: (rows) async {
-        final items = EvtTypeCsvCodecHuman.fromTypeManager(app.evtTypeManager).decode(rows);
+        final items = EvtTypeCsvCodecHuman.fromTypeManager(app.evtTypeManager).decodeAll(rows);
 
         final created = await app.db.evtTypes.createAllThrowEarly(items);
         return created.length;
@@ -79,7 +80,7 @@ Map<ImportFileRole, ImportRoleDef> getImportRoleDefinitions(AppState app) {
     ImportFileRole.locations: ImportRoleDef(
       schema: CsvSchemasConst.locationHuman,
       import: (rows) async {
-        final items = LocationCsvCodecHuman().decode(rows);
+        final items = LocationCsvCodecHuman().decodeAll(rows);
         final created = await app.db.locations.createAllThrowEarly(items);
         return created.length;
       },
@@ -91,7 +92,7 @@ Map<ImportFileRole, ImportRoleDef> getImportRoleDefinitions(AppState app) {
         final items = EvtCsvCodecHuman(
           app.evtTypeManager,
           app.locationManager,
-        ).decode(rows);
+        ).decodeAll(rows);
 
         final created = await app.db.evts.createAll(items);
         return created.length;
@@ -153,13 +154,13 @@ class ImportCandidateCollection {
 
   Future<void> addFile(File file) async {
     final cols = await getCsvHeaderCols(file);
-    final role = roleFromName(p.basename(file.path));
+    final role = roleFromFileName(p.basename(file.path));
     final size = (await file.stat()).size;
 
     cands
         .putIfAbsent(role, () => [])
         .add(
-          ImportCandidate(file, cols, size, role, CsvSchemasConst.byImportRole[role]),
+          ImportCandidate(file, cols, size, role, CsvSchemasConst.byImportRoleHuman[role]),
         );
   }
 
@@ -209,6 +210,8 @@ class ImportCandidateSummary<T> {
 }
 
 class ImportResult {
+  AppPrefs? newPrefs;
+
   final Map<ImportFileRole, int> counts = {};
 
   ImportResult();

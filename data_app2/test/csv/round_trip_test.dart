@@ -19,7 +19,7 @@ void main() {
     ]);
     final codec = EvtTypeCsvCodecHuman.fromTypeManager(typMan);
     final lines = ["name,category", "hello,a", "world,default"];
-    final drafts = codec.decode(parseRows(lines));
+    final drafts = codec.decodeAll(parseCsvRows(lines));
     final written = codec.encodeWithHeader(drafts).toList();
     expect(written, lines);
   });
@@ -43,7 +43,7 @@ void main() {
     expect(written.length, 3); // Header + 2 records
     expect(written[1], "hello,,,,,");
     expect(written[2], "goodbye,,,,,world");
-    final read = codec.decode(parseRows(written)).toList();
+    final read = codec.decodeAll(parseCsvRows(written)).toList();
 
     expect(read, drafts);
   });

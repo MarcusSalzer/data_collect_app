@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:data_app2/data/user_schema.dart';
 import 'package:data_app2/db_service.dart';
 import 'package:data_app2/screens/blob_edit_screen.dart';
@@ -26,28 +24,45 @@ class _BlobDataList extends StatelessWidget {
       );
     }
 
+    final thm = Theme.of(context);
     return ListView.builder(
       itemCount: records.length,
       itemBuilder: (context, i) {
         final r = records[i];
-        return ListTile(
-          title: Text(r.id.toString()),
-          subtitle: Text(jsonEncode(r.values)),
-          onTap: () {
-            Navigator.of(context)
-                .push(
-                  MaterialPageRoute(
-                    // TODO ENUMS
-                    builder: (_) => BlobEditScreen(UserBlobEditVm(r, vm.schema, enumGroupValues: {}, repo: vm.repo)),
-                  ),
-                )
-                .then((_) {
-                  if (context.mounted) {
-                    // Reload data after possible edits
-                    // context.read<BlobSchemaShowVm>().load();
-                  }
-                });
-          },
+        return Container(
+          decoration: BoxDecoration(
+            border: BoxBorder.fromLTRB(bottom: BorderSide(color: thm.colorScheme.primary)),
+          ),
+          child: ListTile(
+            title: Text(r.id.toString()),
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              // Show a row per field
+              children: r.values.entries
+                  .map(
+                    (e) => Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [Text(e.key), Text(e.value.toString())],
+                    ),
+                  )
+                  .toList(),
+            ),
+            onTap: () {
+              Navigator.of(context)
+                  .push(
+                    MaterialPageRoute(
+                      // TODO ENUMS
+                      builder: (_) => BlobEditScreen(UserBlobEditVm(r, vm.schema, enumGroupValues: {}, repo: vm.repo)),
+                    ),
+                  )
+                  .then((_) {
+                    if (context.mounted) {
+                      // Reload data after possible edits
+                      context.read<BlobSchemaShowVm>().load();
+                    }
+                  });
+            },
+          ),
         );
       },
     );
@@ -64,7 +79,7 @@ class BlobSchemaShowScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return ChangeNotifierProvider<BlobSchemaShowVm>(
       create: (context) => BlobSchemaShowVm(rec, db.blobs)..load(),
-      child: Scaffold(
+      builder: (context, _) => Scaffold(
         appBar: AppBar(
           title: Text(rec.name),
           actions: [
@@ -80,7 +95,7 @@ class BlobSchemaShowScreen extends StatelessWidget {
                     .then((_) {
                       if (context.mounted) {
                         // Reload data after possible edits
-                        // context.read<BlobSchemaShowVm>().load();
+                        context.read<BlobSchemaShowVm>().load();
                       }
                     });
               },
@@ -103,7 +118,7 @@ class BlobSchemaShowScreen extends StatelessWidget {
                 .then((_) {
                   if (context.mounted) {
                     // Reload data after possible edits
-                    // context.read<BlobSchemaShowVm>().load();
+                    context.read<BlobSchemaShowVm>().load();
                   }
                 });
           },

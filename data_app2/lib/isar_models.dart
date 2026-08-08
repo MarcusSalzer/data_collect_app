@@ -162,8 +162,9 @@ class UserBlobSchemaIsar {
   @Index(unique: true) // Schemas mus have unique names.
   final String name;
   final String json;
+  final bool evtLink;
 
-  UserBlobSchemaIsar(this.name, {required this.json});
+  UserBlobSchemaIsar(this.name, {required this.json, required this.evtLink});
 }
 
 /// User defined Json data

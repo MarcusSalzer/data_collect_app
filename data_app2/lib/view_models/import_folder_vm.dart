@@ -23,17 +23,6 @@ extension ImportOverlapPolicyUi on ImportOverlapPolicy {
   };
 }
 
-// class ImportCandidateV3 {
-//   final File file;
-//   final int size;
-//   final ImportFileRole role;
-//   final ImportFileMode mode;
-
-//   ImportCandidateV3(this.file, this.role, this.mode, this.size);
-
-//   String get name => file.path.split("/").last;
-// }
-
 /// Keep track of csv data to import
 /// Old system for human-schema import. supports only evt/evtType/evtCat/location
 /// NOTE: Will not preserve ids, use only for backwards compatibility!
@@ -61,7 +50,7 @@ class HumanCsvImportManager {
       final def = getRoleDef(app, role);
 
       for (final cand in entry.value) {
-        final rows = parseRows(await cand.file.readAsLines()).toList();
+        final rows = parseCsvRows(await cand.file.readAsLines()).toList();
 
         def.validate?.call(rows);
 

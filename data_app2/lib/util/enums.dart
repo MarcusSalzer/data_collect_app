@@ -9,10 +9,10 @@ enum GroupFreq { day, week, month }
 enum ImportMode { event, tabular }
 
 /// What are we importing
-enum ImportFileRole { events, eventTypes, eventCats, locations, enums, blobs, blobSchemas, unknown }
+enum ImportFileRole { events, eventTypes, eventCats, locations, enums, blobs, blobSchemas, prefs, unknown }
 
-/// What type of data to parse
-enum ImportFileMode { csvHuman, csvRaw, ndjson, json }
+/// Supported File extensions
+enum ImportFileExtension { csv, ndjson, json }
 
 /// How to consider events in a range
 enum OverlapMode { fullyInside, overlapping, endInside }

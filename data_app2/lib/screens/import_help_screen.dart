@@ -15,7 +15,9 @@ class SchemaInfoScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             spacing: 12,
-            children: CsvSchemasConst.byImportRole.entries.map((e) => SchemaDisplayCard(e.key.name, e.value)).toList(),
+            children: CsvSchemasConst.byImportRoleHuman.entries
+                .map((e) => SchemaDisplayCard(e.key.name, e.value))
+                .toList(),
           ),
         ),
       ),

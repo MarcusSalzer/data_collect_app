@@ -161,9 +161,23 @@ sealed class BlobFieldType {
 
 /// Represents a scalar integer field
 final class DInt extends BlobFieldType {
-  const DInt();
+  // IDEA: Maybe support min/max?
+  final int? min;
+  final int? max;
+
+  const DInt({this.min, this.max});
   @override
-  Map<String, dynamic> toJson() => {'kind': 'int'};
+  Map<String, dynamic> toJson() {
+    final j = <String, dynamic>{"kind": "int"};
+
+    if (min != null) {
+      j["min"] = min;
+    }
+    if (max != null) {
+      j["max"] = max;
+    }
+    return j;
+  }
 }
 
 /// Represents a scalar decimal field
@@ -236,7 +250,7 @@ class BlobFieldSpec {
   };
   @override
   String toString() {
-    return "BFS(${type.runtimeType}, null? $nullable)";
+    return "(${type.runtimeType}, ${nullable ? 'optional' : 'required'})";
   }
 
   @override
@@ -252,18 +266,23 @@ class BlobSchemaDraft implements Draft<BlobSchemaRec> {
   BlobSchemaDraft(
     this.name, {
     required this.fields,
+    this.evtLink = false,
   });
   String name;
   final Map<String, BlobFieldSpec> fields;
+  bool evtLink; // Should this schema include a event-id field?
 
   @override
   BlobSchemaRec toRec(int id) {
-    return BlobSchemaRec(id, name: name, fields: Map.from(fields));
+    return BlobSchemaRec(id, name: name, fields: Map.from(fields), evtLink: evtLink);
   }
 
   @override
   bool operator ==(Object other) {
-    return other is BlobSchemaDraft && other.name == name && DeepCollectionEquality().equals(other.fields, fields);
+    return other is BlobSchemaDraft &&
+        other.name == name &&
+        DeepCollectionEquality().equals(other.fields, fields) &&
+        other.evtLink == evtLink;
   }
 
   @override
@@ -276,21 +295,15 @@ class BlobSchemaDraft implements Draft<BlobSchemaRec> {
 
 /// Stored schema definition
 class BlobSchemaRec implements Identifiable {
-  const BlobSchemaRec(
-    this.id, {
-    required this.name,
-    required this.fields,
-  });
+  const BlobSchemaRec(this.id, {required this.name, required this.fields, required this.evtLink});
   @override
   final int id;
   final String name;
   final Map<String, BlobFieldSpec> fields;
+  final bool evtLink; // Should this schema include a event-id field?
 
   @override
-  BlobSchemaDraft toDraft() => BlobSchemaDraft(
-    name,
-    fields: Map.from(fields),
-  );
+  BlobSchemaDraft toDraft() => BlobSchemaDraft(name, fields: Map.from(fields), evtLink: evtLink);
 
   @override
   String toString() {
@@ -299,6 +312,24 @@ class BlobSchemaRec implements Identifiable {
 
   /// Complete JSON of the stored object
   Map<String, dynamic> toJson() => {"id": id, "name": name, "fields": fields};
+
+  /// From json
+  factory BlobSchemaRec.fromJson(Map<String, dynamic> j) {
+    final id = int.parse(j["id"]);
+
+    final fieldMap = j["fields"];
+    if (fieldMap is! Map<String, dynamic>) {
+      throw FormatException("j['fields'] should be a Map");
+    }
+    return BlobSchemaRec(
+      id,
+      name: j["name"],
+      fields: {
+        for (final e in fieldMap.entries) e.key: BlobFieldSpec.fromJson(e.value as Map<String, dynamic>),
+      },
+      evtLink: j["evtLink"] ?? false,
+    );
+  }
 }
 
 // ============ BLOB DATA (each record is an instance of these...) ============

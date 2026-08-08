@@ -29,7 +29,7 @@ class ImportAnyVm extends ChangeNotifier {
   /// Load file
   Future<void> load() async {
     final cols = await getCsvHeaderCols(File(filePath));
-    final role = roleFromName(p.basename(filePath));
+    final role = roleFromFileName(p.basename(filePath));
 
     if (role == ImportFileRole.unknown) {
       _fail("Cannot import CSV with columns: '$cols'");
@@ -54,16 +54,16 @@ class ImportAnyVm extends ChangeNotifier {
     }
 
     try {
-      final rows = parseRows(await File(filePath).readAsLines());
+      final rows = parseCsvRows(await File(filePath).readAsLines());
       if (cod is EvtCsvCodecHuman) {
         // Events
-        await _app.db.evts.createAll(cod.decode(rows));
+        await _app.db.evts.createAll(cod.decodeAll(rows));
       } else if (cod is EvtTypeCsvCodecHuman) {
         // Event types
-        await _app.db.evtTypes.createAll(cod.decode(rows));
+        await _app.db.evtTypes.createAll(cod.decodeAll(rows));
       } else if (cod is EvtCatCsvCodecHuman) {
         // Event categoriues
-        await _app.db.evtCats.createAll(cod.decode(rows));
+        await _app.db.evtCats.createAll(cod.decodeAll(rows));
       }
       _setStep(ImportStep.done);
     } catch (e) {

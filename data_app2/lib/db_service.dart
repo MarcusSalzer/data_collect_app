@@ -1,3 +1,4 @@
+import 'package:data_app2/contracts/crud_repo.dart';
 import 'package:data_app2/data/evt_cat.dart';
 import 'package:data_app2/data/evt_type.dart';
 import 'package:data_app2/data/user_schema.dart';
@@ -39,13 +40,16 @@ class DBService {
       evtTypes = EvtTypeRepo(isar),
       evtCats = EvtCatRepo(isar),
       locations = LocationRepo(isar),
-      userRows = UserRowRepo(isar),
-      userColumns = UserColumnRepo(isar),
-      userTables = UserTableRepo(isar),
+      userRows = UserRowRepo(isar), // DEPRECATED
+      userColumns = UserColumnRepo(isar), // DEPRECATED
+      userTables = UserTableRepo(isar), // DEPRECATED
       userEnums = UserEnumRepo(isar),
       userEnumValues = UserEnumValueRepo(isar),
       blobSchemas = BlobSchemaRepo(isar),
       blobs = BlobRepo(isar);
+
+  /// Get all repositories
+  List<CrudRepo> get allRepos => [evts, evtTypes, evtCats, locations, userEnums, userEnumValues, blobSchemas, blobs];
 
   /// populate necessary default records if missing
   Future<void> ensureReady() async {

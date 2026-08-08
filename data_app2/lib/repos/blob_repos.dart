@@ -26,11 +26,16 @@ class BlobRepo extends CrudRepo<UserBlobRec, UserBlobDraft, UserBlobIsar> {
 class BlobSchemaRepo extends CrudRepo<BlobSchemaRec, BlobSchemaDraft, UserBlobSchemaIsar> {
   BlobSchemaRepo(super.isar)
     : super(
-        draftToIsar: (d) =>
-            UserBlobSchemaIsar(d.name, json: jsonEncode({for (final e in d.fields.entries) e.key: e.value.toJson()})),
-        recToIsar: (r) =>
-            UserBlobSchemaIsar(r.name, json: jsonEncode({for (final e in r.fields.entries) e.key: e.value.toJson()}))
-              ..id = r.id,
+        draftToIsar: (d) => UserBlobSchemaIsar(
+          d.name,
+          json: jsonEncode({for (final e in d.fields.entries) e.key: e.value.toJson()}),
+          evtLink: d.evtLink,
+        ),
+        recToIsar: (r) => UserBlobSchemaIsar(
+          r.name,
+          json: jsonEncode({for (final e in r.fields.entries) e.key: e.value.toJson()}),
+          evtLink: r.evtLink,
+        )..id = r.id,
         fromIsar: (i) => BlobSchemaRec(
           i.id,
           name: i.name,
@@ -38,6 +43,7 @@ class BlobSchemaRepo extends CrudRepo<BlobSchemaRec, BlobSchemaDraft, UserBlobSc
             for (final e in (jsonDecode(i.json) as Map<String, dynamic>).entries)
               e.key: BlobFieldSpec.fromJson(e.value as Map<String, dynamic>),
           },
+          evtLink: i.evtLink,
         ),
       );
   @override
