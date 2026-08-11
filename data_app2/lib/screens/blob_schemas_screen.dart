@@ -27,28 +27,44 @@ class _Body extends StatelessWidget {
             .map(
               (e) => Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [Text(e.key), Text(e.value.toString())],
+                children: [
+                  Text(e.key, style: TextStyle(fontFamily: "monospace")),
+                  Text(e.value.toString(), style: TextStyle(fontFamily: "monospace")),
+                ],
               ),
             )
             .toList();
 
-        if (schema.evtLink) {
-          fieldLines.add(
-            Row(
-              children: [Text("Event link")],
-            ),
-          );
-        }
+        final evtLink = schema.evtLink;
+
+        fieldLines.add(
+          Row(
+            children: [
+              (evtLink == null)
+                  ? Text(
+                      "No event link",
+                      style: TextStyle(fontStyle: FontStyle.italic, fontFamily: "monospace", color: Colors.grey),
+                    )
+                  : Text(
+                      evtLink.toString(),
+                      style: TextStyle(fontFamily: "monospace"),
+                    ),
+            ],
+          ),
+        );
 
         return ListTile(
           title: Text(
             schema.name,
             style: TextStyle(fontWeight: FontWeight.bold),
           ),
-          subtitle: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            // Show a row per field
-            children: fieldLines,
+          subtitle: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              // Show a row per field
+              children: fieldLines,
+            ),
           ),
           onTap: () {
             Navigator.of(context)

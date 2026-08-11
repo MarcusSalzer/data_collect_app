@@ -21,7 +21,9 @@
 
 Maybe:
 
--    link blob to event, more blob dtypes
+-    link blob to event, more options than bool for event link?
+-    title-field in schema
+-    more blob dtypes, TZ-aware timestamp (LDT)?
 - ❓ colorful/dynamic theme
 - ❓ Persistent event filter, can apply globally in app?
 - ❓ event type stats: timeseries and summary statistics

@@ -1,4 +1,5 @@
 import 'package:data_app2/app_state.dart';
+import 'package:data_app2/blob_for_evt_cache.dart';
 import 'package:data_app2/data/app_prefs.dart';
 import 'package:data_app2/screens/events/complete_export_screen.dart';
 import 'package:data_app2/view_models/evt_create_vm.dart';
@@ -56,10 +57,21 @@ class EventsScreen extends StatelessWidget {
               body: TabBarView(
                 children: [
                   EvtCreateMenu(),
-                  EvtHistoryList(
-                    evtVm.evts,
-                    evtVm.load,
-                    reversed: true,
+                  ChangeNotifierProvider<BlobForEvtCache>(
+                    create: (context) =>
+                        BlobForEvtCache(context.read<AppState>().db.blobs)..load(evtVm.evts.map((e) => e.id).toSet()),
+                    builder: (context, child) {
+                      final blobVm = context.watch<BlobForEvtCache>();
+                      return EvtHistoryList(
+                        evtVm.evts,
+                        () {
+                          evtVm.load();
+                          blobVm.load(evtVm.evts.map((e) => e.id).toSet());
+                        },
+                        reversed: true,
+                        blobsForEvt: blobVm.forEvt,
+                      );
+                    },
                   ),
                 ],
               ),

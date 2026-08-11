@@ -1,13 +1,18 @@
 import 'package:data_app2/contracts/edit_vm.dart';
 import 'package:data_app2/data/user_schema.dart';
 import 'package:data_app2/repos/blob_repos.dart';
+import 'package:data_app2/repos/user_enum_repos.dart';
 import 'package:isar_community/isar.dart';
 
 class BlobSchemaEditVm extends EditVm<BlobSchemaRec, BlobSchemaDraft> {
   final BlobSchemaRepo repo;
+  final UserEnumRepo _enumRepo;
 
-  BlobSchemaEditVm(BlobSchemaRec? stored, this.repo)
+  BlobSchemaEditVm(BlobSchemaRec? stored, this.repo, this._enumRepo)
     : super(stored, stored?.toDraft() ?? BlobSchemaDraft('', fields: {}));
+
+  // --- loaded data ---
+  Map<String, UserEnumRec>? _userEnums;
 
   /// Valid if it has a name and at least one field.
   bool get isValid => draft.name.isNotEmpty && draft.fields.isNotEmpty;
@@ -19,13 +24,12 @@ class BlobSchemaEditVm extends EditVm<BlobSchemaRec, BlobSchemaDraft> {
   List<MapEntry<String, BlobFieldSpec>> get fieldList =>
       draft.fields.entries.toList()..sort((a, b) => a.key.compareTo(b.key));
 
-  Future<void> load() async {
-    final storedId = stored?.id;
-    if (storedId == null) return;
+  List<String>? get enumGroupNames => _userEnums?.keys.toList();
 
-    // final valuesStored = await _db.userEnumValues.byEnum(storedId);
-    // valueNameDrafts = valuesStored.map((v) => v.name).toSet();
-    print("loaded, do we need additional data? maybe enum groups..");
+  Future<void> load() async {
+    // load enum-groups for field creation
+    // TODO only load used??
+    _userEnums = Map.fromEntries((await _enumRepo.all()).map((e) => MapEntry(e.name, e)));
     notifyListeners();
   }
 
@@ -45,9 +49,8 @@ class BlobSchemaEditVm extends EditVm<BlobSchemaRec, BlobSchemaDraft> {
     notifyListeners();
   }
 
-  void setEvtLink(bool? v) {
-    print("set event link $v");
-    draft.evtLink = v ?? false;
+  void setEvtLink(EvtLinkSpec? spec) {
+    draft.evtLink = spec;
     notifyListeners();
   }
 

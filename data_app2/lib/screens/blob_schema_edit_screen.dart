@@ -22,7 +22,7 @@ class _BlobSchemaEditScreenState extends State<BlobSchemaEditScreen> {
   @override
   void initState() {
     super.initState();
-    _vm = BlobSchemaEditVm(widget.existing, widget.db.blobSchemas)..load();
+    _vm = BlobSchemaEditVm(widget.existing, widget.db.blobSchemas, widget.db.userEnums)..load();
     _nameCtrl = TextEditingController(text: widget.existing?.name ?? '');
   }
 
@@ -39,6 +39,8 @@ class _BlobSchemaEditScreenState extends State<BlobSchemaEditScreen> {
       listenable: _vm,
       builder: (context, _) {
         final fields = _vm.fieldList;
+
+        final enumGroups = _vm.enumGroupNames;
         return EditScaffoldForVm(
           title: _vm.draft.name.isEmpty ? 'New Schema' : _vm.draft.name,
           vm: _vm,
@@ -78,33 +80,42 @@ class _BlobSchemaEditScreenState extends State<BlobSchemaEditScreen> {
                   },
                 ),
               const SizedBox(height: 8),
-              Row(
-                children: [
-                  Expanded(child: Text("Add field")),
-                  IconButton(
-                    icon: const Icon(Icons.add),
-                    onPressed: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => BlobFieldCreateScreen(
-                            existingFieldNames: _vm.draft.fields.keys.toSet(),
-                            enumGroups:[ ], // TODO
-                            onAdd: _vm.addField,
-                          ),
+              (enumGroups != null)
+                  ? Row(
+                      children: [
+                        Expanded(child: Text("Add field")),
+                        IconButton(
+                          icon: const Icon(Icons.add),
+                          onPressed: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => BlobFieldCreateScreen(
+                                  existingFieldNames: _vm.draft.fields.keys.toSet(),
+                                  enumGroups: enumGroups,
+                                  onAdd: _vm.addField,
+                                ),
+                              ),
+                            );
+                          },
                         ),
-                      );
-                    },
-                  ),
-                ],
-              ),
+                      ],
+                    )
+                  : Text("Loading..."),
               const SizedBox(height: 32),
               Text('Special fields', style: Theme.of(context).textTheme.titleMedium),
               Row(
                 children: [
                   Expanded(child: Text("Event link")),
-                  Checkbox(
-                    value: _vm.draft.evtLink,
-                    onChanged: _vm.setEvtLink,
+                  TextButton(
+                    child: Text(_vm.draft.evtLink.toString()),
+                    onPressed: () {
+                      // TODO: No constraints for now => Simple Toggle
+                      if (_vm.draft.evtLink == null) {
+                        _vm.setEvtLink(EvtLinkSpec.allTypes());
+                      } else {
+                        _vm.setEvtLink(null);
+                      }
+                    },
                   ),
                 ],
               ),
@@ -119,3 +130,16 @@ class _BlobSchemaEditScreenState extends State<BlobSchemaEditScreen> {
     );
   }
 }
+
+/// UI for defining ANY/constrained event link
+// class _eventLinkPicker extends StatelessWidget {
+//   final BlobSchemaEditVm _vm;
+
+//   const _eventLinkPicker(this._vm);
+
+//   @override
+//   Widget build(BuildContext context) {
+//     // TODO: implement build
+//     throw UnimplementedError();
+//   }
+// }

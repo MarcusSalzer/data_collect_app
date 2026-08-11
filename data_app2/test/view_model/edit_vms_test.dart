@@ -276,21 +276,26 @@ void main() {
 
   group("blob schemas", () {
     test("not dirty, not valid when not edited", () {
-      final vm = BlobSchemaEditVm(null, db.blobSchemas);
+      final vm = BlobSchemaEditVm(null, db.blobSchemas, db.userEnums);
       expect(vm.isDirty, false, reason: "should not be dirty when not edited.");
       expect(vm.isValid, false);
     });
 
     test("valid, not dirty when opens existing", () async {
-      final item = BlobSchemaRec(13, name: "myschema", fields: {"myField": BlobFieldSpec(DDecimal())}, evtLink: true);
-      final vm = BlobSchemaEditVm(item, db.blobSchemas);
+      final item = BlobSchemaRec(
+        13,
+        name: "myschema",
+        fields: {"myField": BlobFieldSpec(DDecimal())},
+        evtLink: EvtLinkSpec.allTypes(),
+      );
+      final vm = BlobSchemaEditVm(item, db.blobSchemas, db.userEnums);
 
       expect(vm.stored, item);
       expect(vm.isValid, true, reason: "existing should be valid");
       expect(vm.isDirty, false, reason: "existing should not be dirty");
     });
     test("create", () async {
-      final vm = BlobSchemaEditVm(null, db.blobSchemas);
+      final vm = BlobSchemaEditVm(null, db.blobSchemas, db.userEnums);
       vm.setName("new");
       expect(vm.isDirty, false, reason: "only name, not dirty");
       expect(vm.isValid, false, reason: "no fields -> not valid");
@@ -311,16 +316,21 @@ void main() {
   });
 
   test("change evtLink", () async {
-    final item = BlobSchemaRec(13, name: "myschema", fields: {"myField": BlobFieldSpec(DDecimal())}, evtLink: true);
-    final vm = BlobSchemaEditVm(item, db.blobSchemas);
+    final item = BlobSchemaRec(
+      13,
+      name: "myschema",
+      fields: {"myField": BlobFieldSpec(DDecimal())},
+      evtLink: EvtLinkSpec.allTypes(),
+    );
+    final vm = BlobSchemaEditVm(item, db.blobSchemas, db.userEnums);
     await vm.save();
 
-    expect((await db.blobSchemas.all()).first.evtLink, true);
+    expect((await db.blobSchemas.all()).first.evtLink, EvtLinkSpec.allTypes());
 
     // change & save
-    vm.setEvtLink(false);
+    vm.setEvtLink(null);
     await vm.save();
 
-    expect((await db.blobSchemas.all()).first.evtLink, false);
+    expect((await db.blobSchemas.all()).first.evtLink, null);
   });
 }

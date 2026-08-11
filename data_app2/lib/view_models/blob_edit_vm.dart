@@ -1,23 +1,46 @@
 import 'package:data_app2/contracts/edit_vm.dart';
+import 'package:data_app2/data/evt.dart';
 import 'package:data_app2/data/user_schema.dart';
 import 'package:data_app2/repos/blob_repos.dart';
+import 'package:data_app2/repos/evt_repo.dart';
+import 'package:data_app2/repos/user_enum_repos.dart';
+import 'package:logging/logging.dart';
 
 class UserBlobEditVm extends EditVm<UserBlobRec, UserBlobDraft> {
   UserBlobEditVm(
     UserBlobRec? stored,
-    this.schema, {
-    required this.enumGroupValues,
-    required this.repo,
-  }) : super(stored, stored?.toDraft() ?? UserBlobDraft(schema.id));
+    this.schema,
+    this.repo,
+    this._enumRepo,
+    this._enumValueRepo,
+    this._evtRepo,
+  ) : super(stored, stored?.toDraft() ?? UserBlobDraft(schema.id));
 
   final BlobSchemaRec schema;
-  final Map<String, Set<String>> enumGroupValues;
   final BlobRepo repo;
-
+  final UserEnumValueRepo _enumValueRepo;
+  final UserEnumRepo _enumRepo;
+  final EvtRepo _evtRepo;
   final Map<String, String?> _fieldErrors = {};
   String? errorFor(String field) => _fieldErrors[field];
 
   dynamic rawValue(String field) => draft.values[field];
+
+  /// Get the string map of values for enum fields
+  Map<String, Set<String>>? enumGroupValues;
+  EvtRec? _linkedEvent;
+  EvtRec? get linkedEvent => _linkedEvent;
+
+  Future<void> load() async {
+    final enums = await _enumRepo.byNames(schema.usesEnums());
+    enumGroupValues = {for (var e in enums) e.name: await _enumValueRepo.stringValuesForGroup(e.id)};
+
+    // If we have a linked event:
+    if (draft.eventId case int evtId) {
+      _linkedEvent = await _evtRepo.getById(evtId);
+    }
+    notifyListeners();
+  }
 
   void setValue(String field, dynamic value) {
     if (value == null) {
@@ -27,6 +50,44 @@ class UserBlobEditVm extends EditVm<UserBlobRec, UserBlobDraft> {
     }
     _fieldErrors[field] = null;
     notifyListeners();
+  }
+
+  /// Unlink event
+  void unsetEvent() {
+    _linkedEvent = null;
+    draft.eventId = null;
+    notifyListeners();
+  }
+
+  /// Link this blob to some stored event.
+  void setEvent(EvtRec evt) {
+    // Just to be safe...
+
+    if (schema.evtLink case EvtLinkSpec link) {
+      if (!link.acceptsEvtTyp(evt.typeId)) {
+        Logger.root.severe("Tried linking blob (link: $link) to event of wrong type ($evt).");
+        return;
+      }
+    } else {
+      Logger.root.severe("Tried linking blob (null linkspec) to event.");
+      return;
+    }
+
+    // The event is already loaded from DB, so we can set the reference directly.
+    _linkedEvent = evt;
+    draft.eventId = evt.id;
+    notifyListeners();
+  }
+
+  String? _validateEnum(String group, dynamic value) {
+    if (enumGroupValues == null) {
+      return "Enums not loaded";
+    }
+    final gVals = enumGroupValues?[group];
+    if (gVals == null) {
+      return "No values";
+    }
+    return gVals.contains(value) ? null : "Invalid choice";
   }
 
   bool validate() {
@@ -48,8 +109,8 @@ class UserBlobEditVm extends EditVm<UserBlobRec, UserBlobDraft> {
         DDecimal() => value is num ? null : 'Must be a number',
         DText() => value is String ? null : "Must be a string",
         DBool() => value is bool ? null : 'Invalid',
-        DTimestamp() => value is int ? null : 'Invalid date',
-        DEnum(:final group) => (enumGroupValues[group] ?? <String>{}).contains(value) ? null : 'Invalid choice',
+        // DTimestamp() => value is int ? null : 'Invalid date',
+        DEnum(:final group) => _validateEnum(group, value),
         // TODO: Handle this case.
         DDuration() => throw UnimplementedError(),
         // TODO: Handle this case.

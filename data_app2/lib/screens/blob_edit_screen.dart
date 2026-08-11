@@ -1,12 +1,14 @@
 import 'package:data_app2/data/user_schema.dart';
+import 'package:data_app2/screens/events/evt_detail_screen.dart';
+import 'package:data_app2/screens/evt_picker_screen.dart';
 import 'package:data_app2/view_models/blob_edit_vm.dart';
 import 'package:data_app2/widgets/edit_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class BlobEditScreen extends StatelessWidget {
-  const BlobEditScreen(this.vm, {super.key});
   final UserBlobEditVm vm;
+  const BlobEditScreen(this.vm, {super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -16,9 +18,9 @@ class BlobEditScreen extends StatelessWidget {
         vm: vm,
         title: vm.schema.name,
         body: Consumer<UserBlobEditVm>(
-          builder: (context, vm, _) => ListView(
-            padding: const EdgeInsets.all(16),
-            children: [
+          builder: (context, vm, _) {
+            final thm = Theme.of(context);
+            final fieldInputs = <Widget>[
               for (final entry in vm.schema.fields.entries)
                 Padding(
                   padding: const EdgeInsets.only(bottom: 16),
@@ -28,8 +30,77 @@ class BlobEditScreen extends StatelessWidget {
                     vm: vm,
                   ),
                 ),
-            ],
-          ),
+            ];
+
+            // Add event field if needed
+            final evt = vm.linkedEvent;
+            if (vm.schema.evtLink case EvtLinkSpec link) {
+              fieldInputs.add(
+                Container(
+                  padding: EdgeInsets.all(4),
+                  color: thm.colorScheme.primaryContainer,
+                  child: Column(
+                    spacing: 12,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Linked Event",
+                        style: thm.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+                      ),
+                      (evt == null) ? Center(child: Text("N/A")) : Text(evt.toString()),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          TextButton.icon(
+                            icon: Icon(Icons.edit),
+                            label: Text("edit"),
+                            onPressed: evt == null
+                                ? null
+                                : () {
+                                    // show event, but no blobs here
+                                    Navigator.of(
+                                      context,
+                                    ).push(MaterialPageRoute(builder: (context) => EvtDetailScreen(evt, null))).then((
+                                      _,
+                                    ) {
+                                      // reload after possible changes
+                                      vm.load();
+                                    });
+                                  },
+                          ),
+                          TextButton.icon(
+                            icon: Icon(Icons.swap_horiz),
+                            label: Text("swap"),
+                            onPressed: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) => EvtPickerScreen(link.typIds, onSelect: vm.setEvent),
+                                ),
+                              );
+                            },
+                          ),
+                          TextButton.icon(
+                            icon: Icon(Icons.close),
+                            label: Text("unset"),
+                            onPressed: evt == null
+                                ? null
+                                : () {
+                                    vm.unsetEvent();
+                                  },
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }
+
+            return ListView(
+              padding: const EdgeInsets.all(16),
+              children: fieldInputs,
+            );
+          },
         ),
         bottomNavigationBar: SafeArea(
           child: Padding(
@@ -86,25 +157,53 @@ class _FieldInput extends StatelessWidget {
         value: vm.rawValue(name) as bool? ?? false,
         onChanged: (v) => vm.setValue(name, v),
       ),
-      DTimestamp() => _TimestampInput(
+      // DTimestamp() => _TimestampInput(
+      //   label: label,
+      //   error: error,
+      //   millis: vm.rawValue(name) as int?,
+      //   onChanged: (millis) => vm.setValue(name, millis),
+      // ),
+      DEnum(:final group) => _EnumInput(
+        name: name,
         label: label,
         error: error,
-        millis: vm.rawValue(name) as int?,
-        onChanged: (millis) => vm.setValue(name, millis),
-      ),
-      DEnum(:final group) => DropdownButtonFormField<String>(
-        initialValue: vm.rawValue(name) as String?,
-        decoration: InputDecoration(labelText: label, errorText: error),
-        items: [
-          for (final v in vm.enumGroupValues[group] ?? const <String>[]) DropdownMenuItem(value: v, child: Text(v)),
-        ],
-        onChanged: (v) => vm.setValue(name, v),
+        group: group,
       ),
       // TODO: Handle this case.
       DDuration() => throw UnimplementedError(),
       // TODO: Handle this case.
       DTuple() => throw UnimplementedError(),
     };
+  }
+}
+
+class _EnumInput extends StatelessWidget {
+  final String name;
+  final String label;
+  final String? error;
+  final String group;
+
+  const _EnumInput({required this.name, required this.label, this.error, required this.group});
+  @override
+  Widget build(BuildContext context) {
+    final vm = context.watch<UserBlobEditVm>();
+    final enumValues = vm.enumGroupValues;
+
+    if (enumValues == null) {
+      return Text("Loading...");
+    }
+    final groupValues = enumValues[group];
+
+    if (groupValues == null) {
+      return Text("'$group' has no values");
+    }
+
+    return DropdownButtonFormField<String>(
+      initialValue: vm.rawValue(name) as String?,
+      decoration: InputDecoration(labelText: label, errorText: error),
+      items: [for (final v in groupValues) DropdownMenuItem(value: v, child: Text(v))],
+      onChanged: (v) => vm.setValue(name, v),
+    );
   }
 }
 

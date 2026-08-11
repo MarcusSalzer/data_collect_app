@@ -2,6 +2,7 @@ import 'package:data_app2/app_state.dart';
 import 'package:data_app2/data/evt.dart';
 import 'package:data_app2/data/evt_type.dart';
 import 'package:data_app2/data/location.dart';
+import 'package:data_app2/data/user_schema.dart';
 import 'package:data_app2/location_manager.dart';
 import 'package:data_app2/view_models/evt_detail_vm.dart';
 import 'package:data_app2/util/fmt.dart';
@@ -14,8 +15,9 @@ import 'package:provider/provider.dart';
 
 class EvtDetailScreen extends StatelessWidget {
   final EvtRec evt;
+  final List<UserBlobRec>? _linkedBlobs;
 
-  const EvtDetailScreen(this.evt, {super.key});
+  const EvtDetailScreen(this.evt, this._linkedBlobs, {super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -28,18 +30,30 @@ class EvtDetailScreen extends StatelessWidget {
           app.evtTypeManager,
         );
       },
-      child: Consumer<EvtDetailVm>(
-        builder: (context, vm, child) => EditScaffoldForVm<EvtRec>(
+      builder: (context, child) {
+        final vm = context.watch<EvtDetailVm>();
+        final thm = Theme.of(context);
+        return EditScaffoldForVm<EvtRec>(
           title: "Event",
           body: SingleChildScrollView(
             child: Column(
-              spacing: 12,
-              children: [EventEditForm(), if (vm.stored case EvtRec st) EventDetailDisplay(st, vm.evtType)],
+              spacing: 16,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                EventEditForm(),
+                SizedBox(height: 24),
+                // Blobs linked to this event
+                if (_linkedBlobs != null) Text("Linked data", style: thm.textTheme.titleMedium),
+                if (_linkedBlobs != null) ..._linkedBlobs.map((b) => Text(b.toString())),
+                SizedBox(height: 24),
+                // Display details for the STORED record.
+                if (vm.stored case EvtRec st) EventDetailDisplay(st, vm.evtType),
+              ],
             ),
           ),
           vm: vm,
-        ),
-      ),
+        );
+      },
     );
   }
 }

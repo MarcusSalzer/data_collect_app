@@ -67,7 +67,7 @@ class EvtRepo extends CrudRepo<EvtRec, EvtDraft, EventIsar> {
     return evts.map(fromIsar);
   }
 
-  /// Get some events.
+  /// Get some events. Sorted by ascending local start time,
   Future<Iterable<EvtRec>> filteredLocalTime(
     LocalDbTimeRange range, {
     Iterable<int>? typeIds,

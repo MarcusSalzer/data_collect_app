@@ -95,7 +95,14 @@ class _BlobFieldCreateScreenState extends State<BlobFieldCreateScreen> {
 }
 
 /// Which options can be selected
-enum _TypeOption { int, decimal, bool, timestamp, duration, enumType }
+enum _TypeOption {
+  int,
+  decimal,
+  bool,
+  // timestamp,
+  duration,
+  enumType,
+}
 
 class FieldTypeSelector extends StatefulWidget {
   const FieldTypeSelector({
@@ -120,7 +127,7 @@ class _FieldTypeSelectorState extends State<FieldTypeSelector> {
       _TypeOption.int => const DInt(),
       _TypeOption.decimal => const DDecimal(),
       _TypeOption.bool => const DBool(),
-      _TypeOption.timestamp => const DTimestamp(),
+      // _TypeOption.timestamp => const DTimestamp(),
       _TypeOption.duration => const DDuration(),
       _TypeOption.enumType => _enumGroup == null ? null : DEnum(_enumGroup!),
       null => throw UnimplementedError(),
@@ -140,7 +147,7 @@ class _FieldTypeSelectorState extends State<FieldTypeSelector> {
             DropdownMenuItem(value: _TypeOption.int, child: Text('Integer')),
             DropdownMenuItem(value: _TypeOption.decimal, child: Text('Decimal')),
             DropdownMenuItem(value: _TypeOption.bool, child: Text('Yes / No')),
-            DropdownMenuItem(value: _TypeOption.timestamp, child: Text('Timestamp')),
+            // DropdownMenuItem(value: _TypeOption.timestamp, child: Text('Timestamp')),
             DropdownMenuItem(value: _TypeOption.enumType, child: Text('Choice (enum)')),
 
             // Future: List(...), Tuple(...) — each pushes a nested

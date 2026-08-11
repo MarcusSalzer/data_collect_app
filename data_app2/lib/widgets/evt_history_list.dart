@@ -5,12 +5,14 @@ import 'package:data_app2/data/app_prefs.dart';
 import 'package:data_app2/data/evt.dart';
 import 'package:data_app2/data/evt_type.dart';
 import 'package:data_app2/data/location.dart';
+import 'package:data_app2/data/user_schema.dart';
 import 'package:data_app2/evt_type_manager.dart';
 import 'package:data_app2/location_manager.dart';
 import 'package:data_app2/screens/events/evt_detail_screen.dart';
 import 'package:data_app2/util/enums.dart';
 import 'package:data_app2/util/extensions.dart';
 import 'package:data_app2/util/fmt.dart';
+import 'package:data_app2/widgets/evt_sub_title.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -19,12 +21,14 @@ class EvtHistoryList extends StatelessWidget {
   final UnmodifiableListView<EvtRec>? evts;
   final VoidCallback reloadAction; // NOTE: for now not event-specific
   final bool reversed;
+  final List<UserBlobRec>? Function(int)? blobsForEvt; // Allows showing additional data when available
   const EvtHistoryList(
     this.evts,
     this.reloadAction, {
     super.key,
     this.reversed = false,
     this.headingMode = GroupFreq.day,
+    this.blobsForEvt,
   });
 
   String? _getHeading(List<EvtRec> evts, int i) {
@@ -76,6 +80,9 @@ class EvtHistoryList extends StatelessWidget {
         itemCount: evtsShow.length,
         itemBuilder: (context, i) {
           final e = evtsShow[i];
+
+          final blobs = blobsForEvt?.call(e.id);
+
           return _EventListTile(
             e,
             typMan.typeFromId(e.typeId),
@@ -83,6 +90,7 @@ class EvtHistoryList extends StatelessWidget {
             location: locMan.fromId(e.locationId),
             heading: _getHeading(evtsShow, i),
             reloadAction: reloadAction,
+            blobs: blobs,
           );
         },
       ),
@@ -98,7 +106,8 @@ class _EventListTile extends StatelessWidget {
     this.heading,
     this.location,
     required this.reloadAction,
-  });
+    List<UserBlobRec>? blobs,
+  }) : _blobs = blobs;
 
   final EvtRec evt;
   final EvtTypeRec? typ;
@@ -106,6 +115,7 @@ class _EventListTile extends StatelessWidget {
   final String? heading;
   final Color color;
   final VoidCallback reloadAction;
+  final List<UserBlobRec>? _blobs;
 
   @override
   Widget build(BuildContext context) {
@@ -136,7 +146,9 @@ class _EventListTile extends StatelessWidget {
             "${typ?.name}$durTxt",
             style: TextStyle(color: color),
           ),
-          subtitle: _makeSubtitle(),
+          subtitle: EvtSubTitle(evt, location),
+          // optionally short summary of linked blobs.
+          trailing: _blobs == null ? null : Text(_blobs.map((b) => "*${b.schemaId}").join(", ")),
           onTap: () {
             _openDetail(context);
           },
@@ -145,36 +157,8 @@ class _EventListTile extends StatelessWidget {
     );
   }
 
-  Widget _makeSubtitle() {
-    final (startText, endText) = Fmt.eventTimes(evt);
-    final wdStart = Fmt.dayAbbr(evt.start?.asLocal);
-    final wdEnd = (evt.end?.asLocal.day != evt.start?.asLocal.day) ? Fmt.dayAbbr(evt.end?.asLocal) : null;
-
-    return Padding(
-      padding: const EdgeInsets.only(top: 8),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.start,
-        spacing: 4,
-        children: [
-          // Start & end
-          Text(wdStart, style: TextStyle(color: Colors.blueGrey)),
-          Text(startText),
-          Text(" - "),
-          if (wdEnd != null) Text(wdEnd, style: TextStyle(color: Colors.blueGrey)),
-          Text(endText),
-          // Location
-          if (location != null)
-            Text(
-              "@${location?.name}",
-              style: TextStyle(fontStyle: FontStyle.italic, color: Colors.blueGrey),
-            ),
-        ],
-      ),
-    );
-  }
-
   void _openDetail(BuildContext context) {
-    Navigator.of(context).push(MaterialPageRoute(builder: (context) => EvtDetailScreen(evt))).then((_) {
+    Navigator.of(context).push(MaterialPageRoute(builder: (context) => EvtDetailScreen(evt, _blobs ?? []))).then((_) {
       // When the detail view is popped, data might have changed
       reloadAction();
     });

@@ -1,3 +1,5 @@
+import 'package:data_app2/app_state.dart';
+import 'package:data_app2/blob_validation.dart';
 import 'package:data_app2/data/user_schema.dart';
 import 'package:data_app2/db_service.dart';
 import 'package:data_app2/screens/blob_edit_screen.dart';
@@ -35,24 +37,15 @@ class _BlobDataList extends StatelessWidget {
           ),
           child: ListTile(
             title: Text(r.id.toString()),
-            subtitle: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              // Show a row per field
-              children: r.values.entries
-                  .map(
-                    (e) => Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [Text(e.key), Text(e.value.toString())],
-                    ),
-                  )
-                  .toList(),
-            ),
+            subtitle: _BlobSummaryTable(r, vm.schema),
             onTap: () {
+              final db = context.read<AppState>().db;
               Navigator.of(context)
                   .push(
                     MaterialPageRoute(
-                      // TODO ENUMS
-                      builder: (_) => BlobEditScreen(UserBlobEditVm(r, vm.schema, enumGroupValues: {}, repo: vm.repo)),
+                      builder: (_) => BlobEditScreen(
+                        UserBlobEditVm(r, vm.schema, db.blobs, db.userEnums, db.userEnumValues, db.evts)..load(),
+                      ),
                     ),
                   )
                   .then((_) {
@@ -69,19 +62,58 @@ class _BlobDataList extends StatelessWidget {
   }
 }
 
+class _BlobSummaryTable extends StatelessWidget {
+  final UserBlobRec blob;
+  final BlobSchemaRec schema;
+
+  const _BlobSummaryTable(this.blob, this.schema);
+  @override
+  Widget build(BuildContext context) {
+    final valid = BlobValidation().validateBlob(blob, schema);
+
+    final rows = <Widget>[];
+
+    if (valid.excessKeys.isNotEmpty) {
+      rows.add(Text("Error, excess keys: ${valid.excessKeys}"));
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      // Show a row per field
+      children: blob.values.entries.map(
+        (e) {
+          final err = valid.fieldErrors[e.key];
+          return Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              (err == null)
+                  ? Text(e.key)
+                  : Text(
+                      "${e.key} (${err.name})",
+                      style: TextStyle(color: Colors.red),
+                    ),
+              Text(e.value.toString()),
+            ],
+          );
+        },
+      ).toList(),
+    );
+  }
+}
+
 /// Summary screen showing info and data for this schema.
 class BlobSchemaShowScreen extends StatelessWidget {
-  final BlobSchemaRec rec;
+  final BlobSchemaRec schema;
   final DBService db;
-  const BlobSchemaShowScreen(this.db, this.rec, {super.key});
+  const BlobSchemaShowScreen(this.db, this.schema, {super.key});
 
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider<BlobSchemaShowVm>(
-      create: (context) => BlobSchemaShowVm(rec, db.blobs)..load(),
+      create: (context) => BlobSchemaShowVm(schema, db.blobs, db.userEnums)..load(),
       builder: (context, _) => Scaffold(
         appBar: AppBar(
-          title: Text(rec.name),
+          title: Text(schema.name),
           actions: [
             IconButton(
               icon: Icon(Icons.edit, semanticLabel: "edit"),
@@ -89,7 +121,7 @@ class BlobSchemaShowScreen extends StatelessWidget {
                 Navigator.of(context)
                     .push(
                       MaterialPageRoute(
-                        builder: (_) => BlobSchemaEditScreen(db, rec),
+                        builder: (_) => BlobSchemaEditScreen(db, schema),
                       ),
                     )
                     .then((_) {
@@ -110,8 +142,7 @@ class BlobSchemaShowScreen extends StatelessWidget {
                 .push(
                   MaterialPageRoute(
                     builder: (_) => BlobEditScreen(
-                      // TODO Fix enums
-                      UserBlobEditVm(null, rec, enumGroupValues: {}, repo: db.blobs),
+                      UserBlobEditVm(null, schema, db.blobs, db.userEnums, db.userEnumValues, db.evts)..load(),
                     ),
                   ),
                 )

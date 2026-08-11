@@ -15,6 +15,11 @@ class UserEnumRepo extends CrudRepo<UserEnumRec, UserEnumDraft, UserEnumIsar> {
   IsarCollection<UserEnumIsar> get coll => isar.userEnumIsars;
   @override
   QueryBuilder<UserEnumIsar, int, QQueryOperations> get idProp => coll.where().idProperty();
+
+  /// All enum groups with matching names.
+  Future<Iterable<UserEnumRec>> byNames(Set<String> names) async {
+    return (await coll.where().anyOf(names, (q, String n) => q.nameEqualTo(n)).findAll()).map(fromIsar);
+  }
 }
 
 class UserEnumValueRepo extends CrudRepo<UserEnumValueRec, UserEnumValueDraft, UserEnumValueIsar> {
@@ -29,9 +34,24 @@ class UserEnumValueRepo extends CrudRepo<UserEnumValueRec, UserEnumValueDraft, U
   @override
   QueryBuilder<UserEnumValueIsar, int, QQueryOperations> get idProp => coll.where().idProperty();
 
-  Future<List<UserEnumValueRec>> byEnum(int enumId) async {
-    return (await coll.where().enumIdEqualTo(enumId).findAll()).map(fromIsar).toList();
+  Future<Iterable<UserEnumValueRec>> bySingleEnum(int enumId) async {
+    return (await coll.where().enumIdEqualTo(enumId).findAll()).map(fromIsar);
   }
+
+  Future<Set<String>> stringValuesForGroup(int enumId) async {
+    return (await coll.where().enumIdEqualTo(enumId).nameProperty().findAll()).toSet();
+  }
+
+  /// All enum groups with matching names.
+  // Future<Map<String, Set<String>>> byGroupStringMap(Set<UserEnumRec> enums) async {
+  //   final values = (await coll.where().anyOf(enums, (q, UserEnumRec e) => q.enumIdEqualTo(e.id)).findAll());
+  //   final m = <String, Set<String>>{};
+  //   final idToName = {for (var e in enums) e.id:e.name };
+  //   for (var v in values) {
+  //     final k = idToName[]
+  //     m.putIfAbsent()
+  //       }
+  // }
 
   /// Delete a EnumValue, if it is not referenced by some TODO
   Future<DeleteResult> deleteIfUnreferenced(int id) async {

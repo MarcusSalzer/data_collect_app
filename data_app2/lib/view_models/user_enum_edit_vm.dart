@@ -20,11 +20,13 @@ class UserEnumEditVm extends EditVm<UserEnumRec, UserEnumDraft> {
 
   /// Load the corresponding EnumValues if we have a stored record.
   Future<void> load() async {
-    final storedId = stored?.id;
-    if (storedId == null) return;
-
-    final valuesStored = await _db.userEnumValues.byEnum(storedId);
-    valueNameDrafts = valuesStored.map((v) => v.name).toSet();
+    if (stored?.id case int id) {
+      final valuesStored = await _db.userEnumValues.bySingleEnum(id);
+      valueNameDrafts = valuesStored.map((v) => v.name).toSet();
+    } else {
+      // new enum, no values
+      valueNameDrafts = {};
+    }
     notifyListeners();
   }
 
@@ -68,10 +70,10 @@ class UserEnumEditVm extends EditVm<UserEnumRec, UserEnumDraft> {
       }
 
       // fresh list of what is stored
-      final storedValues = await _db.userEnumValues.byEnum(storedEnumId);
+      final valuesStored = await _db.userEnumValues.bySingleEnum(storedEnumId);
 
       // sync values: delete removed, create new, update existing
-      final storedValIds = storedValues.map((v) => v.id).toSet();
+      final storedValIds = valuesStored.map((v) => v.id).toSet();
 
       // simply replace all values for this enum
       // TODO AVOID Wasting db Ids?

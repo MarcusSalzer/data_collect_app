@@ -1,6 +1,7 @@
 import 'package:data_app2/contracts/data.dart';
 import 'package:data_app2/users_schema.dart';
 import 'package:collection/collection.dart';
+import 'package:flutter/foundation.dart';
 // ============ ENUMS ============
 
 class UserEnumRec implements Identifiable {
@@ -58,6 +59,7 @@ class UserEnumHydrated extends UserEnumRec {
 
 // ============ USER TABLE THINGS (EXPERIMENTAL) ============
 
+@Deprecated("blobs")
 class UserColumnRec implements Identifiable {
   const UserColumnRec(this.id, {required this.name, required this.dtype, this.enumId});
   @override
@@ -69,6 +71,7 @@ class UserColumnRec implements Identifiable {
   UserColumnDraft toDraft() => UserColumnDraft(name, dtype, enumId: enumId);
 }
 
+@Deprecated("blobs")
 class UserColumnDraft implements Draft<UserColumnRec> {
   UserColumnDraft(this.name, this.dtype, {this.enumId});
   String name;
@@ -78,6 +81,7 @@ class UserColumnDraft implements Draft<UserColumnRec> {
   UserColumnRec toRec(int id) => UserColumnRec(id, name: name, dtype: dtype, enumId: enumId);
 }
 
+@Deprecated("blobs")
 class UserTableRec implements Identifiable {
   const UserTableRec(this.id, {required this.name, required this.columnIds});
   @override
@@ -88,6 +92,7 @@ class UserTableRec implements Identifiable {
   UserTableDraft toDraft() => UserTableDraft(name, List.of(columnIds));
 }
 
+@Deprecated("blobs")
 class UserTableDraft implements Draft<UserTableRec> {
   UserTableDraft(this.name, this.columnIds);
   String name;
@@ -96,6 +101,7 @@ class UserTableDraft implements Draft<UserTableRec> {
   UserTableRec toRec(int id) => UserTableRec(id, name: name, columnIds: columnIds);
 }
 
+@Deprecated("blobs")
 class UserRowRec implements Identifiable {
   const UserRowRec(
     this.id, {
@@ -119,6 +125,7 @@ class UserRowRec implements Identifiable {
   );
 }
 
+@Deprecated("blobs")
 class UserRowDraft implements Draft<UserRowRec> {
   UserRowDraft(this.tableId, {this.eventId, this.timestampMillis, this.values = const []});
   int tableId;
@@ -148,7 +155,7 @@ sealed class BlobFieldType {
       'int' => const DInt(),
       'decimal' => const DDecimal(),
       'bool' => const DBool(),
-      'timestamp' => const DTimestamp(),
+      // 'timestamp' => const DTimestamp(),
       'duration' => const DDuration(),
       'enum' => DEnum(json['group'] as String),
       'tuple' => DTuple([for (final e in json['elements']) BlobFieldSpec.fromJson(e)]),
@@ -157,6 +164,15 @@ sealed class BlobFieldType {
   }
 
   Map<String, dynamic> toJson();
+
+  /// Override this with runtime type validation
+  bool validate(Object value);
+
+  /// Default, display the type only
+  @override
+  String toString() {
+    return runtimeType.toString();
+  }
 }
 
 /// Represents a scalar integer field
@@ -178,6 +194,9 @@ final class DInt extends BlobFieldType {
     }
     return j;
   }
+
+  @override
+  bool validate(Object value) => value is int;
 }
 
 /// Represents a scalar decimal field
@@ -185,13 +204,19 @@ final class DDecimal extends BlobFieldType {
   const DDecimal();
   @override
   Map<String, dynamic> toJson() => {'kind': 'decimal'};
+
+  @override
+  bool validate(Object value) => value is double;
 }
 
 /// Represents a scalar decimal field
 final class DText extends BlobFieldType {
   const DText();
   @override
-  Map<String, dynamic> toJson() => {'kind': 'decimal'};
+  Map<String, dynamic> toJson() => {'kind': 'text'};
+
+  @override
+  bool validate(Object value) => value is String;
 }
 
 /// Represents a plain boolean field
@@ -199,20 +224,34 @@ final class DBool extends BlobFieldType {
   const DBool();
   @override
   Map<String, dynamic> toJson() => {'kind': 'bool'};
+
+  @override
+  bool validate(Object value) => value is bool;
 }
 
-/// Represents a single timestamp (milliseconds)
-final class DTimestamp extends BlobFieldType {
-  const DTimestamp();
-  @override
-  Map<String, dynamic> toJson() => {'kind': 'timestamp'};
-}
+/// Represents a single timestamp (milliseconds) OR make it more flexible?! week/day/hour/minute/ +TZ?
+// final class DTimestamp extends BlobFieldType {
+//   const DTimestamp();
+//   @override
+//   Map<String, dynamic> toJson() => {'kind': 'timestamp'};
+
+//   @override
+//   bool validate(Object value) => value is ...;
+// }
+
+///
+// final class DDate extends BlobFieldType {
+//   @override
+//   Map<String, dynamic> toJson() => {'kind': 'date'};
+// }
 
 /// Represents a duration of time (milliseconds)
 final class DDuration extends BlobFieldType {
   const DDuration();
   @override
   Map<String, dynamic> toJson() => {'kind': 'duration'};
+  @override
+  bool validate(Object value) => value is Duration;
 }
 
 /// References a named group of user-defined enum values (e.g. "food").
@@ -223,6 +262,12 @@ final class DEnum extends BlobFieldType {
   final String group;
   @override
   Map<String, dynamic> toJson() => {'kind': 'enum', 'group': group};
+
+  @override
+  String toString() => "$runtimeType($group)";
+
+  @override
+  bool validate(Object value) => value is String;
 }
 
 /// Represents a fixed array of sub-fields.
@@ -231,6 +276,8 @@ final class DTuple extends BlobFieldType {
   final List<BlobFieldSpec> elements;
   @override
   Map<String, dynamic> toJson() => {'kind': 'tuple', 'elements': elements.map((e) => e.type.toJson())};
+  @override
+  bool validate(Object value) => value is List;
 }
 
 /// Specifies a field with its type and nullability
@@ -248,9 +295,10 @@ class BlobFieldSpec {
     'type': type.toJson(),
     if (nullable) 'nullable': true,
   };
+
   @override
   String toString() {
-    return "(${type.runtimeType}, ${nullable ? 'optional' : 'required'})";
+    return "($type, ${nullable ? 'optional' : 'required'})";
   }
 
   @override
@@ -266,11 +314,11 @@ class BlobSchemaDraft implements Draft<BlobSchemaRec> {
   BlobSchemaDraft(
     this.name, {
     required this.fields,
-    this.evtLink = false,
+    this.evtLink,
   });
   String name;
   final Map<String, BlobFieldSpec> fields;
-  bool evtLink; // Should this schema include a event-id field?
+  EvtLinkSpec? evtLink; // Should this schema include a event-id field?
 
   @override
   BlobSchemaRec toRec(int id) {
@@ -293,14 +341,42 @@ class BlobSchemaDraft implements Draft<BlobSchemaRec> {
   }
 }
 
+/// Defines how a BlobSchema relates to EvtTypes
+class EvtLinkSpec {
+  final Set<int> typIds; // allowed typIds: empty means ALL.
+  const EvtLinkSpec(this.typIds);
+
+  /// Make an event link that accepts any avent type.
+  EvtLinkSpec.allTypes() : this({});
+
+  /// Does it relate to a single event type.
+  bool get singleType => typIds.length == 1;
+
+  bool acceptsEvtTyp(int evtTyp) => typIds.isEmpty || typIds.contains(evtTyp);
+
+  @override
+  String toString() {
+    final desc = typIds.isEmpty ? "ANY" : typIds.toString();
+    return "EvtLink ($desc)";
+  }
+
+  List<int> toList() => typIds.toList(growable: false);
+
+  @override
+  bool operator ==(Object other) => other is EvtLinkSpec && setEquals(other.typIds, typIds);
+
+  @override
+  int get hashCode => typIds.hashCode;
+}
+
 /// Stored schema definition
 class BlobSchemaRec implements Identifiable {
-  const BlobSchemaRec(this.id, {required this.name, required this.fields, required this.evtLink});
+  const BlobSchemaRec(this.id, {required this.name, required this.fields, this.evtLink});
   @override
   final int id;
   final String name;
   final Map<String, BlobFieldSpec> fields;
-  final bool evtLink; // Should this schema include a event-id field?
+  final EvtLinkSpec? evtLink; // Should this schema include a event-id field?
 
   @override
   BlobSchemaDraft toDraft() => BlobSchemaDraft(name, fields: Map.from(fields), evtLink: evtLink);
@@ -330,6 +406,9 @@ class BlobSchemaRec implements Identifiable {
       evtLink: j["evtLink"] ?? false,
     );
   }
+
+  /// Which enum-groups are used by this schema
+  Set<String> usesEnums() => fields.values.map((f) => f.type).whereType<DEnum>().map((et) => et.group).toSet();
 }
 
 // ============ BLOB DATA (each record is an instance of these...) ============
@@ -356,6 +435,11 @@ class UserBlobRec implements Identifiable {
 
   /// Complete JSON of the stored object
   Map<String, dynamic> toJson() => {"id": id, "schemaId": schemaId, "eventId": eventId, "values": values};
+
+  @override
+  String toString() {
+    return "$id, s:$schemaId, e:$eventId, $values";
+  }
 }
 
 class UserBlobDraft extends Draft<UserBlobRec> {

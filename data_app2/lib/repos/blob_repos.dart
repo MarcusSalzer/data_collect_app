@@ -21,6 +21,11 @@ class BlobRepo extends CrudRepo<UserBlobRec, UserBlobDraft, UserBlobIsar> {
   Future<Iterable<UserBlobRec>> bySchema(int enumId) async {
     return (await coll.where().schemaIdEqualTo(enumId).findAll()).map(fromIsar);
   }
+
+  /// Get all records with an event link (should be indexed/fast)
+  Future<Iterable<UserBlobRec>> allWithEvtLink() async {
+    return (await coll.where().eventIdIsNotNull().findAll()).map(fromIsar);
+  }
 }
 
 class BlobSchemaRepo extends CrudRepo<BlobSchemaRec, BlobSchemaDraft, UserBlobSchemaIsar> {
@@ -29,22 +34,26 @@ class BlobSchemaRepo extends CrudRepo<BlobSchemaRec, BlobSchemaDraft, UserBlobSc
         draftToIsar: (d) => UserBlobSchemaIsar(
           d.name,
           json: jsonEncode({for (final e in d.fields.entries) e.key: e.value.toJson()}),
-          evtLink: d.evtLink,
+          evtLink: d.evtLink?.toList(),
         ),
         recToIsar: (r) => UserBlobSchemaIsar(
           r.name,
           json: jsonEncode({for (final e in r.fields.entries) e.key: e.value.toJson()}),
-          evtLink: r.evtLink,
+          evtLink: r.evtLink?.toList(),
         )..id = r.id,
-        fromIsar: (i) => BlobSchemaRec(
-          i.id,
-          name: i.name,
-          fields: {
-            for (final e in (jsonDecode(i.json) as Map<String, dynamic>).entries)
-              e.key: BlobFieldSpec.fromJson(e.value as Map<String, dynamic>),
-          },
-          evtLink: i.evtLink,
-        ),
+        fromIsar: (i) {
+          final evtLinkTyps = i.evtLink;
+
+          return BlobSchemaRec(
+            i.id,
+            name: i.name,
+            fields: {
+              for (final e in (jsonDecode(i.json) as Map<String, dynamic>).entries)
+                e.key: BlobFieldSpec.fromJson(e.value as Map<String, dynamic>),
+            },
+            evtLink: evtLinkTyps != null ? EvtLinkSpec(evtLinkTyps.toSet()) : null,
+          );
+        },
       );
   @override
   IsarCollection<UserBlobSchemaIsar> get coll => isar.userBlobSchemaIsars;
