@@ -46,16 +46,63 @@ class TestDummyData {
   }
 
   /// Schema with [i] fields of rotating types and nullability
-  static UserBlobDraft makeBlobDraft(int i) {
+  static UserBlobDraft makeBlobDraft(int i, BlobSchemaRec schema, List<String> enumValues) {
     return UserBlobDraft(
       i,
       eventId: (i % 2 == 0) ? i * 3 : null,
-      values: Map.fromEntries(
-        Iterable.generate(
-          i,
-          (id) => MapEntry("v_$id", i + 7),
-        ),
-      ),
+      values: {for (var MapEntry(key: k, value: spec) in schema.fields.entries) k: makeBlobValue(i, spec, enumValues)},
+    );
+  }
+
+  /// get a single value (dynamic) that matches a field.
+  static dynamic makeBlobValue(int i, BlobFieldSpec field, List<String> enumValues) {
+    // half chance of nullable
+    if (field.nullable && i % 2 == 1) {
+      return null;
+    }
+    final v = switch (field.type) {
+      DInt() => i,
+      DDecimal() => i / 10,
+      DText() => "text $i",
+      DBool() => i % 3 == 1, // different cycle than null
+      DDuration() => Duration(seconds: 5 * i).inMilliseconds,
+      DEnum() => enumValues[i % enumValues.length],
+      // make each child for a length i list.
+      DArray a => List.generate(i, (j) => makeBlobValue(j, a.childType, enumValues)),
+    };
+
+    if (!field.isValid(v)) {
+      throw StateError("$field does not accept $v");
+    }
+
+    return v;
+  }
+
+  /// Make a schema with one field per type.
+  static BlobSchemaRec makeBlobSchemaAllTypes(
+    UserEnumRec enumGroup, {
+    bool nullable = false,
+    int id = 137,
+    EvtLinkSpec? evtLink,
+  }) {
+    // NOTE: we need to have all types here. With some default parameters.
+    final fields = {
+      "myInt": BlobFieldSpec(DInt(), nullable: nullable),
+      "myDecimal": BlobFieldSpec(DDecimal(), nullable: nullable),
+      "myText": BlobFieldSpec(DText(), nullable: nullable),
+      "myBool": BlobFieldSpec(DBool(), nullable: nullable),
+      "myDuration": BlobFieldSpec(DDuration(), nullable: nullable),
+      // enum
+      "myChoice": BlobFieldSpec(DEnum(enumGroup.name), nullable: nullable),
+      // collections
+      "myNumbers": BlobFieldSpec(DArray(BlobFieldSpec(DDecimal(), nullable: nullable)), nullable: nullable),
+    };
+
+    return BlobSchemaRec(
+      id,
+      name: "DummyAll",
+      fields: fields,
+      evtLink: evtLink,
     );
   }
 }

@@ -1,4 +1,5 @@
 import 'package:data_app2/app_state.dart';
+import 'package:data_app2/blob_for_evt_cache.dart';
 import 'package:data_app2/data/app_prefs.dart';
 import 'package:data_app2/data/evt.dart';
 import 'package:data_app2/repos/evt_repo.dart';
@@ -6,6 +7,7 @@ import 'package:data_app2/time_range_queries.dart';
 import 'package:data_app2/util/enums.dart';
 import 'package:data_app2/util/extensions.dart';
 import 'package:data_app2/util/fmt.dart';
+import 'package:data_app2/widgets/evt_blob_summary.dart';
 import 'package:data_app2/widgets/evt_sub_title.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -17,7 +19,8 @@ class EvtPickerVm extends ChangeNotifier {
   final int dayStartsH;
   final Set<int> filterTypeIds;
 
-  EvtPickerVm(this.repo, this.filterTypeIds, {required this.dayStartsH}) : _date = DateTime.now().startOfDay;
+  EvtPickerVm(this.repo, this.filterTypeIds, this.selected, {required this.dayStartsH})
+    : _date = DateTime.now().startOfDay;
 
   // --- State ---
   List<EvtRec>? events;
@@ -47,6 +50,7 @@ class EvtPickerVm extends ChangeNotifier {
       unit: GroupFreq.day,
       overlapMode: OverlapMode.overlapping,
     );
+    await Future.delayed(Duration(milliseconds: 300));
 
     /// Get all events of matching type and time range
     events = (await repo.filteredLocalTime(q.toDbRange(), typeIds: filterTypeIds)).toList().reversed.toList();
@@ -60,7 +64,8 @@ class EvtPickerVm extends ChangeNotifier {
 class EvtPickerScreen extends StatelessWidget {
   final Set<int> typeIds;
   final void Function(EvtRec) onSelect;
-  const EvtPickerScreen(this.typeIds, {required this.onSelect, super.key});
+  final EvtRec? current;
+  const EvtPickerScreen(this.typeIds, this.current, {required this.onSelect, super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -77,7 +82,7 @@ class EvtPickerScreen extends StatelessWidget {
         create: (context) {
           final db = context.read<AppState>().db;
 
-          return EvtPickerVm(db.evts, typeIds, dayStartsH: prefs.dayStartsH)..load();
+          return EvtPickerVm(db.evts, typeIds, current, dayStartsH: prefs.dayStartsH)..load();
         },
         builder: (context, child) {
           final vm = context.watch<EvtPickerVm>();
@@ -105,35 +110,65 @@ class EvtPickerScreen extends StatelessWidget {
                   ],
                 ),
                 Expanded(
-                  child: (dateEvts == null)
-                      ? Center(child: Text("Loading..."))
-                      : ListView.builder(
-                          itemCount: dateEvts.length,
-                          itemBuilder: (context, index) {
-                            final evt = dateEvts[index];
-                            final et = typMan.typeFromId(evt.typeId);
+                  child: Builder(
+                    builder: (context) {
+                      if (dateEvts == null) {
+                        return Center(child: Text("Loading..."));
+                      }
+                      if (dateEvts.isEmpty) {
+                        return Center(child: Text("No matching events."));
+                      }
+                      return ChangeNotifierProvider<BlobForEvtCache>(
+                        create: (context) => BlobForEvtCache(context.read<AppState>().db.blobs, () => dateEvts)..load(),
+                        builder: (context, child) {
+                          final blobVm = context.watch<BlobForEvtCache>();
 
-                            if (et == null) {
+                          return ListView.builder(
+                            itemCount: dateEvts.length,
+                            itemBuilder: (context, index) {
+                              final evt = dateEvts[index];
+                              final et = typMan.typeFromId(evt.typeId);
+
+                              // If event type missing from cache
+                              if (et == null) {
+                                return ListTile(
+                                  title: Text(
+                                    "Error: event type not found",
+                                    style: TextStyle(color: Colors.red),
+                                  ),
+                                  subtitle: Text(evt.toString()),
+                                );
+                              }
+
+                              final blobs = blobVm.forEvt(evt.id);
+
                               return ListTile(
-                                title: Text(
-                                  "Error: event type not found",
-                                  style: TextStyle(color: Colors.red),
+                                selected: evt.id == vm.selected?.id,
+                                title: Row(
+                                  spacing: 8,
+                                  children: [
+                                    CircleAvatar(
+                                      radius: 5,
+                                      backgroundColor: typMan.colorFor(et, prefs.colorSpread),
+                                    ),
+                                    Text(et.name),
+                                  ],
                                 ),
-                                subtitle: Text(evt.toString()),
+                                subtitle: EvtSubTitle(evt, locMan.fromId(evt.locationId)),
+                                trailing: (blobs == null) ? null : EvtBlobSummaryIndicator(blobs),
+                                onTap: () {
+                                  // Select and go back
+                                  vm.selected = evt;
+                                  onSelect(evt);
+                                  Navigator.of(context).pop();
+                                },
                               );
-                            }
-
-                            return ListTile(
-                              title: Text(et.name),
-                              subtitle: EvtSubTitle(evt, locMan.fromId(evt.locationId)),
-                              onTap: () {
-                                // Select and go back
-                                onSelect(evt);
-                                Navigator.of(context).pop();
-                              },
-                            );
-                          },
-                        ),
+                            },
+                          );
+                        },
+                      );
+                    },
+                  ),
                 ),
               ],
             ),

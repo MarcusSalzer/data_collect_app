@@ -16,6 +16,7 @@ class EvtTypeOverviewVm extends ChangeNotifier {
   // Stored once and reused
   final Color color;
 
+  // TODO: use "null-for-loading" instead, like in other places...
   bool _isLoading = false;
   List<EvtRec> _evts = [];
   Duration _totTime = Duration.zero;

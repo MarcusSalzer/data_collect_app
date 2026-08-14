@@ -9,7 +9,8 @@ import 'package:isar_community/isar.dart';
 
 /// View model with logic for creatign/updating/deleting a EvtCat
 class EvtCatDetailVm extends EditVm<EvtCatRec, EvtCatDraft> {
-  EvtCatDetailVm(EvtCatRec? stored, this._db) : super(stored, stored?.toDraft() ?? EvtCatDraft("[new cat]"));
+  EvtCatDetailVm(EvtCatRec? stored, this._db)
+    : super(stored, stored?.toDraft() ?? EvtCatDraft("[new cat]"), _db.evtCats);
 
   // === Final refs ===
   final DBService _db;

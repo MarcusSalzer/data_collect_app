@@ -146,27 +146,56 @@ class UserRowDraft implements Draft<UserRowRec> {
 
 /// A field's type. Sealed so every consumer (UI renderer, validator,
 /// JSON codec) gets exhaustiveness-checked switches
-sealed class BlobFieldType {
+sealed class BlobFieldType<T> {
   const BlobFieldType();
 
-  factory BlobFieldType.fromJson(Map<String, dynamic> json) {
-    final kind = json['kind'] as String;
-    return switch (kind) {
-      'int' => const DInt(),
-      'decimal' => const DDecimal(),
-      'bool' => const DBool(),
+  // factory BlobFieldType.fromJson(Map<String, dynamic> json) {
+  //   final kind = json['kind'] as String;
+  //   return switch (kind) {
+  //     'int' => const DInt(),
+  //     'decimal' => const DDecimal(),
+  //     'bool' => const DBool(),
+  //     // 'timestamp' => const DTimestamp(),
+  //     'duration' => const DDuration(),
+  //     'enum' => DEnum(json['group'] as String),
+  //     // 'tuple' => DTuple([for (final e in json['elements']) BlobFieldSpec.fromJson(e)]),
+  //     'array' => DArray(BlobFieldSpec.fromJson(json['child'])),
+  //     _ => throw FormatException('Unknown field kind: $kind'),
+  //   };
+  // }
+
+  static BlobFieldType fromJson(Map<String, dynamic> json) {
+    final kind = json['kind'];
+    switch (kind) {
+      case 'int':
+        return const DInt();
+      case 'decimal':
+        return const DDecimal();
+      case 'bool':
+        return const DBool();
+      case 'text':
+        return const DText();
       // 'timestamp' => const DTimestamp(),
-      'duration' => const DDuration(),
-      'enum' => DEnum(json['group'] as String),
-      'tuple' => DTuple([for (final e in json['elements']) BlobFieldSpec.fromJson(e)]),
-      _ => throw FormatException('Unknown field kind: $kind'),
-    };
+      case 'duration':
+        return const DDuration();
+      case 'enum':
+        final g = json['group'];
+        if (g is! String) {
+          throw FormatException("needs an enum group name", json);
+        }
+        return DEnum(g);
+      // 'tuple' => DTuple([for (final e in json['elements']) BlobFieldSpec.fromJson(e)]),
+      case 'array':
+        return DArray(BlobFieldSpec.fromJson(json['child']));
+
+      default:
+        throw FormatException('Unknown field kind: $kind');
+    }
   }
 
   Map<String, dynamic> toJson();
 
-  /// Override this with runtime type validation
-  bool validate(Object value);
+  bool isValid(Object value) => value is T;
 
   /// Default, display the type only
   @override
@@ -176,7 +205,7 @@ sealed class BlobFieldType {
 }
 
 /// Represents a scalar integer field
-final class DInt extends BlobFieldType {
+final class DInt extends BlobFieldType<int> {
   // IDEA: Maybe support min/max?
   final int? min;
   final int? max;
@@ -194,39 +223,27 @@ final class DInt extends BlobFieldType {
     }
     return j;
   }
-
-  @override
-  bool validate(Object value) => value is int;
 }
 
 /// Represents a scalar decimal field
-final class DDecimal extends BlobFieldType {
+final class DDecimal extends BlobFieldType<num> {
   const DDecimal();
   @override
   Map<String, dynamic> toJson() => {'kind': 'decimal'};
-
-  @override
-  bool validate(Object value) => value is double;
 }
 
-/// Represents a scalar decimal field
-final class DText extends BlobFieldType {
+/// Represents a string of text
+final class DText extends BlobFieldType<String> {
   const DText();
   @override
   Map<String, dynamic> toJson() => {'kind': 'text'};
-
-  @override
-  bool validate(Object value) => value is String;
 }
 
 /// Represents a plain boolean field
-final class DBool extends BlobFieldType {
+final class DBool extends BlobFieldType<bool> {
   const DBool();
   @override
   Map<String, dynamic> toJson() => {'kind': 'bool'};
-
-  @override
-  bool validate(Object value) => value is bool;
 }
 
 /// Represents a single timestamp (milliseconds) OR make it more flexible?! week/day/hour/minute/ +TZ?
@@ -246,18 +263,16 @@ final class DBool extends BlobFieldType {
 // }
 
 /// Represents a duration of time (milliseconds)
-final class DDuration extends BlobFieldType {
+final class DDuration extends BlobFieldType<int> {
   const DDuration();
   @override
   Map<String, dynamic> toJson() => {'kind': 'duration'};
-  @override
-  bool validate(Object value) => value is Duration;
 }
 
 /// References a named group of user-defined enum values (e.g. "food").
 /// The group itself lives in its own table,
 /// this just stores which group a field draws from.
-final class DEnum extends BlobFieldType {
+final class DEnum extends BlobFieldType<String> {
   const DEnum(this.group);
   final String group;
   @override
@@ -267,17 +282,29 @@ final class DEnum extends BlobFieldType {
   String toString() => "$runtimeType($group)";
 
   @override
-  bool validate(Object value) => value is String;
+  bool isValid(Object value) => value is String;
 }
 
-/// Represents a fixed array of sub-fields.
-final class DTuple extends BlobFieldType {
-  const DTuple(this.elements);
-  final List<BlobFieldSpec> elements;
+/// Represents a fixed array of sub-fields. (Could be useful as item in list)
+// final class DTuple extends BlobFieldType {
+//   const DTuple(this.elements);
+//   final List<BlobFieldSpec> elements;
+//   @override
+//   Map<String, dynamic> toJson() => {'kind': 'tuple', 'elements': elements.map((e) => e.type.toJson())};
+//   @override
+//   bool validate(Object value) => value is List;
+// }
+
+/// Represents a homogenous list of values.
+final class DArray extends BlobFieldType<List> {
+  const DArray(this.childType);
+  final BlobFieldSpec childType;
   @override
-  Map<String, dynamic> toJson() => {'kind': 'tuple', 'elements': elements.map((e) => e.type.toJson())};
+  Map<String, dynamic> toJson() => {'kind': 'array', 'child': childType.toJson()};
+
+  /// Recursive validation for list
   @override
-  bool validate(Object value) => value is List;
+  bool isValid(Object value) => value is List && value.fold(true, (p, c) => p && childType.isValid(c));
 }
 
 /// Specifies a field with its type and nullability
@@ -295,6 +322,13 @@ class BlobFieldSpec {
     'type': type.toJson(),
     if (nullable) 'nullable': true,
   };
+
+  bool isValid(Object? value) {
+    if (value == null) {
+      return nullable;
+    }
+    return type.isValid(value);
+  }
 
   @override
   String toString() {
@@ -425,6 +459,8 @@ class UserBlobRec implements Identifiable {
   final int id;
   final int schemaId;
   final int? eventId;
+  // Values stored as a map with primitive values (string|int|float|bool) or a list of those
+  // To get the exact meaning of a value, use the schema-object
   final Map<String, dynamic> values;
   @override
   UserBlobDraft toDraft() => UserBlobDraft(

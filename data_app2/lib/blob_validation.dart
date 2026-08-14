@@ -49,7 +49,7 @@ class BlobValidation {
     // - Enum: needs access to enums for checking
     // - Tuple: needs validation of children
 
-    if (!field.type.validate(value)) {
+    if (!field.type.isValid(value)) {
       return BlobFieldError.type;
     }
 

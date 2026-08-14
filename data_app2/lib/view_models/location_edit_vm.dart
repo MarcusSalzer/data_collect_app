@@ -9,14 +9,13 @@ class LocationEditVm extends EditVm<LocationRec, LocationDraft> {
   String coordRaw = '';
   String? coordError;
 
-  LocationEditVm({LocationRec? existing, required this.repo, required this.manager})
-    : super(existing, existing?.toDraft() ?? LocationDraft('', 0, 0)) {
+  LocationEditVm({LocationRec? existing, required LocationRepo repo, required this.manager})
+    : super(existing, existing?.toDraft() ?? LocationDraft('', 0, 0), repo) {
     if (existing != null) {
       coordRaw = '${existing.lat}, ${existing.lng}';
     }
   }
 
-  final LocationRepo repo;
   final LocationManager manager;
 
   bool get isValid => draft.name.isNotEmpty && coordError == null && coordRaw.isNotEmpty;
@@ -63,20 +62,5 @@ class LocationEditVm extends EditVm<LocationRec, LocationDraft> {
       errorMsg = 'Save failed: $e';
     }
     notifyListeners();
-  }
-
-  @override
-  delete() async {
-    final r = stored;
-    if (r == null) return false;
-    try {
-      await repo.forceDelete(r.id);
-      manager.remove(r.id, r.name);
-      return true;
-    } catch (e) {
-      errorMsg = 'Delete failed: $e';
-      notifyListeners();
-      return false;
-    }
   }
 }

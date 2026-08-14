@@ -104,9 +104,11 @@ void main() {
   });
 
   group('BlobRepo', () {
+    final schema = TestDummyData.makeBlobSchemaAllTypes(UserEnumRec(9, name: "testEnum"));
+    final enumVals = ["eA", "eB", "eC"];
     runCrudRepoTests<UserBlobRec, UserBlobDraft, UserBlobIsar>(
       repo: () => db.blobs,
-      makeDraft: TestDummyData.makeBlobDraft,
+      makeDraft: (i) => TestDummyData.makeBlobDraft(i, schema, enumVals),
       expectEqual: (a, b) {
         expect(a.id, b.id, reason: "id should match");
       },

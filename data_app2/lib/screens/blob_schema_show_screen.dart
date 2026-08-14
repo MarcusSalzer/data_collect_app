@@ -1,10 +1,8 @@
-import 'package:data_app2/app_state.dart';
 import 'package:data_app2/blob_validation.dart';
 import 'package:data_app2/data/user_schema.dart';
 import 'package:data_app2/db_service.dart';
 import 'package:data_app2/screens/blob_edit_screen.dart';
 import 'package:data_app2/screens/blob_schema_edit_screen.dart';
-import 'package:data_app2/view_models/blob_edit_vm.dart';
 import 'package:data_app2/view_models/blob_schema_show_vm.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -39,13 +37,10 @@ class _BlobDataList extends StatelessWidget {
             title: Text(r.id.toString()),
             subtitle: _BlobSummaryTable(r, vm.schema),
             onTap: () {
-              final db = context.read<AppState>().db;
               Navigator.of(context)
                   .push(
                     MaterialPageRoute(
-                      builder: (_) => BlobEditScreen(
-                        UserBlobEditVm(r, vm.schema, db.blobs, db.userEnums, db.userEnumValues, db.evts)..load(),
-                      ),
+                      builder: (_) => BlobEditScreen(vm.schema, r),
                     ),
                   )
                   .then((_) {
@@ -110,7 +105,7 @@ class BlobSchemaShowScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider<BlobSchemaShowVm>(
-      create: (context) => BlobSchemaShowVm(schema, db.blobs, db.userEnums)..load(),
+      create: (context) => BlobSchemaShowVm(schema, db.blobs)..load(),
       builder: (context, _) => Scaffold(
         appBar: AppBar(
           title: Text(schema.name),
@@ -141,9 +136,7 @@ class BlobSchemaShowScreen extends StatelessWidget {
             Navigator.of(context)
                 .push(
                   MaterialPageRoute(
-                    builder: (_) => BlobEditScreen(
-                      UserBlobEditVm(null, schema, db.blobs, db.userEnums, db.userEnumValues, db.evts)..load(),
-                    ),
+                    builder: (_) => BlobEditScreen(schema, null),
                   ),
                 )
                 .then((_) {

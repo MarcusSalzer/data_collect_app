@@ -29,8 +29,6 @@ class _MonthCalendarScreenState extends State<MonthCalendarScreen> {
 
     return ChangeNotifierProvider<MonthVm>(
       create: (createCtx) {
-        // this does rebuild when AppState changes
-        // unecessary, yes, but doesn't happen often.
         final app = createCtx.read<AppState>();
         return MonthVm(
           DateTime.now().startOfMonth,

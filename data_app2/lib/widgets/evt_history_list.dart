@@ -12,6 +12,7 @@ import 'package:data_app2/screens/events/evt_detail_screen.dart';
 import 'package:data_app2/util/enums.dart';
 import 'package:data_app2/util/extensions.dart';
 import 'package:data_app2/util/fmt.dart';
+import 'package:data_app2/widgets/evt_blob_summary.dart';
 import 'package:data_app2/widgets/evt_sub_title.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -142,13 +143,18 @@ class _EventListTile extends StatelessWidget {
             ),
           ),
         ListTile(
-          title: Text(
-            "${typ?.name}$durTxt",
-            style: TextStyle(color: color),
+          title: Row(
+            spacing: 8,
+            children: [
+              CircleAvatar(radius: 5, backgroundColor: color),
+              Text(
+                "${typ?.name}$durTxt",
+              ),
+            ],
           ),
           subtitle: EvtSubTitle(evt, location),
           // optionally short summary of linked blobs.
-          trailing: _blobs == null ? null : Text(_blobs.map((b) => "*${b.schemaId}").join(", ")),
+          trailing: _blobs == null ? null : EvtBlobSummaryIndicator(_blobs),
           onTap: () {
             _openDetail(context);
           },

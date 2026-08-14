@@ -2,10 +2,12 @@ import 'package:data_app2/contracts/edit_vm.dart';
 import 'package:data_app2/data/user_schema.dart';
 import 'package:data_app2/db_service.dart';
 
+@Deprecated("blobs")
 class UserTableEditVm extends EditVm<UserTableRec, UserTableDraft> {
   final DBService _db;
 
-  UserTableEditVm(UserTableRec? stored, this._db) : super(stored, stored?.toDraft() ?? UserTableDraft("", []));
+  UserTableEditVm(UserTableRec? stored, this._db)
+    : super(stored, stored?.toDraft() ?? UserTableDraft("", []), _db.userTables);
 
   Future<void> load() async {
     final storedId = stored?.id;

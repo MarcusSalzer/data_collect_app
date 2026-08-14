@@ -1,4 +1,5 @@
 import 'package:data_app2/app_state.dart';
+import 'package:data_app2/blob_for_evt_cache.dart';
 import 'package:data_app2/data/evt_type.dart';
 import 'package:data_app2/view_models/evt_type_overview_vm.dart';
 import 'package:data_app2/util/fmt.dart';
@@ -65,7 +66,21 @@ class EvtTypeOverviewScreen extends StatelessWidget {
                   return TabBarView(
                     children: [
                       const _EventTypeStatsDisplay(),
-                      EvtHistoryList(vm.evts, vm.load),
+                      ChangeNotifierProvider<BlobForEvtCache>(
+                        create: (context) => BlobForEvtCache(context.read<AppState>().db.blobs, () => vm.evts)..load(),
+                        builder: (context, child) {
+                          final blobVm = context.watch<BlobForEvtCache>();
+                          return EvtHistoryList(
+                            vm.evts,
+                            () {
+                              vm.load();
+                              blobVm.load();
+                            },
+                            reversed: true,
+                            blobsForEvt: blobVm.forEvt,
+                          );
+                        },
+                      ),
                     ],
                   );
                 },

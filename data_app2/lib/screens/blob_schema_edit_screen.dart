@@ -72,6 +72,7 @@ class _BlobSchemaEditScreenState extends State<BlobSchemaEditScreen> {
                     return ListTile(
                       contentPadding: EdgeInsets.zero,
                       title: Text(name),
+                      subtitle: Text(spec.toString()),
                       trailing: IconButton(
                         icon: const Icon(Icons.delete_outline),
                         onPressed: () => _vm.removeField(name),

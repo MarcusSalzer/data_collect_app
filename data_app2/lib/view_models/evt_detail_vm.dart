@@ -9,9 +9,8 @@ import 'package:isar_community/isar.dart';
 
 /// Handle details and editing of a single event
 class EvtDetailVm extends EditVm<EvtRec, EvtDraft> {
-  EvtDetailVm(EvtRec stored, this._evtRepo, this._typMan) : super(stored, stored.toDraft());
+  EvtDetailVm(EvtRec stored, EvtRepo repo, this._typMan) : super(stored, stored.toDraft(), repo);
 
-  final EvtRepo _evtRepo;
   final EvtTypeManager _typMan;
 
   EvtTypeRec? get evtType {
@@ -55,12 +54,12 @@ class EvtDetailVm extends EditVm<EvtRec, EvtDraft> {
     try {
       if (storedId == null) {
         // Store new
-        final newId = await _evtRepo.create(draft);
+        final newId = await repo.create(draft);
         stored = draft.toRec(newId);
       } else {
         // Update stored
         final updated = draft.toRec(storedId);
-        await _evtRepo.update(updated);
+        await repo.update(updated);
         stored = updated;
       }
     } on IsarError catch (e) {
@@ -73,16 +72,5 @@ class EvtDetailVm extends EditVm<EvtRec, EvtDraft> {
       errorMsg = e.toString();
     }
     notifyListeners();
-  }
-
-  /// delete the event from DB
-  @override
-  delete() async {
-    final storedId = stored?.id;
-    if (storedId == null) {
-      return false;
-    }
-    final didDelete = await _evtRepo.forceDelete(storedId);
-    return didDelete;
   }
 }

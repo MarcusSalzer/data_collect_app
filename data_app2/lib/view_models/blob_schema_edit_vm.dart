@@ -5,11 +5,10 @@ import 'package:data_app2/repos/user_enum_repos.dart';
 import 'package:isar_community/isar.dart';
 
 class BlobSchemaEditVm extends EditVm<BlobSchemaRec, BlobSchemaDraft> {
-  final BlobSchemaRepo repo;
   final UserEnumRepo _enumRepo;
 
-  BlobSchemaEditVm(BlobSchemaRec? stored, this.repo, this._enumRepo)
-    : super(stored, stored?.toDraft() ?? BlobSchemaDraft('', fields: {}));
+  BlobSchemaEditVm(BlobSchemaRec? stored, BlobSchemaRepo repo, this._enumRepo)
+    : super(stored, stored?.toDraft() ?? BlobSchemaDraft('', fields: {}), repo);
 
   // --- loaded data ---
   Map<String, UserEnumRec>? _userEnums;
@@ -52,16 +51,6 @@ class BlobSchemaEditVm extends EditVm<BlobSchemaRec, BlobSchemaDraft> {
   void setEvtLink(EvtLinkSpec? spec) {
     draft.evtLink = spec;
     notifyListeners();
-  }
-
-  // === Storage methods ===
-  @override
-  Future<bool> delete() async {
-    final stored = this.stored;
-    if (stored == null) return false; // cannot delete if never saved
-
-    final r = await repo.forceDelete(stored.id);
-    return r;
   }
 
   @override

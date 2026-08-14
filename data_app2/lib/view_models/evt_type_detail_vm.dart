@@ -11,7 +11,7 @@ import 'package:isar_community/isar.dart';
 
 class EvtTypeDetailVm extends EditVm<EvtTypeRec, EvtTypeDraft> {
   EvtTypeDetailVm(EvtTypeRec? stored, this._db, this._typeManager)
-    : super(stored, stored?.toDraft() ?? EvtTypeDraft("[new type]"));
+    : super(stored, stored?.toDraft() ?? EvtTypeDraft("[new type]"), _db.evtTypes);
 
   // === Final refs ===
   final DBService _db;

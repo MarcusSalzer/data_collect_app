@@ -102,10 +102,11 @@ class EvtRepo extends CrudRepo<EvtRec, EvtDraft, EventIsar> {
     return evts.map(fromIsar);
   }
 
-  /// Get some events.
+  /// Get events with matching types. Sorted by local start time.
   Future<Iterable<EvtRec>> filteredTypes(Iterable<int> typeIds) async {
     final evts = await isar.txn(
-      () async => await coll.where().anyOf(typeIds, (q, int n) => q.typeIdEqualTo(n)).findAll(),
+      () async =>
+          await coll.where().anyOf(typeIds, (q, int n) => q.typeIdEqualTo(n)).sortByStartLocalMillis().findAll(),
     );
     return evts.map(fromIsar);
   }

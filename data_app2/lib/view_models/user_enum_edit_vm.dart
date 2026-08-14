@@ -4,7 +4,7 @@ import 'package:data_app2/db_service.dart';
 
 class UserEnumEditVm extends EditVm<UserEnumRec, UserEnumDraft> {
   final DBService _db;
-  UserEnumEditVm(UserEnumRec? stored, this._db) : super(stored, stored?.toDraft() ?? UserEnumDraft(""));
+  UserEnumEditVm(UserEnumRec? stored, this._db) : super(stored, stored?.toDraft() ?? UserEnumDraft(""), _db.userEnums);
 
   // load these
   // working copy: parallel list of values (unique by name)
@@ -90,31 +90,5 @@ class UserEnumEditVm extends EditVm<UserEnumRec, UserEnumDraft> {
       errorMsg = 'Save failed: $e';
     }
     notifyListeners();
-  }
-
-  @override
-  delete() async {
-    final r = stored;
-    if (r == null) return false;
-
-    final result = await _db.userEnums.forceDelete(r.id);
-    notifyListeners();
-    return result;
-
-    // var didDelete = false;
-
-    // switch (result) {
-    //   case DeleteResult.deleted:
-    //     didDelete = true;
-    //     break;
-    //   case DeleteResult.referenced:
-    //     errorMsg = 'Cannot delete: value is in use';
-    //     break;
-    //   case DeleteResult.notFound:
-    //     errorMsg = 'Error: not found';
-    //     break;
-    // }
-    // notifyListeners();
-    // return didDelete;
   }
 }

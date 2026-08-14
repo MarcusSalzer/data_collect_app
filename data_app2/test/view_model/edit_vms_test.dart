@@ -38,6 +38,7 @@ void main() {
       final vm = EvtCatDetailVm(null, db);
 
       expect(vm.stored, isNull);
+      expect(vm.hasStored, false);
       expect(vm.isDirty, true);
       // cannot delete if not stored
       expect(await vm.delete(), false);
@@ -69,20 +70,31 @@ void main() {
       final rec = (await db.evtCats.all()).first;
       await db.evtTypes.create(EvtTypeDraft("hmm")..categoryId = rec.id);
 
+      var nNotify = 0;
       final vm = EvtCatDetailVm(rec, db);
+      vm.addListener(() {
+        nNotify++;
+      });
       final didDel = await vm.delete();
 
       // expected state
       expect(didDel, false);
       expect(vm.isDirty, false);
+      expect(nNotify, 1);
       expect(vm.errorMsg, contains("will not delete"));
       expect(await db.evtCats.count(), 1);
+
+      // can dismiss error
+      vm.dismissError();
+      expect(vm.errorMsg, isNull);
+      expect(nNotify, 2);
     });
     test('update name & save', () async {
       await db.evtCats.create(EvtCatDraft("oops"));
       final rec = (await db.evtCats.all()).first;
 
       final vm = EvtCatDetailVm(rec, db);
+      expect(vm.hasStored, true);
       vm.updateName("corrected");
       expect(vm.isDirty, true);
 
@@ -258,8 +270,10 @@ void main() {
   });
 
   group("enums", () {
-    test("not dirty, not valid when not edited", () {
+    test("not dirty, not valid when not edited", () async {
       final vm = UserEnumEditVm(null, db);
+      await vm.load();
+
       expect(vm.isDirty, false, reason: "should not be dirty when not edited.");
       expect(vm.isValid, false);
     });
@@ -268,9 +282,80 @@ void main() {
       final item = UserEnumRec(13, name: "myenum");
       final vm = UserEnumEditVm(item, db);
 
+      await vm.load();
+
       expect(vm.stored, item);
       expect(vm.isValid, true, reason: "existing should be valid");
       expect(vm.isDirty, false, reason: "existing should not be dirty");
+    });
+
+    test("loads values", () async {
+      final item = UserEnumRec(13, name: "myenum");
+
+      final values = [
+        for (var i in await db.userEnumValues.createAll(
+          [
+            UserEnumValueDraft(item.id, "vA"),
+            UserEnumValueDraft(item.id, "vB"),
+          ],
+        ))
+          (await db.userEnumValues.getById(i))!,
+      ];
+
+      // make some other values
+      await db.userEnumValues.createAll([
+        UserEnumValueDraft(item.id + 1, "vC"),
+        UserEnumValueDraft(item.id + 1, "vD"),
+        UserEnumValueDraft(item.id + 2, "vE"),
+      ]);
+
+      final vm = UserEnumEditVm(item, db);
+
+      await vm.load();
+      expect(vm.valueNameDrafts, values.map((v) => v.name).toSet());
+    });
+
+    test("add & remove values", () async {
+      final item = UserEnumRec(13, name: "myenum");
+      final vm = UserEnumEditVm(item, db);
+      await vm.load();
+
+      vm.addValue("newA");
+      vm.addValue("newB");
+
+      expect(vm.valueNameDrafts, {"newA", "newB"}, reason: "Should update working-set");
+
+      await vm.save();
+      // load and check matches
+      expect((await db.userEnumValues.all()).map((v) => (v.enumId, v.name)), [
+        (item.id, "newA"),
+        (item.id, "newB"),
+      ]);
+
+      vm.removeValue("newA");
+      // add and remove without saving
+      vm.addValue("typo");
+      vm.removeValue("typo");
+
+      expect(vm.valueNameDrafts, {"newB"}, reason: "Should update working-set");
+
+      await vm.save();
+      // load and check matches
+      expect((await db.userEnumValues.all()).map((v) => (v.enumId, v.name)), [
+        (item.id, "newB"),
+      ]);
+      expect(vm.errorMsg, isNull);
+    });
+
+    test("error when removing non-existent.", () async {
+      final item = UserEnumRec(13, name: "myenum");
+      final vm = UserEnumEditVm(item, db);
+      await vm.load();
+      vm.addValue("newA");
+      vm.removeValue("NonExist");
+
+      expect(vm.errorMsg, contains("could not remove"));
+      expect(vm.valueNameDrafts, {"newA"});
     });
   });
 
@@ -294,6 +379,21 @@ void main() {
       expect(vm.isValid, true, reason: "existing should be valid");
       expect(vm.isDirty, false, reason: "existing should not be dirty");
     });
+
+    test("without enums", () async {
+      final vm = BlobSchemaEditVm(null, db.blobSchemas, db.userEnums);
+      await vm.load();
+
+      expect(vm.enumGroupNames, isNotNull);
+      expect(vm.enumGroupNames, isEmpty);
+    });
+    test("loads enums", () async {
+      await db.userEnums.createAll([UserEnumDraft("e1"), UserEnumDraft("e2")]);
+      final vm = BlobSchemaEditVm(null, db.blobSchemas, db.userEnums);
+      await vm.load();
+
+      expect(vm.enumGroupNames, ["e1", "e2"]);
+    });
     test("create", () async {
       final vm = BlobSchemaEditVm(null, db.blobSchemas, db.userEnums);
       vm.setName("new");
@@ -312,6 +412,38 @@ void main() {
       final loaded = (await db.blobSchemas.all()).first;
       expect(loaded.name, "new");
       expect(loaded.fields["f1"], BlobFieldSpec(DDecimal()));
+    });
+    test("add & remove fields", () async {
+      final vm = BlobSchemaEditVm(null, db.blobSchemas, db.userEnums);
+      vm.setName("new");
+
+      vm.addField("f1", BlobFieldSpec(DDecimal()));
+
+      //add and remove without saving
+      vm.addField("f2", BlobFieldSpec(DBool()));
+      vm.removeField("f2");
+
+      // save and load
+      await vm.save();
+      final loaded = (await db.blobSchemas.all()).first;
+      expect(loaded.name, "new");
+      expect(loaded.fields["f1"], BlobFieldSpec(DDecimal()));
+
+      // remove a saved field
+      vm.removeField("f1");
+      await vm.save();
+      expect((await db.blobSchemas.all()).first.fields, isEmpty, reason: "should delete fields");
+    });
+
+    test("delete schema", () async {
+      final id = await db.blobSchemas.create(
+        TestDummyData.makeBlobSchemaAllTypes(UserEnumRec(1, name: "enum")).toDraft(),
+      );
+      final vm = BlobSchemaEditVm((await db.blobSchemas.getById(id))!, db.blobSchemas, db.userEnums);
+      final d = await vm.delete();
+      expect(d, true);
+      expect(await db.blobSchemas.count(), 0);
+      expect(vm.stored, isNull);
     });
   });
 

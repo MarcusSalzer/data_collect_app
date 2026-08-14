@@ -1,6 +1,6 @@
 import 'package:data_app2/app_state.dart';
+import 'package:data_app2/blob_for_evt_cache.dart';
 import 'package:data_app2/data/app_prefs.dart';
-import 'package:data_app2/data/today_summary_data.dart';
 import 'package:data_app2/util/enums.dart';
 import 'package:data_app2/util/fmt.dart';
 import 'package:data_app2/plots.dart';
@@ -11,135 +11,6 @@ import 'package:data_app2/widgets/evt_history_list.dart';
 import 'package:data_app2/widgets/segm_button.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
-class DayInmonthScreenOld extends StatelessWidget {
-  final DateTime startDate;
-
-  final MonthVm monthVm;
-
-  const DayInmonthScreenOld(this.startDate, this.monthVm, {super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final prefs = context.select<AppState, AppPrefs>((a) => a.prefs);
-    return ChangeNotifierProvider<DayInmonthVm>(
-      create: (context) {
-        final tm = context.read<AppState>().evtTypeManager;
-        return DayInmonthVm(
-          startDate,
-          prefs.summaryMode,
-          prefs.colorSpread,
-          prefs.dayStartsH,
-          tm,
-          evtsForMonth: () => monthVm.eventList,
-          stepToMonth: monthVm.stepTo,
-        )..refresh();
-      },
-      child: Consumer<DayInmonthVm>(
-        builder: (context, vm, child) {
-          final thm = Theme.of(context);
-          return Scaffold(
-            appBar: AppBar(
-              title: Row(
-                spacing: 12,
-                children: [
-                  Text(
-                    Fmt.weekdayShort(vm.dt),
-                    style: TextStyle(fontFamily: "monospace", color: thm.colorScheme.primary),
-                  ),
-                  Text(
-                    Fmt.shortDate(vm.dt),
-                    style: TextStyle(fontFamily: "monospace"),
-                  ),
-                ],
-              ),
-              actions: [
-                IconButton(
-                  onPressed: () => vm.stepDay(-1), // step to day before
-                  icon: Icon(Icons.keyboard_double_arrow_left, size: 30),
-                ),
-                IconButton(
-                  onPressed: () => vm.stepDay(1), // step to day after
-                  icon: Icon(Icons.keyboard_double_arrow_right, size: 30),
-                ),
-              ],
-            ),
-            body: SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: DefaultTabController(
-                  length: 2,
-                  child: Column(
-                    spacing: 24,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _SummaryTabs(),
-                      TabBar(
-                        tabs: [
-                          Tab(icon: Icon(Icons.pie_chart)),
-                          Tab(icon: Icon(Icons.table_chart)),
-                        ],
-                      ),
-                      // select summary mode
-                      SummaryModeSegmButton(vm.summaryMode, vm.setSummaryMode),
-                      // select range inclusion
-                      GenericSegmButton<RangeSummaryInclusionMode>(vm.rangeMode, vm.setRangeMode, [
-                        (RangeSummaryInclusionMode.fullyInside, Text("fully in")),
-                        (RangeSummaryInclusionMode.endsIn, Text("end in")),
-                        (RangeSummaryInclusionMode.endsInPlusFill, Text("complete")),
-                      ]),
-
-                      Text("Events", style: TextStyle(fontSize: 20)),
-
-                      EvtHistoryList(vm.dayEvts, vm.load),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-}
-
-class _SummaryTabs extends StatelessWidget {
-  final double height = 300.0;
-
-  const _SummaryTabs();
-
-  @override
-  Widget build(BuildContext context) {
-    final summary = context.select<DayInmonthVm, DurationSummaryList?>((v) => v.activeSummary);
-    if (summary == null) {
-      return SizedBox(
-        height: height,
-        child: Center(
-          child: Text("loading"),
-        ),
-      );
-    }
-    return SizedBox(
-      height: 300,
-      child: TabBarView(
-        children: [
-          Center(
-            child: Column(
-              children: [
-                EventPieChart(
-                  timings: summary.items.map((e) => MapEntry(e.name, e.duration)).toList(),
-                  colors: summary.items.map((e) => e.color).toList(),
-                ),
-              ],
-            ),
-          ),
-          EventDurationTable(summary, Text("events")),
-        ],
-      ),
-    );
-  }
-}
 
 class DayInmonthScreen extends StatelessWidget {
   final DateTime startDate;
@@ -254,7 +125,21 @@ class DayInmonthScreen extends StatelessWidget {
                                   ),
                                 ],
                               ),
-                              EvtHistoryList(vm.dayEvts, vm.load),
+                              ChangeNotifierProvider<BlobForEvtCache>(
+                                create: (context) =>
+                                    BlobForEvtCache(context.read<AppState>().db.blobs, vm.evtsForMonth)..load(),
+                                builder: (context, child) {
+                                  final blobVm = context.watch<BlobForEvtCache>();
+                                  return EvtHistoryList(
+                                    vm.dayEvts,
+                                    () {
+                                      vm.load();
+                                      blobVm.load();
+                                    },
+                                    blobsForEvt: blobVm.forEvt,
+                                  );
+                                },
+                              ),
                             ],
                           );
                         },

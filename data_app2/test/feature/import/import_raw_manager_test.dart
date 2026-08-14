@@ -1,5 +1,8 @@
+import 'dart:convert';
+
 import 'package:data_app2/app_state.dart';
 import 'package:data_app2/csv/builtin_schemas.dart';
+import 'package:data_app2/data/app_prefs.dart';
 import 'package:data_app2/raw_data_import_manager.dart';
 import 'package:data_app2/util/enums.dart';
 import 'package:test/test.dart';
@@ -11,7 +14,10 @@ import '../../test_util/dummy_app.dart';
 /// - types: 3
 /// - cats:  2
 /// - random trash: 1
-void makeDummyFilesRaw(Directory folder) {
+List<File> makeDummyFilesRaw(Directory folder) {
+  folder.deleteSync(recursive: true);
+  folder.createSync();
+
   // types
   File(
     p.join(folder.path, "event_types.csv"),
@@ -20,10 +26,21 @@ void makeDummyFilesRaw(Directory folder) {
   File(
     p.join(folder.path, "event_categories.csv"),
   ).writeAsStringSync(["id,name", "2,c1", "3,c2"].join("\n"));
+
+  // prefs
+
+  File(
+    p.join(folder.path, "prefs.json"),
+  ).writeAsStringSync(jsonEncode(AppPrefs(colorSpread: 0.123)));
+
+  final validFiles = folder.listSync().whereType<File>().toList();
+
   // trash
   File(
     p.join(folder.path, "trash.wtf"),
   ).writeAsStringSync(["name", "c1", "c2"].join("\n"));
+
+  return validFiles;
 }
 
 void main() {
@@ -47,10 +64,10 @@ void main() {
     final im = RawDataImportManager(app.db);
 
     // write data
-    makeDummyFilesRaw(folder);
+    final validFiles = makeDummyFilesRaw(folder);
 
     await im.scan(folder);
-    expect(im.candidates.length, 2);
+    expect(im.candidates.length, validFiles.length);
   });
   test('pre parse', () async {
     final folder = await app.storeSubdir("stuff");

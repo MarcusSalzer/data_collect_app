@@ -29,7 +29,7 @@ class EventTypeDetailScreen extends StatelessWidget {
             children: [
               EditInputs(vm: vm),
               SizedBox(height: 32),
-              EventTypeDetailDisplay(vm.draft, vm.id),
+              EventTypeDetailDisplay(vm.draft, vm.stored?.id),
             ],
           ),
           vm: vm,

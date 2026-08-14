@@ -1,3 +1,4 @@
+import 'package:data_app2/app_state.dart';
 import 'package:data_app2/data/user_schema.dart';
 import 'package:data_app2/screens/events/evt_detail_screen.dart';
 import 'package:data_app2/screens/evt_picker_screen.dart';
@@ -7,116 +8,123 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class BlobEditScreen extends StatelessWidget {
-  final UserBlobEditVm vm;
-  const BlobEditScreen(this.vm, {super.key});
+  final BlobSchemaRec schema;
+  final UserBlobRec? existing;
+  const BlobEditScreen(this.schema, this.existing, {super.key});
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider.value(
-      value: vm,
-      child: EditScaffoldForVm(
-        vm: vm,
-        title: vm.schema.name,
-        body: Consumer<UserBlobEditVm>(
-          builder: (context, vm, _) {
-            final thm = Theme.of(context);
-            final fieldInputs = <Widget>[
-              for (final entry in vm.schema.fields.entries)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 16),
-                  child: _FieldInput(
-                    name: entry.key,
-                    spec: entry.value,
-                    vm: vm,
+    return ChangeNotifierProvider<UserBlobEditVm>(
+      create: (context) {
+        final db = context.read<AppState>().db;
+        return UserBlobEditVm(existing, schema, db.blobs, db.userEnums, db.userEnumValues, db.evts)..load();
+      },
+      builder: (context, child) {
+        final vm = context.watch<UserBlobEditVm>();
+        return EditScaffoldForVm(
+          vm: vm,
+          title: vm.schema.name,
+          body: Consumer<UserBlobEditVm>(
+            builder: (context, vm, _) {
+              final thm = Theme.of(context);
+              final fieldInputs = <Widget>[
+                for (final entry in vm.schema.fields.entries)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 16),
+                    child: _FieldInput(
+                      name: entry.key,
+                      spec: entry.value,
+                      vm: vm,
+                    ),
                   ),
-                ),
-            ];
+              ];
 
-            // Add event field if needed
-            final evt = vm.linkedEvent;
-            if (vm.schema.evtLink case EvtLinkSpec link) {
-              fieldInputs.add(
-                Container(
-                  padding: EdgeInsets.all(4),
-                  color: thm.colorScheme.primaryContainer,
-                  child: Column(
-                    spacing: 12,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "Linked Event",
-                        style: thm.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
-                      ),
-                      (evt == null) ? Center(child: Text("N/A")) : Text(evt.toString()),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          TextButton.icon(
-                            icon: Icon(Icons.edit),
-                            label: Text("edit"),
-                            onPressed: evt == null
-                                ? null
-                                : () {
-                                    // show event, but no blobs here
-                                    Navigator.of(
-                                      context,
-                                    ).push(MaterialPageRoute(builder: (context) => EvtDetailScreen(evt, null))).then((
-                                      _,
-                                    ) {
-                                      // reload after possible changes
-                                      vm.load();
-                                    });
-                                  },
-                          ),
-                          TextButton.icon(
-                            icon: Icon(Icons.swap_horiz),
-                            label: Text("swap"),
-                            onPressed: () {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (context) => EvtPickerScreen(link.typIds, onSelect: vm.setEvent),
-                                ),
-                              );
-                            },
-                          ),
-                          TextButton.icon(
-                            icon: Icon(Icons.close),
-                            label: Text("unset"),
-                            onPressed: evt == null
-                                ? null
-                                : () {
-                                    vm.unsetEvent();
-                                  },
-                          ),
-                        ],
-                      ),
-                    ],
+              // Add event field if needed
+              final evt = vm.linkedEvent;
+              if (vm.schema.evtLink case EvtLinkSpec link) {
+                fieldInputs.add(
+                  Container(
+                    padding: EdgeInsets.all(4),
+                    color: thm.colorScheme.primaryContainer,
+                    child: Column(
+                      spacing: 12,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Linked Event",
+                          style: thm.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+                        ),
+                        (evt == null) ? Center(child: Text("N/A")) : Text(evt.toString()),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            TextButton.icon(
+                              icon: Icon(Icons.edit),
+                              label: Text("edit"),
+                              onPressed: evt == null
+                                  ? null
+                                  : () {
+                                      // show event, but no blobs here
+                                      Navigator.of(
+                                        context,
+                                      ).push(MaterialPageRoute(builder: (context) => EvtDetailScreen(evt, null))).then((
+                                        _,
+                                      ) {
+                                        // reload after possible changes
+                                        vm.load();
+                                      });
+                                    },
+                            ),
+                            TextButton.icon(
+                              icon: Icon(Icons.swap_horiz),
+                              label: Text("swap"),
+                              onPressed: () {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (context) => EvtPickerScreen(link.typIds, evt, onSelect: vm.setEvent),
+                                  ),
+                                );
+                              },
+                            ),
+                            TextButton.icon(
+                              icon: Icon(Icons.close),
+                              label: Text("unset"),
+                              onPressed: evt == null
+                                  ? null
+                                  : () {
+                                      vm.unsetEvent();
+                                    },
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
-                ),
+                );
+              }
+
+              return ListView(
+                padding: const EdgeInsets.all(16),
+                children: fieldInputs,
               );
-            }
-
-            return ListView(
+            },
+          ),
+          bottomNavigationBar: SafeArea(
+            child: Padding(
               padding: const EdgeInsets.all(16),
-              children: fieldInputs,
-            );
-          },
-        ),
-        bottomNavigationBar: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: FilledButton(
-              onPressed: () async {
-                if (vm.validate()) {
-                  await vm.save();
-                  if (context.mounted) Navigator.of(context).pop();
-                }
-              },
-              child: Text(vm.hasStored ? 'Update' : 'Save'),
+              child: FilledButton(
+                onPressed: () async {
+                  if (vm.validate()) {
+                    await vm.save();
+                    if (context.mounted) Navigator.of(context).pop();
+                  }
+                },
+                child: Text(vm.hasStored ? 'Update' : 'Save'),
+              ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }
@@ -172,7 +180,8 @@ class _FieldInput extends StatelessWidget {
       // TODO: Handle this case.
       DDuration() => throw UnimplementedError(),
       // TODO: Handle this case.
-      DTuple() => throw UnimplementedError(),
+      // DTuple() => throw UnimplementedError(),
+      DArray() => throw UnimplementedError(),
     };
   }
 }

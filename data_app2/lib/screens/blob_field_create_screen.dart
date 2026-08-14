@@ -123,13 +123,14 @@ class _FieldTypeSelectorState extends State<FieldTypeSelector> {
   String? _enumGroup;
 
   void _emit() {
-    final type = switch (_kind) {
+    final eg = _enumGroup;
+    final BlobFieldType? type = switch (_kind) {
       _TypeOption.int => const DInt(),
       _TypeOption.decimal => const DDecimal(),
       _TypeOption.bool => const DBool(),
       // _TypeOption.timestamp => const DTimestamp(),
       _TypeOption.duration => const DDuration(),
-      _TypeOption.enumType => _enumGroup == null ? null : DEnum(_enumGroup!),
+      _TypeOption.enumType => eg != null ? DEnum(eg) : null,
       null => throw UnimplementedError(),
     };
     widget.onChanged(type);

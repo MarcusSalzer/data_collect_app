@@ -1,4 +1,5 @@
 import 'package:data_app2/app_state.dart';
+import 'package:data_app2/screens/blob_edit_screen.dart';
 import 'package:data_app2/screens/blob_schema_edit_screen.dart';
 import 'package:data_app2/screens/blob_schema_show_screen.dart';
 import 'package:data_app2/view_models/blob_schema_index_vm.dart';
@@ -25,12 +26,15 @@ class _Body extends StatelessWidget {
 
         final fieldLines = schema.fields.entries
             .map(
-              (e) => Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(e.key, style: TextStyle(fontFamily: "monospace")),
-                  Text(e.value.toString(), style: TextStyle(fontFamily: "monospace")),
-                ],
+              (e) => SizedBox(
+                width: double.infinity,
+                child: Wrap(
+                  alignment: WrapAlignment.spaceBetween,
+                  children: [
+                    Text(e.key, style: TextStyle(fontFamily: "monospace")),
+                    Text(e.value.toString(), style: TextStyle(fontFamily: "monospace")),
+                  ],
+                ),
               ),
             )
             .toList();
@@ -38,18 +42,21 @@ class _Body extends StatelessWidget {
         final evtLink = schema.evtLink;
 
         fieldLines.add(
-          Row(
-            children: [
-              (evtLink == null)
-                  ? Text(
-                      "No event link",
-                      style: TextStyle(fontStyle: FontStyle.italic, fontFamily: "monospace", color: Colors.grey),
-                    )
-                  : Text(
-                      evtLink.toString(),
-                      style: TextStyle(fontFamily: "monospace"),
-                    ),
-            ],
+          SizedBox(
+            width: double.infinity,
+            child: Wrap(
+              children: [
+                (evtLink == null)
+                    ? Text(
+                        "No event link",
+                        style: TextStyle(fontStyle: FontStyle.italic, fontFamily: "monospace", color: Colors.grey),
+                      )
+                    : Text(
+                        evtLink.toString(),
+                        style: TextStyle(fontFamily: "monospace"),
+                      ),
+              ],
+            ),
           ),
         );
 
@@ -59,9 +66,10 @@ class _Body extends StatelessWidget {
             style: TextStyle(fontWeight: FontWeight.bold),
           ),
           subtitle: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+            padding: const EdgeInsets.all(8.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              spacing: 8,
               // Show a row per field
               children: fieldLines,
             ),
@@ -80,6 +88,23 @@ class _Body extends StatelessWidget {
                   }
                 });
           },
+          trailing: IconButton(
+            icon: Icon(Icons.add),
+            onPressed: () {
+              Navigator.of(context)
+                  .push(
+                    MaterialPageRoute(
+                      builder: (_) => BlobEditScreen(schema, null),
+                    ),
+                  )
+                  .then((_) {
+                    if (context.mounted) {
+                      // Reload data after possible edits
+                      context.read<BlobSchemaIndexVm>().load();
+                    }
+                  });
+            },
+          ),
         );
       },
     );

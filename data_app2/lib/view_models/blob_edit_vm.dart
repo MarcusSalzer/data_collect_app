@@ -10,14 +10,13 @@ class UserBlobEditVm extends EditVm<UserBlobRec, UserBlobDraft> {
   UserBlobEditVm(
     UserBlobRec? stored,
     this.schema,
-    this.repo,
+    BlobRepo repo,
     this._enumRepo,
     this._enumValueRepo,
     this._evtRepo,
-  ) : super(stored, stored?.toDraft() ?? UserBlobDraft(schema.id));
+  ) : super(stored, stored?.toDraft() ?? UserBlobDraft(schema.id), repo);
 
   final BlobSchemaRec schema;
-  final BlobRepo repo;
   final UserEnumValueRepo _enumValueRepo;
   final UserEnumRepo _enumRepo;
   final EvtRepo _evtRepo;
@@ -113,9 +112,8 @@ class UserBlobEditVm extends EditVm<UserBlobRec, UserBlobDraft> {
         DEnum(:final group) => _validateEnum(group, value),
         // TODO: Handle this case.
         DDuration() => throw UnimplementedError(),
-        // TODO: Handle this case.
-        DTuple() => throw UnimplementedError(),
-        // TODO: Handle this case.
+        // DTuple() => throw UnimplementedError(),
+        DArray() => throw UnimplementedError(),
       };
       if (typeError != null) {
         _fieldErrors[name] = typeError;
@@ -142,23 +140,6 @@ class UserBlobEditVm extends EditVm<UserBlobRec, UserBlobDraft> {
     } catch (e) {
       errorMsg = 'Could not save: $e';
       notifyListeners();
-    }
-  }
-
-  @override
-  Future<bool> delete() async {
-    final storedId = stored?.id;
-
-    if (storedId == null) return false;
-
-    try {
-      final r = await repo.forceDelete(storedId);
-      notifyListeners();
-      return r;
-    } catch (e) {
-      errorMsg = 'Could not delete: $e';
-      notifyListeners();
-      return false;
     }
   }
 }

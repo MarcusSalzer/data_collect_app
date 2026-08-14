@@ -58,15 +58,14 @@ class EventsScreen extends StatelessWidget {
                 children: [
                   EvtCreateMenu(),
                   ChangeNotifierProvider<BlobForEvtCache>(
-                    create: (context) =>
-                        BlobForEvtCache(context.read<AppState>().db.blobs)..load(evtVm.evts.map((e) => e.id).toSet()),
+                    create: (context) => BlobForEvtCache(context.read<AppState>().db.blobs, () => evtVm.evts)..load(),
                     builder: (context, child) {
                       final blobVm = context.watch<BlobForEvtCache>();
                       return EvtHistoryList(
                         evtVm.evts,
                         () {
                           evtVm.load();
-                          blobVm.load(evtVm.evts.map((e) => e.id).toSet());
+                          blobVm.load();
                         },
                         reversed: true,
                         blobsForEvt: blobVm.forEvt,

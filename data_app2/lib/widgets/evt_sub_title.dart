@@ -16,23 +16,38 @@ class EvtSubTitle extends StatelessWidget {
 
     return Padding(
       padding: const EdgeInsets.only(top: 8),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.start,
-        spacing: 4,
-        children: [
-          // Start & end
-          Text(wdStart, style: TextStyle(color: Colors.blueGrey)),
-          Text(startText),
-          Text(" - "),
-          if (wdEnd != null) Text(wdEnd, style: TextStyle(color: Colors.blueGrey)),
-          Text(endText),
-          // Location
-          if (location != null)
-            Text(
-              "@${location?.name}",
-              style: TextStyle(fontStyle: FontStyle.italic, color: Colors.blueGrey),
+      child: SizedBox(
+        width: double.infinity,
+        child: Wrap(
+          alignment: WrapAlignment.spaceBetween,
+          spacing: 4,
+          children: [
+            // Start & end
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              spacing: 3,
+              children: [
+                Text(wdStart, style: TextStyle(color: Colors.blueGrey)),
+                Text(startText),
+                Text("-"),
+                if (wdEnd != null) Text(wdEnd, style: TextStyle(color: Colors.blueGrey)),
+                Text(endText),
+              ],
             ),
-        ],
+            // Location
+            if (location != null)
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text("\u{1F4CD}"), // Pin emoji
+                  Text(
+                    "${location?.name}",
+                    style: TextStyle(fontStyle: FontStyle.italic, color: Colors.blueGrey),
+                  ),
+                ],
+              ),
+          ],
+        ),
       ),
     );
   }
