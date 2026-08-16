@@ -43,42 +43,6 @@ class EnumDropdown<E extends Enum> extends StatelessWidget {
   }
 }
 
-class LogLevelDropdown extends StatelessWidget {
-  final AppState _app;
-
-  const LogLevelDropdown(this._app, {super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final currentLevel = _app.logLevel;
-    return ConstrainedBox(
-      constraints: BoxConstraints.loose(Size.fromWidth(300)),
-      child: DropdownButtonFormField<LogLevel>(
-        initialValue: currentLevel,
-        items: LogLevel.values.map((level) {
-          return DropdownMenuItem(
-            value: level,
-            child: Column(
-              children: [
-                Text(level.name.capitalized),
-                // Text(
-                //   "Is there space for adescriptions",
-                //   style: TextStyle(fontSize: 10),
-                // ),
-              ],
-            ),
-          );
-        }).toList(),
-        onChanged: (newLevel) {
-          if (newLevel != null) {
-            _app.setLogLevel(newLevel);
-          }
-        },
-      ),
-    );
-  }
-}
-
 class _PrefsForm extends StatelessWidget {
   @override
   Widget build(BuildContext context) {

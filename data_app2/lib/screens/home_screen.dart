@@ -1,9 +1,11 @@
 import 'package:data_app2/app_state.dart';
 import 'package:data_app2/data/app_prefs.dart';
 import 'package:data_app2/dialogs/import_something_dialog.dart';
+import 'package:data_app2/io.dart';
 import 'package:data_app2/permission_manager.dart';
 import 'package:data_app2/screens/blob_schemas_screen.dart';
 import 'package:data_app2/screens/events/type_cat_index_screen.dart';
+import 'package:data_app2/screens/import_raw_screen.dart';
 import 'package:data_app2/screens/location_screen.dart';
 import 'package:data_app2/screens/month_calendar_screen.dart';
 import 'package:data_app2/screens/events/events_screen.dart';
@@ -95,7 +97,22 @@ class HomeScreen extends StatelessWidget {
                   ),
                   SizedBox(height: 12),
                   Text("Experimental"),
-                  Text("Import data (new)..."),
+                  TextButton.icon(
+                    onPressed: () async {
+                      if (await PermissionManager.requestStorage() && context.mounted) {
+                        final folder = await pickSingleFolder();
+                        if (context.mounted && folder != null) {
+                          Navigator.of(
+                            context,
+                          ).push(MaterialPageRoute(builder: (context) => ImportRawScreen(folder)));
+                        }
+                      } else if (context.mounted) {
+                        simpleSnack(context, "needs storage permission");
+                      }
+                    },
+                    label: Text("Import raw data"),
+                    icon: Icon(Icons.download),
+                  ),
                   HomeNavLink(
                     "Enums",
                     Icons.view_compact_alt,

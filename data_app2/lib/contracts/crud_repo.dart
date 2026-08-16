@@ -100,7 +100,7 @@ abstract class CrudRepo<R extends Identifiable, D extends Draft<R>, I> {
   /// update an item
   Future<int> update(R rec) async => await isar.writeTxn(() async => await coll.put(recToIsar(rec)));
 
-  /// create and save new EventTypes
+  /// create and save EventTypes
   Future<List<int>> updateAll(Iterable<R> recs) async {
     return await isar.writeTxn(() async => await coll.putAll(recs.map(recToIsar).toList()));
   }

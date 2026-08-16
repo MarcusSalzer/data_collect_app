@@ -15,6 +15,8 @@ ImportFileRole roleFromFileName(String filename) {
     return ImportFileRole.locations;
   } else if (filename == "prefs.json") {
     return ImportFileRole.prefs;
+  } else if ({"enums.ndjson", "enums.jsonl"}.contains(filename)) {
+    return ImportFileRole.enums;
   } else if ({"blob_schemas.ndjson", "blob_schemas.jsonl"}.contains(filename)) {
     return ImportFileRole.blobSchemas;
   } else if ({"blob_records.ndjson", "blob_records.jsonl"}.contains(filename)) {

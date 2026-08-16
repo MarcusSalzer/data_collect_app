@@ -19,48 +19,47 @@ class CompleteExportScreen extends StatelessWidget {
               final app = Provider.of<AppState>(context, listen: false);
               return CompleteExportVm(app)..load();
             },
-            child: Consumer<CompleteExportVm>(
-              builder: (context, vm, child) {
-                final ps = vm.state;
+            builder: (context, _) {
+              final vm = context.watch<CompleteExportVm>();
+              final ps = vm.state;
 
-                switch (ps) {
-                  case Loading():
-                    return Center(child: Text("Loading..."));
-                  case Ready(:final data):
-                    return Column(
-                      spacing: 12,
-                      children: [
-                        Text("Has ${data.nEvt} events | ${data.nType} types"),
-                        ElevatedButton.icon(
-                          onPressed: () {
-                            vm.doExport();
-                          },
-                          label: Text("Export"),
-                          icon: Icon(Icons.upload),
-                        ),
-                      ],
-                    );
-                  case Done(:final log):
-                    return Column(
-                      spacing: 20,
-                      children: [
-                        Text("Export completed", style: TextStyle(fontSize: 20)),
-                        Text(vm.savedFolder.toString(), style: TextStyle(fontFamily: "monospace")),
-                        if (log != null)
-                          SingleChildScrollView(
-                            child: Column(
-                              spacing: 12,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: log.map((e) => Text(e)).toList(),
-                            ),
+              switch (ps) {
+                case Loading():
+                  return Center(child: Text("Loading..."));
+                case Ready(:final data):
+                  return Column(
+                    spacing: 12,
+                    children: [
+                      Text("Has ${data.nEvt} events | ${data.nType} types"),
+                      ElevatedButton.icon(
+                        onPressed: () {
+                          vm.doExport();
+                        },
+                        label: Text("Export"),
+                        icon: Icon(Icons.upload),
+                      ),
+                    ],
+                  );
+                case Done(:final log):
+                  return Column(
+                    spacing: 20,
+                    children: [
+                      Text("Export completed", style: TextStyle(fontSize: 20)),
+                      Text(vm.savedFolder.toString(), style: TextStyle(fontFamily: "monospace")),
+                      if (log != null)
+                        SingleChildScrollView(
+                          child: Column(
+                            spacing: 12,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: log.map((e) => Text(e)).toList(),
                           ),
-                      ],
-                    );
-                  case Error(:final error):
-                    return Center(child: Text(error.toString()));
-                }
-              },
-            ),
+                        ),
+                    ],
+                  );
+                case Error(:final error):
+                  return Center(child: Text(error.toString()));
+              }
+            },
           ),
         ),
       ),

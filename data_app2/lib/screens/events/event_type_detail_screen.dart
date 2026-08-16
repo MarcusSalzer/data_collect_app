@@ -1,4 +1,5 @@
 import 'package:data_app2/app_state.dart';
+import 'package:data_app2/data/app_prefs.dart';
 import 'package:data_app2/data/evt_cat.dart';
 import 'package:data_app2/data/evt_type.dart';
 import 'package:data_app2/view_models/evt_type_detail_vm.dart';
@@ -47,7 +48,7 @@ class EditInputs extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final loadedCategories = vm.categories;
-
+    final prefs = context.select<AppState, AppPrefs>((a) => a.prefs);
     return TwoColumns(
       rows: [
         (Text("Name"), TextFormField(onChanged: vm.updateName, initialValue: vm.draft.name)),
@@ -82,7 +83,7 @@ class EditInputs extends StatelessWidget {
                     leading: CircleAvatar(radius: 5, backgroundColor: e.color),
                     title: Text(e.name),
                   ),
-                  searchMode: context.watch<AppState>().textSearchMode,
+                  searchMode: prefs.textSearchMode,
                 ),
         ),
       ],

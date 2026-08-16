@@ -1,7 +1,5 @@
 import 'package:data_app2/local_datetime.dart';
 
-const colsEvt = ["id", "type_name", "start_utc", "start_offset_s", "end_utc", "end_offset_s"];
-
 class CsvRow {
   final Map<String, String?> _row;
 
@@ -11,7 +9,7 @@ class CsvRow {
   String req(String col) {
     final v = opt(col);
     if (v == null) {
-      throw FormatException("Missing column '$col'");
+      throw FormatException("Missing column '$col', i have: ${_row.keys.join(',')}");
     }
     return v;
   }

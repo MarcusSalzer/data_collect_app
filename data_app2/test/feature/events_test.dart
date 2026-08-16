@@ -1,15 +1,13 @@
 import 'package:data_app2/app_state.dart';
-import 'package:data_app2/view_models/event_create_vm_old.dart';
+import 'package:data_app2/view_models/evt_create_vm.dart';
 import 'package:test/test.dart';
 import '../test_util/dummy_app.dart';
 
 void main() {
   late final AppState app;
-  late final EventCreateViewVMOld createVm;
 
   setUpAll(() async {
     app = await getDummyApp();
-    createVm = EventCreateViewVMOld(app);
   });
 
   tearDown(() {
@@ -21,9 +19,10 @@ void main() {
 
   group("create", () {
     test('new event type (auto lowercase off)', () async {
-      await app.setAutoLowerCase(false);
+      final createVm = EvtCreateVm(app.db, app.evtTypeManager, false);
 
       await createVm.addEventByName("NEW!");
+
       final allEvts = (await app.db.evts.all()).toList();
       expect(allEvts.length, 1);
       expect(app.evtTypeManager.allTypes.length, 1);
@@ -31,7 +30,7 @@ void main() {
       expect(et!.name, "NEW!");
     });
     test('new type (auto lowercase on)', () async {
-      await app.setAutoLowerCase(true);
+      final createVm = EvtCreateVm(app.db, app.evtTypeManager, true);
 
       await createVm.addEventByName("NEW!");
       final allEvts = (await app.db.evts.all()).toList();
@@ -41,7 +40,7 @@ void main() {
       expect(et!.name, "new!");
     });
     test('existing type', () async {
-      await app.setAutoLowerCase(true);
+      final createVm = EvtCreateVm(app.db, app.evtTypeManager, true);
 
       await createVm.addEventByName("NEW!");
       await createVm.addEventByName("new!");

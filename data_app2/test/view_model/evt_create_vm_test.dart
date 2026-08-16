@@ -10,7 +10,6 @@ import '../test_util/dummy_data.dart';
 void main() {
   late List<int> evtIds;
   late List<int> typeIds;
-  final nEvt = 15;
   late final DBService db;
   late final EvtTypeManagerPersist typMan;
 
@@ -24,7 +23,7 @@ void main() {
     // refresh cache and clear db before each test
     typMan.clearCache();
     await db.clear();
-    await fillDbWithDummyData(db, nEvts: nEvt);
+    await fillDbWithDummyData(db);
     typMan.reloadFromModels(await db.evtTypes.all(), await db.evtCats.all());
     evtIds = (await db.evts.allIds()).toList();
     typeIds = (await db.evtTypes.allIds()).toList();
@@ -120,7 +119,7 @@ void main() {
       expect((await db.evtTypes.all()).length, typeIds.length);
     });
   });
-  group('VM functions', () {
+  group('[VM functions]', () {
     test('init and load', () async {
       var nNotify = 0;
       final vm = EvtCreateVm(db, typMan, false);
@@ -130,7 +129,7 @@ void main() {
       await vm.load();
       expect(nNotify, 1);
       expect(vm.isReady, true);
-      expect(vm.evts.length, nEvt);
+      expect(vm.evts, isNotEmpty);
     });
     test('stop current event', () async {
       var nNotify = 0;

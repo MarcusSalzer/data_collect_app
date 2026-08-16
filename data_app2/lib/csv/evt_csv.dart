@@ -38,9 +38,14 @@ class EvtCsvCodecHuman extends CsvCodecRW<EvtDraft> {
   toRow(d) {
     final typ = typMan.typeFromId(d.typeId);
     if (typ == null) {
-      throw FormatException("Unknown type: '${d.typeId}'");
+      throw StateError("Unknown typeId: '${d.typeId}', i know of : ${typMan.allTypes.map((t) => t.id).join(', ')}");
     }
     final loc = locMan.fromId(d.locationId);
+    if (d.locationId != null && loc == null) {
+      throw StateError(
+        "Unknown locationId: '${d.locationId}', i know of : ${locMan.all.map((t) => t.id).join(', ')}",
+      );
+    }
     return CsvRow({
       "type": typ.name,
       "start_utc": d.start?.toUtcIso8601String(),

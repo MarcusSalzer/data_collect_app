@@ -1,4 +1,6 @@
 import 'dart:collection';
+import 'dart:io';
+import 'package:path/path.dart' as p;
 
 import 'package:data_app2/util/enums.dart';
 import 'package:logging/logging.dart' show Level;
@@ -154,4 +156,8 @@ extension ToLogging on LogLevel {
 
 extension View<T> on List<T> {
   UnmodifiableListView<T> get unmodifiable => UnmodifiableListView(this);
+}
+
+extension BaseName on File {
+  String get basename => p.basename(path);
 }

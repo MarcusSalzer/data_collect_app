@@ -107,53 +107,95 @@ class TestDummyData {
   }
 }
 
+/// Use [TestDummyData] to fill the DB with all kinds of data.
+/// Records are created with ids that skip every [skipEveryId] value.
 Future<void> fillDbWithDummyData(
   DBService db, {
   int nCats = 3,
-  int nTypes = 5,
-  int nEvts = 20,
-  int nLocs = 4,
-  int nEnums = 4,
+  int nTypes = 15,
+  int nEvts = 100,
+  int nLocs = 7,
+  int nEnums = 5,
+  int skipEveryId = 4, // to leave gaps in auto-incrementing id:s.
 }) async {
+  // argument validation
+  if (nEvts > 0) {
+    if (nCats < 1) {
+      throw ArgumentError("needs at least 1 category if we want events.");
+    }
+    if (nTypes < 1) {
+      throw ArgumentError("needs at least 1 evt-type if we want events.");
+    }
+  }
+
+  // blank slate DB
+  await db.clear();
+
   // --- Categories ---
-  final catDrafts = List.generate(nCats, TestDummyData.makeEvtCatDraft);
-  final catIds = await db.evtCats.createAll(catDrafts);
+  await db.evtCats.updateAll(List.generate(nCats, (i) => TestDummyData.makeEvtCatDraft(i).toRec(i + i ~/ skipEveryId)));
+
+  final catIds = (await db.evtCats.allIds()).toList();
 
   // --- Types (each linked to a valid category) ---
-  final typeDrafts = List.generate(
-    nTypes,
-    (i) => TestDummyData.makeEvtTypeDraft(i)..categoryId = catIds[i % catIds.length],
+  await db.evtTypes.updateAll(
+    List.generate(
+      nTypes,
+      (i) => (TestDummyData.makeEvtTypeDraft(i)..categoryId = catIds[i % catIds.length]).toRec(i + i ~/ skipEveryId),
+    ),
   );
 
-  final typeIds = await db.evtTypes.createAll(typeDrafts);
+  final typeIds = (await db.evtTypes.allIds()).toList();
 
   // --- Locations ---
-  final locDrafts = List.generate(nLocs, (i) => TestDummyData.makeLocDraft(i));
-  final locIds = await db.locations.createAll(locDrafts);
+  await db.locations.updateAll(List.generate(nLocs, (i) => TestDummyData.makeLocDraft(i).toRec(i + i ~/ skipEveryId)));
+
+  final locIds = (await db.locations.allIds()).toList();
 
   // --- Events (each linked to a valid type) ---
-  final rng = Random(33);
-  final evtDrafts = List.generate(
+  final evtRecs = List.generate(
     nEvts,
-    (i) => TestDummyData.makeEvtDraft(i)
-      ..typeId = typeIds[i % typeIds.length]
-      ..locationId = rng.nextBool() ? locIds[i % locIds.length] : null,
+    (i) =>
+        (TestDummyData.makeEvtDraft(i)
+              ..typeId = typeIds[i % typeIds.length]
+              ..locationId = (i % 3 == 0 && locIds.isNotEmpty) ? locIds[i % locIds.length] : null)
+            .toRec(i + i ~/ skipEveryId),
   );
-  await db.evts.createAll(evtDrafts);
+  await db.evts.updateAll(evtRecs);
+
+  final evtIds = (await db.evts.allIds()).toList();
 
   // --- enums ---
-  final enumDrafts = List.generate(nEnums, (i) => UserEnumDraft("enum $i"));
-  final enumIds = await db.userEnums.createAll(enumDrafts);
-  final evDrafts = <UserEnumValueDraft>[];
+  await db.userEnums.updateAll(List.generate(nEnums, (i) => UserEnumDraft("enum $i").toRec(i + i ~/ skipEveryId)));
+
+  final enumIds = (await db.userEnums.allIds()).toList();
+
+  final evRecs = <UserEnumValueRec>[];
   // Make N values for the N:th enum
   for (var (idx, enumId) in enumIds.indexed) {
     for (var i = 0; i < idx; i++) {
-      evDrafts.add(
-        UserEnumValueDraft(enumId, "E$enumId-V$i"),
+      evRecs.add(
+        UserEnumValueDraft(enumId, "E$enumId-V$i").toRec(i + i ~/ skipEveryId),
       );
     }
   }
-  await db.userEnumValues.createAll(evDrafts);
+  await db.userEnumValues.updateAll(evRecs);
+
+  // some final validation
+  if (await db.evts.count() != nEvts) {
+    throw StateError("event count mismatch");
+  }
+  if (await db.evtTypes.count() != nTypes) {
+    throw StateError("event type count mismatch");
+  }
+  if (await db.evtCats.count() != nCats) {
+    throw StateError("event cat count mismatch");
+  }
+  if (await db.locations.count() != nLocs) {
+    throw StateError("location count mismatch");
+  }
+  if (await db.userEnums.count() != nEnums) {
+    throw StateError("enum count mismatch");
+  }
 }
 
 /// Specific test data in relation to
@@ -262,3 +304,8 @@ class SimpleDummyData {
   static UnmodifiableListView<EvtCatRec> getDummyEvtCats() =>
       UnmodifiableListView([EvtCatRec(1, "other"), EvtCatRec(1, "cat A"), EvtCatRec(3, "cat b")]);
 }
+
+/// Get a map of {repoName: idSet}
+Future<Map<String, Set<int>>> getAllRepoIds(DBService db) async => Map.fromEntries(
+  await Future.wait(db.allRepos.map((r) async => MapEntry(r.runtimeType.toString(), await r.allIds()))),
+);

@@ -32,7 +32,8 @@ class CompleteExportVm extends ChangeNotifier {
       final serv = CompleteExportService(await _app.storeSubdir("export"), DateTime.now());
 
       /// export all data
-      final counts = await serv.exportAllDataHuman(_app.db, _app.evtTypeManager, _app.locationManager, _app.prefs);
+      // final counts = await serv.exportAllDataHuman(_app.db, _app.evtTypeManager, _app.locationManager, _app.prefs);
+      final counts = await serv.exportAllDataRaw(_app.db, _app.prefs);
 
       state = Done(counts.entries.map((e) => "${e.key}: ${e.value} lines").toList());
       savedFolder = serv.folderPath;

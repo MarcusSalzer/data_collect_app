@@ -84,6 +84,9 @@ Map<ImportFileRole, ImportRoleDef> getImportRoleDefinitions(AppState app) {
         final created = await app.db.locations.createAllThrowEarly(items);
         return created.length;
       },
+      afterAll: () async {
+        app.locationManager.reloadFromModels(await app.db.locations.all());
+      },
     ),
 
     ImportFileRole.events: ImportRoleDef(
@@ -210,8 +213,6 @@ class ImportCandidateSummary<T> {
 }
 
 class ImportResult {
-  AppPrefs? newPrefs;
-
   final Map<ImportFileRole, int> counts = {};
 
   ImportResult();

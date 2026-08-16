@@ -44,6 +44,15 @@ void main() {
       p.join(folder.path, "event_categories.csv"),
     ).writeAsStringSync(["name", "c1", "c2"].join("\n"));
 
+    File(
+      p.join(folder.path, "locations.csv"),
+    ).writeAsStringSync(["name,lat,lng", "home,0.12,-1.5", "work,0.01,-11.5"].join("\n"));
+
+    // events, referencing other data.
+    File(
+      p.join(folder.path, "events_all.csv"),
+    ).writeAsStringSync(["type,location", "tA,", "tA,home", "tB,work", "tA,"].join("\n"));
+
     await vm.scanFolder();
     expect(vm.step, ImportStep.confirmFiles);
     // should have files to import
@@ -55,10 +64,29 @@ void main() {
     await vm.importToDb();
     expect(vm.error, isNull);
     expect(vm.step, ImportStep.done);
+    expect(vm.result!.counts[ImportFileRole.events], 4);
     expect(vm.result!.counts[ImportFileRole.eventTypes], 3);
     expect(vm.result!.counts[ImportFileRole.eventCats], 2);
+    expect(vm.result!.counts[ImportFileRole.locations], 2);
 
-    final types = (await app.db.evtTypes.all()).toList();
-    expect(types.map((t) => t.name).toSet(), {"tA", "tB", "tC"});
+    expect((await app.db.evtTypes.all()).map((t) => t.name).toSet(), {"tA", "tB", "tC"});
+    expect((await app.db.locations.all()).map((t) => t.name).toSet(), {"home", "work"});
+
+    // Check type references
+    final typs = (await app.db.evtTypes.all()).toList();
+    expect(
+      (await app.db.evts.all()).map((e) => typs.firstWhere((t) => t.id == e.typeId).name).toList(),
+      ["tA", "tA", "tB", "tA"],
+    );
+    // Check location references
+    final locs = (await app.db.locations.all()).toList();
+    expect(
+      (await app.db.evts.all())
+          .map(
+            (e) => locs.where((lo) => lo.id == e.locationId).firstOrNull?.name,
+          )
+          .toList(),
+      [null, "home", "work", null],
+    );
   });
 }

@@ -63,8 +63,9 @@ class EventEditForm extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // TODO: clean up provider access
     final vm = Provider.of<EvtDetailVm>(context, listen: false);
-    final app = Provider.of<AppState>(context, listen: false);
+    final app = context.watch<AppState>();
     final locMan = context.read<LocationManager>();
 
     return TwoColumns(
@@ -83,7 +84,7 @@ class EventEditForm extends StatelessWidget {
               leading: CircleAvatar(radius: 5, backgroundColor: app.colorFor(e)),
               title: Text(e.name),
             ),
-            searchMode: app.textSearchMode,
+            searchMode: app.prefs.textSearchMode,
           ),
         ),
         (Text("Start"), DTPickerPair(vm.draft.start, vm.changeStartLocalTZ)),
@@ -98,7 +99,7 @@ class EventEditForm extends StatelessWidget {
             optionBuilder: (context, e) => ListTile(
               title: Text(e.name),
             ),
-            searchMode: app.textSearchMode,
+            searchMode: app.prefs.textSearchMode,
           ),
         ),
       ],

@@ -85,7 +85,9 @@ class EvtCreateVm extends ChangeNotifier {
   /// Add a event of a possibly "unknown" type.
   Future<void> addEventByName(String name, {DateTime? start}) async {
     // optionally auto lowercase
-    if (_autoLowerCase) name = name.toLowerCase();
+    if (_autoLowerCase) {
+      name = name.toLowerCase();
+    }
 
     final typ = await _typeManager.fromNameOrCreate(name);
     await addEventByTypeId(typ.id, start: start);

@@ -97,3 +97,26 @@ Iterable<CsvRow> parseCsvRows(Iterable<String> linesWithHeader, {String sep = ",
     }
   }
 }
+
+Stream<CsvRow> parseCsvRowsStream(Stream<String> linesWithHeader, {String sep = ","}) async* {
+  List<String>? fileCols;
+
+  var i = 0;
+  await for (final line in linesWithHeader) {
+    // first line should be a header
+    if (fileCols == null) {
+      fileCols = line.split(sep).map((v) => v.trim()).toList();
+      continue;
+    }
+
+    // following lines should be data
+    final values = line.split(sep).map((v) => v.trim());
+    try {
+      yield CsvRow(Map.fromIterables(fileCols, values));
+    } on FormatException catch (e) {
+      // Rethrow as a CSV error, with row information
+      throw CsvFormatError(row: i, message: e.message);
+    }
+    i++;
+  }
+}

@@ -11,8 +11,9 @@ import 'dart:io';
 import '../../test_util/dummy_app.dart';
 
 /// Save some stuff
-/// - types: 3
-/// - cats:  2
+/// - types: 3 records
+/// - cats:  2 records
+/// - prefs
 /// - random trash: 1
 List<File> makeDummyFilesRaw(Directory folder) {
   folder.deleteSync(recursive: true);
@@ -52,7 +53,7 @@ void main() {
 
   test('empty', () async {
     final folder = await app.storeSubdir("empty_folder");
-    final im = RawDataImportManager(app.db);
+    final im = RawDataImportManager(app.db, app.updatePrefs);
 
     await im.scan(folder);
     expect(im.candidates.length, 0);
@@ -61,7 +62,7 @@ void main() {
   test('file scan', () async {
     final folder = await app.storeSubdir("stuff");
 
-    final im = RawDataImportManager(app.db);
+    final im = RawDataImportManager(app.db, app.updatePrefs);
 
     // write data
     final validFiles = makeDummyFilesRaw(folder);
@@ -72,7 +73,7 @@ void main() {
   test('pre parse', () async {
     final folder = await app.storeSubdir("stuff");
 
-    final im = RawDataImportManager(app.db);
+    final im = RawDataImportManager(app.db, app.updatePrefs);
 
     // write data
     makeDummyFilesRaw(folder);
@@ -92,15 +93,15 @@ void main() {
   test('happy path', () async {
     await app.db.clear();
     final folder = await app.storeSubdir("happy");
-    final im = RawDataImportManager(app.db);
+    final im = RawDataImportManager(app.db, app.updatePrefs);
 
     // write data
     makeDummyFilesRaw(folder);
 
     await im.scan(folder);
-    expect(im.canImport, false, reason: "needs to preparse before we know");
+    expect(im.canImportFileCount, 0, reason: "needs to preparse before we know");
     await im.preParse();
-    expect(im.canImport, true);
+    expect(im.canImportFileCount, 3);
 
     final importRes = await im.import();
     expect(im.timings.keys, ["scan", "preParse", "import"], reason: "should time each step");

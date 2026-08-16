@@ -37,7 +37,13 @@ class UserEnumValueRec implements Identifiable {
   @override
   UserEnumValueDraft toDraft() => UserEnumValueDraft(enumId, name);
 
-  Map<String, dynamic> toJson() => {'id': id, "name": name};
+  Map<String, dynamic> toJson() => {"id": id, "enumId": enumId, "name": name};
+
+  /// From json
+  factory UserEnumValueRec.fromJson(Map<String, dynamic> j) {
+    final id = j["id"];
+    return UserEnumValueRec(id, enumId: j["enumId"], name: j["name"]);
+  }
 }
 
 class UserEnumValueDraft implements Draft<UserEnumValueRec> {
@@ -54,7 +60,30 @@ class UserEnumHydrated extends UserEnumRec {
 
   UserEnumHydrated(super.id, this.values, {required super.name});
 
+  UserEnumRec recOnly() => UserEnumRec(super.id, name: super.name);
+
   Map<String, dynamic> toJson() => {'id': id, "name": name, "values": values};
+
+  /// From json
+  factory UserEnumHydrated.fromJson(Map<String, dynamic> j) {
+    final id = j["id"];
+
+    if (id is! int) {
+      throw FormatException("id must be an int");
+    }
+
+    final valList = j["values"];
+
+    if (valList is! List) {
+      throw FormatException("j['values'] should be a List. Got j.keys=${j.keys.toList()}, j['values']=${j['values']}");
+    }
+    for (var v in valList) {
+      if (v is! Map<String, dynamic>) {
+        throw FormatException("values should be maps, got '$v'");
+      }
+    }
+    return UserEnumHydrated(id, valList.map((e) => UserEnumValueRec.fromJson(e)).toList(), name: j["name"]);
+  }
 }
 
 // ============ USER TABLE THINGS (EXPERIMENTAL) ============
@@ -344,6 +373,34 @@ class BlobFieldSpec {
   }
 }
 
+/// Defines how a BlobSchema relates to EvtTypes
+class EvtLinkSpec {
+  final Set<int> typIds; // allowed typIds: empty means ALL.
+  const EvtLinkSpec(this.typIds);
+
+  /// Make an event link that accepts any avent type.
+  EvtLinkSpec.allTypes() : this({});
+
+  /// Does it relate to a single event type.
+  bool get singleType => typIds.length == 1;
+
+  bool acceptsEvtTyp(int evtTyp) => typIds.isEmpty || typIds.contains(evtTyp);
+
+  @override
+  String toString() {
+    final desc = typIds.isEmpty ? "ANY" : typIds.toString();
+    return "EvtLink ($desc)";
+  }
+
+  List<int> toList() => typIds.toList(growable: false);
+
+  @override
+  bool operator ==(Object other) => other is EvtLinkSpec && setEquals(other.typIds, typIds);
+
+  @override
+  int get hashCode => typIds.hashCode;
+}
+
 class BlobSchemaDraft implements Draft<BlobSchemaRec> {
   BlobSchemaDraft(
     this.name, {
@@ -375,34 +432,6 @@ class BlobSchemaDraft implements Draft<BlobSchemaRec> {
   }
 }
 
-/// Defines how a BlobSchema relates to EvtTypes
-class EvtLinkSpec {
-  final Set<int> typIds; // allowed typIds: empty means ALL.
-  const EvtLinkSpec(this.typIds);
-
-  /// Make an event link that accepts any avent type.
-  EvtLinkSpec.allTypes() : this({});
-
-  /// Does it relate to a single event type.
-  bool get singleType => typIds.length == 1;
-
-  bool acceptsEvtTyp(int evtTyp) => typIds.isEmpty || typIds.contains(evtTyp);
-
-  @override
-  String toString() {
-    final desc = typIds.isEmpty ? "ANY" : typIds.toString();
-    return "EvtLink ($desc)";
-  }
-
-  List<int> toList() => typIds.toList(growable: false);
-
-  @override
-  bool operator ==(Object other) => other is EvtLinkSpec && setEquals(other.typIds, typIds);
-
-  @override
-  int get hashCode => typIds.hashCode;
-}
-
 /// Stored schema definition
 class BlobSchemaRec implements Identifiable {
   const BlobSchemaRec(this.id, {required this.name, required this.fields, this.evtLink});
@@ -425,11 +454,33 @@ class BlobSchemaRec implements Identifiable {
 
   /// From json
   factory BlobSchemaRec.fromJson(Map<String, dynamic> j) {
-    final id = int.parse(j["id"]);
+    final id = j["id"];
+
+    final evtLinkJson = j["evtLink"];
+
+    if (evtLinkJson is! List?) {
+      throw FormatException("evtLink must be a List or null, got '$evtLinkJson'");
+    }
+    EvtLinkSpec? el;
+
+    if (evtLinkJson != null) {
+      if (evtLinkJson.isEmpty) {
+        el = EvtLinkSpec.allTypes();
+      } else {
+        if (evtLinkJson is! List<int>) {
+          throw FormatException("evtLink items should be ints, got '$evtLinkJson'");
+        }
+        el = EvtLinkSpec(evtLinkJson.toSet());
+      }
+    }
+
+    if (id is! int) {
+      throw FormatException("id must be an int");
+    }
 
     final fieldMap = j["fields"];
-    if (fieldMap is! Map<String, dynamic>) {
-      throw FormatException("j['fields'] should be a Map");
+    if (fieldMap is! Map) {
+      throw FormatException("j['fields'] should be a Map, got $fieldMap");
     }
     return BlobSchemaRec(
       id,
@@ -437,12 +488,18 @@ class BlobSchemaRec implements Identifiable {
       fields: {
         for (final e in fieldMap.entries) e.key: BlobFieldSpec.fromJson(e.value as Map<String, dynamic>),
       },
-      evtLink: j["evtLink"] ?? false,
+      evtLink: el,
     );
   }
 
   /// Which enum-groups are used by this schema
   Set<String> usesEnums() => fields.values.map((f) => f.type).whereType<DEnum>().map((et) => et.group).toSet();
+
+  @override
+  bool operator ==(Object other) => other is BlobSchemaRec && other.id == id && other.toDraft() == toDraft();
+
+  @override
+  int get hashCode => Object.hash(id, toDraft());
 }
 
 // ============ BLOB DATA (each record is an instance of these...) ============
@@ -472,6 +529,34 @@ class UserBlobRec implements Identifiable {
   /// Complete JSON of the stored object
   Map<String, dynamic> toJson() => {"id": id, "schemaId": schemaId, "eventId": eventId, "values": values};
 
+  /// From json
+  factory UserBlobRec.fromJson(Map<String, dynamic> j) {
+    final id = j["id"];
+    final schemaId = j["schemaId"];
+    final eventId = j["eventId"];
+
+    if (id is! int) {
+      throw FormatException("id must be an int");
+    }
+
+    if (schemaId is! int) {
+      throw FormatException("schemaId must be an int");
+    }
+
+    if (eventId is! int?) {
+      throw FormatException("eventId must be an int or null");
+    }
+
+    final valueMap = j["values"];
+    if (valueMap is! Map<String, dynamic>) {
+      throw FormatException("j['fields'] should be a Map");
+    }
+    return UserBlobRec(
+      id,
+      schemaId: schemaId,
+      values: valueMap,
+    );
+  }
   @override
   String toString() {
     return "$id, s:$schemaId, e:$eventId, $values";

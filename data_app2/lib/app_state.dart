@@ -29,9 +29,6 @@ class AppState extends ChangeNotifier {
 
   /// All preferences
   AppPrefs get prefs => _prefs;
-  bool get autoLowerCase => _prefs.autoLowerCase;
-  LogLevel get logLevel => _prefs.logLevel;
-  TextSearchMode get textSearchMode => _prefs.textSearchMode;
 
   // get db instance & event types
   DBService get db => _db;

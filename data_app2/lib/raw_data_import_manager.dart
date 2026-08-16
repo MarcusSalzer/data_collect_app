@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:data_app2/csv/csv_schema.dart';
 import 'package:data_app2/csv/infer_role.dart';
 import 'package:data_app2/data/app_prefs.dart';
 import 'package:data_app2/db_service.dart';
@@ -9,6 +8,7 @@ import 'package:data_app2/import_registry.dart';
 import 'package:data_app2/importv2.dart';
 import 'package:data_app2/io.dart';
 import 'package:data_app2/util/enums.dart';
+import 'package:data_app2/util/extensions.dart';
 
 const extensionsSupport = {
   "csv": ImportFileExtension.csv,
@@ -60,6 +60,11 @@ class RawDataFile {
   // Parse later
   Set<String>? fields;
   int? nRecords;
+  FileImporter? importer;
+
+  Set<String>? get missingFields => importer?.requiredFields.difference(fields ?? {});
+
+  bool get isOk => missingFields?.isEmpty ?? false;
 
   RawDataFile(
     this.file,
@@ -67,12 +72,13 @@ class RawDataFile {
     this.extension,
     this.sizeBytes,
   );
-  factory RawDataFile.fromFile(File file, ImportFileExtension ext) => RawDataFile(
-    file,
-    roleFromFileName(file.path.split("/").last),
-    ext,
-    file.statSync().size,
-  );
+  factory RawDataFile.fromFile(File file, ImportFileExtension ext) =>
+      RawDataFile(file, roleFromFileName(file.basename), ext, file.statSync().size);
+
+  @override
+  String toString() {
+    return "(${file.basename}, $role, ${sizeBytes ~/ 1024} kiB)";
+  }
 }
 
 /// Stateful manager for importing raw data.
@@ -80,18 +86,20 @@ class RawDataFile {
 class RawDataImportManager {
   // === dependencies ===
   final DBService db;
+  final Future<void> Function(AppPrefs) updatePrefs;
   // === State ===
   final candidates = <RawDataFile>[];
   // benchmark
   final timings = <String, Duration>{};
 
   /// Can import if we have candidates, and at least 1 record
-  bool get canImport => candidates.isNotEmpty && candidates.fold<int>(0, (p, c) => p + (c.nRecords ?? 0)) > 0;
+  int get canImportFileCount => candidates.isNotEmpty ? candidates.fold<int>(0, (p, c) => p + (c.isOk ? 1 : 0)) : 0;
 
-  RawDataImportManager(this.db);
+  RawDataImportManager(this.db, this.updatePrefs);
 
   Future<void> scan(Directory folder) async {
     final t0 = DateTime.now();
+    await Future.delayed(Duration(milliseconds: 300));
     // start fresh
     candidates.clear();
     // Look what we have
@@ -116,6 +124,7 @@ class RawDataImportManager {
       final (fields, nRec) = await parseFieldsAndCount(c.file, c.extension);
       c.fields = fields;
       c.nRecords = nRec;
+      c.importer = FileImporter.getImporterRaw(c.role, db, updatePrefs);
     }
     timings["preParse"] = DateTime.now().difference(t0);
   }
@@ -126,46 +135,15 @@ class RawDataImportManager {
 
     final res = ImportResult();
     for (var c in candidates) {
-      switch (c.extension) {
-        case ImportFileExtension.csv:
-          final importDef = getImportDefCsv(c.role, db);
-          if (importDef == null) {
-            throw FormatException("cannot import ${c.role} from ${c.extension}");
-          }
+      if (c.sizeBytes == 0) {
+        continue; // Skip empty files
+      }
 
-          final rows = parseCsvRows(await c.file.readAsLines());
-          final count = await importDef.saveAll(rows);
-          res.add(c.role, count);
-        // Many JSON objects
-        case ImportFileExtension.ndjson:
-          final importDef = getImportDefNdjson(c.role, db);
-          if (importDef == null) {
-            throw FormatException("cannot import ${c.role} from ${c.extension}");
-          }
-          final rows = <Map<String, dynamic>>[];
-          for (var line in (await c.file.readAsLines())) {
-            final map = jsonDecode(line);
-            if (map is! Map<String, dynamic>) {
-              throw FormatException("Needs maps with string keys");
-            }
-            rows.add(map);
-          }
-          final count = await importDef.saveAll(rows);
-          res.add(c.role, count);
-        // A single JSON object
-        case ImportFileExtension.json:
-          // For now, app prefs is the only thing we can import
-          if (c.role != ImportFileRole.prefs) {
-            throw FormatException("Only preferences can be imported as json.");
-          }
+      final importer = c.importer;
 
-          final text = await c.file.readAsString();
-          final map = jsonDecode(text);
-          if (map is! Map<String, dynamic>) {
-            throw FormatException("Needs map with string keys");
-          }
-          // Attach prefs to import-results since they need to be loaded into app-state rather than a repo
-          res.newPrefs = AppPrefs.fromJson(map);
+      // Import those that are ok.
+      if (c.isOk && importer != null) {
+        res.add(c.role, await importer.importAll(c.file));
       }
     }
 

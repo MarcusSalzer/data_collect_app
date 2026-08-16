@@ -26,7 +26,7 @@ class LocationCsvCodecHuman extends CsvCodecRW<LocationDraft> {
 class LocationCsvCodecRaw extends CsvCodecRW<LocationRec> {
   LocationCsvCodecRaw({super.sep});
   @override
-  get schema => CsvSchemasConst.locationHuman;
+  get schema => CsvSchemasConst.locationRaw;
 
   @override
   build(CsvRow r) => LocationRec(r.reqInt("id"), name: r.req("name"), lat: r.reqDouble("lat"), lng: r.reqDouble("lng"));
